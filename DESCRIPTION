@@ -1,0 +1,31 @@
+Package: ffanalytics
+Type: Package
+Title: Scrape Data For Fantasy Football
+Version: 0.1.0
+Author: Dennis Andersen
+Maintainer: Dennis Andersen <andersen.dennis@outlook.com>
+Description: Scrapes data from multiple public sources of data and compiles into one dataset.
+License: GPL
+Encoding: UTF-8
+LazyData: true
+Imports: R6
+Depends: tidyverse, rvest, httr, readxl, janitor, glue, Hmisc
+RoxygenNote: 6.0.1
+Collate:
+    'adp_functions.R'
+    'calc_projections.R'
+    'custom_scoring.R'
+    'ffanalytics.R'
+    'helper_funcs.R'
+    'impute_funcs.R'
+    'make_scoring.R'
+    'recode_vars.R'
+    'schedule_data.R'
+    'scoring_rules.R'
+    'scrape_ecr.R'
+    'scrape_funcs.R'
+    'source_classes.R'
+    'stats_aggregation.R'
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

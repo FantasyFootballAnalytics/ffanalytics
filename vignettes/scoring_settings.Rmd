@@ -1,0 +1,136 @@
+---
+title: "Scoring Settings"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scoring Settings}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Structure
+Scoring settings defines how the projected points are calculated based on the
+projected stats. In the `ffwebpackage` scoring settings are defined by groups of
+variables.
+
+* *pass*: Passing variables for QBs
+* *rush*: Rushing variables for QBs, RBs, WRs, and TEs
+* *rec*: Receiving variables for RBs, WRs, and TEs
+* *misc*: Miscellaneous variables for QBs, RBs, WRs, and TEs
+* *kick*: Variables for kickers
+* *dst*: Variables for DSTs
+* *idp*: Variables for individual defensive players
+* *pts_bracket*: Defining thresholds for points allowed for DSTs
+
+The scoring settings are defined as a list of lists with the first level in the 
+list being the variable groups defined above. Within `rush`, `rec`, `misc`, and 
+`idp` settings can be specified by position. `ptsBracket` is a special case that
+is described seprarately, but each of the variable groups is also a list. The list
+elements are named by the variables used in the scoring and the values is the 
+multiplier used. So if the scoring calls for 4 points per passing touchdown, then
+the `pass` group will have `pass_tds = 4` as an element. The  `rush`, `rec`, 
+`misc`, and `idp`, all have a `all_pos` element which is `TRUE` if the settings
+within the group are the same for all positions. 
+
+## Setting scoring by position
+If scoring settings differ by position within one or more of the `rush`, `rec`, 
+`misc`, and `idp` groups then `all_pos` for the group is set to `FALSE` and the
+group will contain a list for each of the positions. For example, for a simple 
+PPR league the `rec` group could look like this:
+```
+rec = list(
+  all_pos = TRUE,
+  rec = 1, rec_yds = 0.1, rec_tds = 6
+)
+```
+Adding a  TE premium (1.5 points per reception), would then require the `rec` 
+group to look like this:
+```
+rec = list(
+  all_pos = FALSE,
+  RB = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
+  WR = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
+  TE = list(rec = 1.5, rec_yds = 0.1, rec_tds = 6),
+)
+```
+
+## Thresholds for DST points allowed
+When scoring settings cover the DST position, there is typically a setting defining
+brackets for the points allowed. For example
+```
+      0 Pts Allowed = 10 points
+ 0 -  6 Pts Allowed = 7 points
+ 7 - 20 Pts Allowed = 4 points
+21 - 34 Pts Allowed = 0 points
+Over 34 Pts Allowed = -4 points
+```
+
+To handle these brackets a `pts_bracket` elements should be added to the scoring
+definition list. This will be a list of lists with each element representing the 
+higher end of the bracket threshold and the points associated. So for the example
+above the first element will be `list(threshold = 0, points = 10)`, the second
+element `list(threshold = 6, points = 7)`, and so on. For the last element, there
+is not an upper limit, so we can set that to an abitrarily number that is large
+enough that points allowed wouldn't be able to exceed. For example 
+`list(threshold = 99, points = -4)`. For this example the `pts_bracket` element
+ends up looking like this:
+```
+pts_bracket = list(
+  list(threshold = 0, points = 10),
+  list(threshold = 6, points = 7),
+  list(threshold = 20, points = 4),
+  list(threshold = 34, points = 0),
+  list(threshold = 99, points = -4)
+)
+```
+
+## Default scoring settings
+If scoring settings are not specified when calculating the projected points, the
+package will use the following default settings:
+```
+list(
+  pass = list(
+    pass_att = 0, pass_comp = 0, pass_inc = 0, pass_yds = 0.04, pass_tds = 4,
+    pass_int = -3, pass_40_yds = 0,  pass_300_yds = 0, pass_350_yds = 0,
+    pass_400_yds = 0
+  ),
+  rush = list(
+    all_pos = TRUE,
+    rush_yds = 0.1,  rush_att = 0, rush_40_yds = 0, rush_tds = 6,
+    rush_100_yds = 0, rush_150_yds = 0, rush_200_yds = 0),
+  rec = list(
+    all_pos = TRUE,
+    rec = 0, rec_yds = 0.1, rec_tds = 6, rec_40_yds = 0, rec_100_yds = 0,
+    rec_150_yds = 0, rec_200_yds = 0
+  ),
+  misc = list(
+    all_pos = TRUE,
+    fumbles_lost = -3, fumbles_total = 0,
+    sacks = 0, two_pts = 2
+  ),
+  kick = list(
+    xp = 1.0, fg_0019 = 3.0,  fg_2029 = 3.0, fg_3039 = 3.0, fg_4049 = 4.0,
+    fg_50 = 5.0,  fg_miss = 0.0
+  ),
+  ret = list(
+    all_pos = TRUE,
+    return_tds = 6, return_yds = 0
+  ),
+  idp = list(
+    all_pos = TRUE,
+    idp_solo = 1, idp_asst = 0.5, idp_sack = 2, idp_int = 3,  idp_fum_force = 3,
+    idp_fum_rec = 2,  idp_pd = 1, idp_td = 6,  idp_safety = 2
+  ),
+  dst = list(
+    dst_fum_rec = 2,  dst_int = 2, dst_safety = 2, dst_sacks = 1, dst_td = 6,
+    dst_blk = 1.5, dst_ret_yds = 0, dst_pts_allowed = 0
+  ),
+  pts_bracket = list(
+    list(threshold = 0, points = 10),
+    list(threshold = 6, points = 7),
+    list(threshold = 20, points = 4),
+    list(threshold = 34, points = 0),
+    list(threshold = 99, points = -4)
+  )
+)
+```
