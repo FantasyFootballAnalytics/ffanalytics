@@ -85,7 +85,7 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   rank_tbl <- rank_tbl %>% janitor::clean_names()
 
   if(any(names(rank_tbl) == "fantasypro_id"))
-    rank_tbl <- rank_tbl %>% add_column(id = ffwebscrape:::id_col(rank_tbl$fantasypro_id, "fantasypro_id"), .before = 1)
+    rank_tbl <- rank_tbl %>% add_column(id = ffanalytics:::id_col(rank_tbl$fantasypro_id, "fantasypro_id"), .before = 1)
 
   return(rank_tbl)
 }

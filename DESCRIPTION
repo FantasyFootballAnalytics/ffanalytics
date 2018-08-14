@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 0.1.0
+Version: 2.0.0
 Author: Dennis Andersen
 Maintainer: Dennis Andersen <andersen.dennis@outlook.com>
 Description: Scrapes data from multiple public sources of data and compiles into one dataset.

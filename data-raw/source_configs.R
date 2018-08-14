@@ -633,9 +633,9 @@ xlsx_sites <- list(
   )
 )
 projection_sources <- append(append(
-  purrr::map(html_sites, do.call, what = ffwebscrape:::html_source$new),
-  purrr::map(json_sites, do.call, what = ffwebscrape:::json_source$new)),
-  purrr::map(xlsx_sites, do.call, what = ffwebscrape:::xlsx_source$new)
+  purrr::map(html_sites, do.call, what = ffanalytics:::html_source$new),
+  purrr::map(json_sites, do.call, what = ffanalytics:::json_source$new)),
+  purrr::map(xlsx_sites, do.call, what = ffanalytics:::xlsx_source$new)
 )
 
 

@@ -28,7 +28,7 @@ pos_scor <- function(pname, rule_list){
 }
 
 grp_rule <- function(x, p){
-  sp <- ffwebscrape:::scoring_positions[[p]]
+  sp <- ffanalytics:::scoring_positions[[p]]
 
   map(x, ~ .x[intersect(names(.x), sp)]) %>% reduce(~ list_merge(.x,!!!.y)) %>%
     modify_depth(2, sum)
@@ -96,7 +96,7 @@ custom_scoring <- function(...){
   sr <- sr %>% discard(~ all(names(.) == "all_pos"))
 
   ap <- sr[intersect(names(sr), c("rec", "rush", "misc", "ret", "idp"))]%>%
-    imap(~ list(all_pos = !any(ffwebscrape:::scoring_positions[[.y]] %in% names(.x))))
+    imap(~ list(all_pos = !any(ffanalytics:::scoring_positions[[.y]] %in% names(.x))))
 
   sr %>% list_modify(!!! ap)
 }

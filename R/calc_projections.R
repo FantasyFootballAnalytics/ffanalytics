@@ -105,7 +105,7 @@ source_points <- function(data_result, scoring_rules){
   dst_src <- long_result %>% slice(0) %>% add_column(points = 0)
   if(dst_bracket){
     dst_src <- long_result %>%  filter(data_col == "dst_pts_allowed") %>%
-      mutate(points = ffwebscrape:::dst_points(stat_value, scoring$pts_bracket))
+      mutate(points = ffanalytics:::dst_points(stat_value, scoring$pts_bracket))
   }
 
   long_result %>%
@@ -222,14 +222,14 @@ projected_points <- function(agg_stats, scoring_rules){
   dst_src <- agg_stats %>% slice(0) %>% add_column(points = 0)
   if(dst_bracket){
     dst_src <- agg_stats %>%  filter(data_col == "dst_pts_allowed") %>%
-      mutate(points = ffwebscrape:::dst_points(stat_value, scoring_rules$pts_bracket))
+      mutate(points = ffanalytics:::dst_points(stat_value, scoring_rules$pts_bracket))
   }
 
   dst_agg <- dst_src %>% slice(0)
 
   if(dst_bracket){
     dst_agg <- agg_stats %>%  filter(data_col == "dst_pts_allowed") %>%
-      mutate(points = ffwebscrape:::dst_points(stat_value, scoring_rules$pts_bracket))
+      mutate(points = ffanalytics:::dst_points(stat_value, scoring_rules$pts_bracket))
   }
   agg_stats  %>%
     inner_join(scoring_tbl, by = c("pos", "data_col")) %>%

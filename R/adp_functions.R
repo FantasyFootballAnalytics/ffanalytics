@@ -347,8 +347,8 @@ ffc_draft <- function(format=c("standard", "ppr", "2qb", "dynasty", "rookie"),
            fp_id = recode(fp_id, "ronald-jones" = "ronald-jones-ii",
                           "david-johnson" = "david-johnson-rb",
                           "michael-thomas" = "michael-thomas-wr")) %>%
-    add_column(id = ffwebscrape:::id_col(.$fp_id, "fantasypro_id"), .before = 1) %>%
-    mutate(id = ifelse(is.na(id), ffwebscrape:::match_players(.), id)) %>%
+    add_column(id = ffanalytics:::id_col(.$fp_id, "fantasypro_id"), .before = 1) %>%
+    mutate(id = ifelse(is.na(id), ffanalytics:::match_players(.), id)) %>%
     rename(adp = overall)
 
 }
