@@ -10,7 +10,7 @@ vignette: >
 
 ## Structure
 Scoring settings defines how the projected points are calculated based on the
-projected stats. In the `ffwebpackage` scoring settings are defined by groups of
+projected stats. In the `ffanalytics` package scoring settings are defined by groups of
 variables.
 
 * *pass*: Passing variables for QBs
