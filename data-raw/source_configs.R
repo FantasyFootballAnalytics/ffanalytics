@@ -518,7 +518,7 @@ json_sites <- list(
     stat_cols = c(pass_att = "passAtt", pass_comp = "passCmp", pass_yds = "passYds",
                   pass_tds = "passTD", pass_int = "passInt", rush_att = "rushAtt",
                   rush_yds = "rushYds", rush_tds = "rushTD", fumbles_lost = "fumblesLost",
-                  rec = "receptions", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
+                  rec = "rec", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
                   dst_int = "defInt", dst_fum_rec = "defFR", dst_fum_force = "defFF",
                   dst_sacks = "defSack" , dst_td = "defTD", dst_ret_tds = "defRetTD",
                   dst_safety = "defSafety", dst_pts_allowed = "defPA",
@@ -529,7 +529,7 @@ json_sites <- list(
                   rec_yds = "recYards", dst_sacks = "sacks", dst_int = "interceptions",
                   dst_fum_rec = "fumbleRec", dst_td = "TD", dst_st_td = "specialTeamTD"
                   ),
-    player_cols = c(src_id = "playerid", player = "displayname",  pos = "position")
+    player_cols = c(src_id = "player_id", player = "display_name",  pos = "position")
 
 
   ),

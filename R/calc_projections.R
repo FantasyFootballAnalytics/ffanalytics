@@ -69,7 +69,7 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
 # Helper functions to calculate the quantiles and standard deviations for the
 # source points. Used in the points_sd and confidence interval functions
 quant_funcs <- list(average = quantile, robust = quantile,
-                    weighted = Hmisc::wtd.quantile)
+                    weighted = possibly(Hmisc::wtd.quantile, c(`5%` = NaN, `95%` = NaN)))
 quant_args <- list(list(probs = c(0.05, 0.95)),  list(probs = c(0.05, 0.95)),
                    list(probs = c(0.05, 0.95), type = "i/n"))
 
@@ -236,7 +236,7 @@ projected_points <- function(agg_stats, scoring_rules){
     mutate(points = stat_value * points) %>%
     bind_rows(dst_agg) %>%
     group_by(pos, avg_type, id) %>%
-    summarise(points = sum(points, na.rm = TRUE)) %>%
+    summarise(points = if_else(all(is.na(points)), NA_real_, sum(points, na.rm = TRUE))) %>%
     mutate(pos_rank = dense_rank(-points),
            drop_off =  points - (lead(points, order_by = pos_rank) +
                                    lead(points, 2, order_by = pos_rank)) /2 ) %>%
