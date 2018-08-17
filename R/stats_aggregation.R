@@ -30,12 +30,19 @@ stats_by_category <- function(data_results){
     data_cat <- map(list(pass = "^pass_", rush = "^rush_|^reg|rec_tds",
                          rec = "^rec|^reg|rush_tds"),
                     lapply, X = data_results, FUN = get_stat_cols) %>%
-      map(bind_rows) %>% map(rm_dupe_rows) %>% map(impute_na_off)
+      map(bind_rows) %>% map(rm_dupe_rows) %>%
+      map(group_by, id, data_src) %>%
+      map(summarise_at, vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
+      map(ungroup) %>%
+      map(impute_na_off)
 
     data_cat <- append(data_cat,
                        map(list(misc = "^games$|^fum|^sac|^two", ret = "^ret" ),
                            lapply, X = data_results, FUN = get_stat_cols) %>%
-                         map(bind_rows) %>% map(rm_dupe_rows))
+                         map(bind_rows) %>% map(rm_dupe_rows)  %>%
+                         map(group_by, id, data_src) %>%
+                         map(summarise_at, vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
+                         map(ungroup))
   }
 
   if("K" %in% names(data_results)){
@@ -53,7 +60,9 @@ stats_by_category <- function(data_results){
   if(any(names(data_results) %in% c("DL", "LB", "DB"))){
     data_cat$idp <- map(data_results, get_stat_cols,
                         match_pattern = "^idp" ) %>%
-      bind_rows() %>% rm_dupe_rows()
+      bind_rows() %>% rm_dupe_rows()  %>% group_by(id, data_src) %>%
+      summarise_at(vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
+      map(ungroup)
   }
 
   data_cat <- discard(data_cat, no_rows) %>%
