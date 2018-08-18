@@ -62,7 +62,7 @@ stats_by_category <- function(data_results){
                         match_pattern = "^idp" ) %>%
       bind_rows() %>% rm_dupe_rows()  %>% group_by(id, data_src) %>%
       summarise_at(vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
-      map(ungroup)
+      ungroup()
   }
 
   data_cat <- discard(data_cat, no_rows) %>%
