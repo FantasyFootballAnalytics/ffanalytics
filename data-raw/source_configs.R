@@ -250,7 +250,7 @@ html_sites <- list(
       dst_pts_6 = "1-6", dst_pts_13 = "7-13", dst_pts_17 = "14-17", dst_pts_20 = "18-20",
       dst_pts_27 = "21-27", dst_pts_34 = "28-34", dst_pts_45 = "35-45", dst_pts_46 = "46+",
       dst_sacks = "Scks", dst_int = "Int", dst_fum_rec = "Fum", dst_td = "DefTD",
-      dst_safety = "Safts", idp_solo = "Tack", idp_asst = "Asst", idp_sacks = "Scks",
+      dst_safety = "Safts", idp_solo = "Tack", idp_asst = "Asst", idp_sack = "Scks",
       idp_pd = "PassDef", idp_int = "Int", idp_fum_force = "FumFrc", idp_fum_rec = "Fum",
       idp_tds = "DefTD", site_pts = "Pts"
     )
