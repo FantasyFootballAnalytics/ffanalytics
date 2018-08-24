@@ -39,7 +39,7 @@ stats_by_category <- function(data_results){
     data_cat <- append(data_cat,
                        map(list(misc = "^games$|^fum|^sac|^two", ret = "^ret" ),
                            lapply, X = data_results, FUN = get_stat_cols) %>%
-                         map(bind_rows) %>% map(rm_dupe_rows)  %>%
+                         map(bind_rows) %>% discard(~ nrow(.) == 0) %>% map(rm_dupe_rows)  %>%
                          map(group_by, id, data_src) %>%
                          map(summarise_at, vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
                          map(ungroup))
