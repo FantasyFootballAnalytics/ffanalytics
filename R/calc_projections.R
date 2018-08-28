@@ -549,6 +549,13 @@ add_risk <- function(projection_table){
 #' Adds player information to the projections table
 #' @export
 add_player_info <- function(projection_table){
+  lg_type <- attr(projection_table, "lg_type")
+  season <- attr(projection_table, "season")
+  week <- attr(projection_table, "week")
+
   select(player_table, id, first_name, last_name, team, position, age, exp) %>%
-    inner_join(projection_table, by = "id")
+    inner_join(projection_table, by = "id") %>%
+    `attr<-`(which = "season", season) %>%
+    `attr<-`(which = "week", week) %>%
+    `attr<-`(which = "lg_type", lg_type)
 }
