@@ -70,6 +70,12 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   fp_ids <- rank_page %>% html_nodes("#rank-data tr.player-row td.player-label > a[href*='players'],a[href*='/teams/']") %>%
     html_attr("href") %>% basename() %>% gsub(".php", "", .)
 
+  if(all(is.na(rank_tbl$`Abbr Name`))){
+    return(rank_tbl %>% add_column(id = NA_character_, .before = 1)  %>%
+      janitor::clean_names() %>%
+             mutate(avg = NA_real_, std_dev = NA_real_) %>% slice(0))
+  }
+
   rank_tbl <- rank_tbl %>% select(-matches("\\(Team\\)$|^WSI|DST$")) %>%
     add_column(fantasypro_id = fp_ids, .before = 1)
 

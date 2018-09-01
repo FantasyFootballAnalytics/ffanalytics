@@ -315,7 +315,7 @@ html_sites <- list(
     week_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
     id_col = "fleaflicker_id",
     table_css = "#body-center-main table",
-    pid_css = "td[class='player'] a",
+    pid_css = "a.player-text",
     split_cols = list(
       list(
         col = function(p)list(TRUE ~ "Player Name"),
