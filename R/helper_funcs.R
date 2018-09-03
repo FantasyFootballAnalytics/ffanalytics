@@ -53,10 +53,11 @@ clean_pname <- function(x){
 
 match_players <- function(x){
   x <- mutate(x, pos = recode(pos, !!!pos_corrections), team = recode(team, !!!team_corrections),
-              player = gsub("\\s[JS]r\\.*|\\sI+$|V$", "", player))
-  p_tbl <- mutate(ff_player_data, position = recode(position, !!!pos_corrections),
-                  team = recode(team, !!!team_corrections),
-                  name = gsub("\\s[JS]r\\.*|\\sI+$|V$", "", name))
+              player = gsub("\\s[JS]r\\.*|\\s[I|V]+$", "", player))
+  p_tbl <- player_table %>% unite("name", c("first_name", "last_name"), sep = " ") %>%
+    mutate(position = recode(position, !!!pos_corrections),
+           team = recode(team, !!!team_corrections),
+           name = gsub("\\s[JS]r\\.*|\\s[I|V]+$", "", name))
 
   match_pos <- unique(x$pos)
 

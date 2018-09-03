@@ -143,7 +143,7 @@ projection_source <- R6::R6Class(
 
       data_tbl <- data_tbl %>%
         rename(!!!rename_cols) %>%
-        clean_format() %>%
+        ffanalytics:::clean_format() %>%
         modify_at(names(stat_cols), as.numeric) %>%
         modify_at(stat_cols, as.numeric) %>%
         clean_names()

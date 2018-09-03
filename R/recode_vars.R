@@ -52,7 +52,7 @@ pos_corrections = list(Def = "DST", D = "DST", DEF = "DST", "D/ST" = "DST", PK =
 team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "LAR",
                          LA = "LAR", SDC = "SD", ARZ = "ARI", NOR = "NO", GBP = "GB",
                          JAX = "JAC", WSH = "WAS", HST = "HOU", CLV = "CLE", BLT = "BAL",
-                         NWE = "NE")
+                         NWE = "NE", NOS = "NO")
 
 
 
