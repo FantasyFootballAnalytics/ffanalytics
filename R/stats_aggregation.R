@@ -48,7 +48,9 @@ stats_by_category <- function(data_results){
   if("K" %in% names(data_results)){
     data_cat$kick <- map(data_results, get_stat_cols,
                          match_pattern = "^fg|^xp" ) %>%
-      bind_rows() %>% kick_impute()
+      bind_rows() %>%  group_by(id, data_src) %>%
+      summarise_at(vars(-one_of("id", "data_src")), mean, na.rm = TRUE) %>%
+      ungroup() %>% kick_impute()
   }
 
   if("DST" %in% names(data_results)){

@@ -52,6 +52,10 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
 
   rank_page <- read_html(paste0(ranks_url, rk_php))
 
+  num_experts <- rank_page %>%
+    html_nodes("#experts input.expert[type='checkbox']") %>%
+    html_attr("checked") %>% `==`("checked") %>% which() %>% length()
+
   rank_page %>% html_nodes("tr.tier-row") %>% xml_remove()
 
   rank_page %>% html_nodes("#rank-data tr.static, tr.table-ad, tr.rank-table-ad") %>% xml_remove()
@@ -93,5 +97,6 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   if(any(names(rank_tbl) == "fantasypro_id"))
     rank_tbl <- rank_tbl %>% add_column(id = ffanalytics:::id_col(rank_tbl$fantasypro_id, "fantasypro_id"), .before = 1)
 
-  return(rank_tbl)
+
+  return(rank_tbl %>% `attr<-`("experts", num_experts))
 }
