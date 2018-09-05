@@ -198,21 +198,21 @@ kick_impute <- function(kick_tbl){
 
     }
 
-    # if(any(kick_cols == "fg_0039")){
-    #   kick_tbl <- kick_tbl %>%
-    #     mutate(tot_0039 = sum_columns(kick_tbl, fg_0019, fg_2029, fg_3039),
-    #            fg_0039 = ifelse(!is.na(tot_0039) & is.na(fg_0039), tot_0039, fg_0039)) %>%
-    #     select(-tot_0039)
-    #
-    #   kicking <- kicking %>% inner_join(select(kick_tbl, id, data_src, fg_0039), by = c("id", "data_src")) %>%
-    #     dist_rate(kick_tbl, fg_0039, fg_0019, fg_2029, fg_3039) %>% select(-fg_0039)
-    #
-    #   kick_tbl <- select(kick_tbl, -fg_0019, -fg_2029, -fg_3039) %>%
-    #     inner_join(select(kicking, id, data_src, fg_0019, fg_2029, fg_3039), by = c("id", "data_src"))
-    #
-    #   kicking <- kicking %>% select(-fg_0019, -fg_2029, -fg_3039) %>%
-    #     dist_rate(kick_tbl, fg, fg_0019, fg_2029, fg_3039, fg_4049, fg_50)
-    # }
+    if(any(kick_cols == "fg_0039")){
+      kick_tbl <- kick_tbl %>%
+        mutate(tot_0039 = sum_columns(kick_tbl, fg_0019, fg_2029, fg_3039),
+               fg_0039 = ifelse(!is.na(tot_0039) & is.na(fg_0039), tot_0039, fg_0039)) %>%
+        select(-tot_0039)
+
+      kicking <- kicking %>% inner_join(select(kick_tbl, id, data_src, fg_0039), by = c("id", "data_src")) %>%
+        dist_rate(kick_tbl, fg_0039, fg_0019, fg_2029, fg_3039) %>% select(-fg_0039)
+
+      kick_tbl <- select(kick_tbl, -fg_0019, -fg_2029, -fg_3039) %>%
+        inner_join(select(kicking, id, data_src, fg_0019, fg_2029, fg_3039), by = c("id", "data_src"))
+
+      kicking <- kicking %>% select(-fg_0019, -fg_2029, -fg_3039) %>%
+        dist_rate(kick_tbl, fg, fg_0019, fg_2029, fg_3039, fg_4049, fg_50)
+    }
 
     if(!any(kick_cols %in% c("fg_0029", "fg_0039"))){
       kicking <- kicking %>%

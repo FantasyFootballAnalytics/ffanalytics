@@ -323,7 +323,7 @@ html_source <- R6::R6Class(
 
         if(is.null(self$index)){
           data_table <- data_page %>% html_node(table_css) %>%
-            html_table(header = TRUE)
+            html_table(header = TRUE, fill = TRUE)
         } else {
           data_table <- html_nodes(data_page, table_css)%>%
             html_table(header = TRUE, fill = TRUE) %>% .[self$index] %>%
