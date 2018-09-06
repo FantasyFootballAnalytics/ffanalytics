@@ -128,7 +128,9 @@ projection_source <- R6::R6Class(
       return(full_url)
     },
     name_cols = function(data_tbl, position){
-      stat_cols <- self$stat_cols
+
+      stat_cols <- tolower(self$stat_cols)
+      data_tbl <- rename_all(data_tbl, tolower)
       stat_cols <- stat_cols[which(stat_cols %in% names(data_tbl))]
 
       if(position == "K"){

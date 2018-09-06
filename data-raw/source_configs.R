@@ -1,10 +1,10 @@
 html_sites <- list(
   #### CBS ####
   CBS = list(
-    base = "https://www.cbssports.com/fantasy/football/stats/weeklyprojections/",
+    base = "https://www.cbssports.com/fantasy/football/stats/sortable/points/",
     get_path = function(season, week, position){
-      period <- ifelse(week == 0, "season", as.character(week))
-      paste(toupper(position), period, "avg/standard", sep  = "/")
+      period <- ifelse(week == 0, "", as.character(week))
+      paste(toupper(position), "standard/projections", season, period, sep  = "/")
     },
     get_query = function(season, week, pos_id, ...)list(print_rows = 9999),
     min_week = 0,
@@ -14,7 +14,7 @@ html_sites <- list(
 
     id_col = "cbs_id",
     table_css = "table.data",
-    pid_css = "table a[href *= 'playerpage']",
+    pid_css = "table.data a[href *= 'players']",
     rm_elem = list("table.data tr.title", "table.data tr.footer"),
     extract_pid = function(p_node){
       p_node %>% html_attr("href") %>% str_extract("[0-9]{2,8}")},
@@ -29,6 +29,7 @@ html_sites <- list(
       pass_tds = "Passing TD",  pass_int = "Passing INT", pass_comp_pct = "Passing CmpPct",
       pass_avg = "Passing YAtt", rush_att = "Rushing Att", rush_yds = "Rushing Yd",
       rush_avg = "Rushing Avg", rush_tds = "Rushing TD", rec = "Receiving Recpt",
+      rec_tgt = "Receiving Targt",
       rec_yds = "Receiving Yd", rec_avg = "Receiving Avg", rec_tds = "Receiving TD",
       fumbles_lost = "Misc FL",  fg = "FG", fg_att = "FGA",  dst_int = "Int",
       dst_fum_rec = "DFR", dst_fum_force = "FF", dst_sacks = "SACK", dst_td = "DTD",

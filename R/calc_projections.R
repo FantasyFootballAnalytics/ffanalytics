@@ -365,7 +365,15 @@ set_tiers <- function(data_tbl, d_threshold = NULL, src_points){
 #' @export
 projections_table <- function(data_result, scoring_rules = NULL, src_weights = NULL,
                               vor_baseline = NULL, tier_thresholds = NULL){
-  if(is.null(scoring_rules))
+
+    season <- attr(data_result, "season")
+    week <- attr(data_result, "week")
+
+    data_result <- keep(data_result, ~ nrow(.) > 0) %>%
+      `attr<-`(which = "season", season) %>%
+      `attr<-`(which = "week", week)
+
+    if(is.null(scoring_rules))
     scoring_rules <- scoring
 
   if(scoring_rules$rec$all_pos){
