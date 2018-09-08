@@ -64,7 +64,7 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
                     FFToday = 0.379, NumberFire = 0.322, FantasyPros = 0.000,
                     FantasySharks= 0.327, FantasyFootballNerd = 0.000,
                     Walterfootball = 0.281, RTSports= 0.330,
-                    FantasyData= 0.428, Fleaflicker = 0.428)
+                    FantasyData= 0.428, FleaFlicker = 0.428)
 
 # Helper functions to calculate the quantiles and standard deviations for the
 # source points. Used in the points_sd and confidence interval functions

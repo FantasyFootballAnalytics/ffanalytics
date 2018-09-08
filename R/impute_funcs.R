@@ -230,7 +230,16 @@ kick_impute <- function(kick_tbl){
         dist_rate(kick_tbl, fg, fg_0019, fg_2029, fg_3039, fg_4049, fg_50)
     }
 
-    if("fg_miss" %in% names(kick_tbl))
+    if("fg_miss" %in% names(kick_tbl)){
+      if(!all(c("fg_miss_0019", "fg_miss_2029", "fg_miss_3039", "fg_miss_4049", "fg_miss_50") %in% names(kick_tbl))){
+        kick_tbl <- kick_tbl %>%
+          mutate(fg_miss_0019 = NA_real_, fg_miss_2029 = NA_real_, fg_miss_3039 = NA_real_, fg_miss_4049 = NA_real_,
+                 fg_miss_50 = NA_real_)
+      }
+
+      if("fg_miss" %in% intersect(names(kicking), names(kick_tbl)))
+        kick_tbl <- select(kick_tbl, -fg_miss)
+
       kicking <- kicking %>% inner_join(select(kick_tbl, id, matches("^fg_miss")), by = "id") %>%
         mutate(fg_miss_0019 = if_else(is.na(fg_miss_0019), fg_miss * fg_0019 / fg, fg_miss_0019),
                fg_miss_2029 = if_else(is.na(fg_miss_2029), fg_miss * fg_2029 / fg, fg_miss_2029),
@@ -238,6 +247,7 @@ kick_impute <- function(kick_tbl){
                fg_miss_4049 = if_else(is.na(fg_miss_4049), fg_miss * fg_4049 / fg, fg_miss_4049),
                fg_miss_50 = if_else(is.na(fg_miss_50), fg_miss * fg_50 / fg, fg_miss_50)
         )
+    }
   }
 
   return(kicking)
