@@ -56,6 +56,11 @@ impute_na_off <- function(tbl){
     tbl$att <- calc_touch_from_avg(tbl$yds, tbl$avg, tbl$att)
   }
 
+
+  if(!("att" %in% names(tbl))){
+    tbl$att <- NA_real_
+  }
+
   out_df <- tbl %>% val_from_rate(yds, att) %>% miss_rate(tbl, yds, att)
 
   if("comp" %in% names(tbl) & stat_type == "pass"){
@@ -117,6 +122,12 @@ impute_na_off <- function(tbl){
 kick_impute <- function(kick_tbl){
   kick_cols <- names(kick_tbl)
   kick_dist <- c("fg_0019", "fg_2029", "fg_3039", "fg_4049", "fg_50")
+
+  if(!("fg" %in% kick_cols) & all(kick_dist %in% kick_cols))
+    kick_tbl <- mutate(kick_tbl, fg = sum_columns(kick_tbl, fg_0019, fg_2029, fg_3039, fg_4049, fg_50, na.rm = TRUE))
+
+  if(!("fg_miss" %in% kick_cols) & all(c("fg_miss_0019", "fg_miss_2029", "fg_miss_3039", "fg_miss_4049", "fg_miss_50") %in% kick_cols))
+    kick_tbl <- mutate(kick_tbl, fg_miss = sum_columns(kick_tbl, fg_miss_0019, fg_miss_2029, fg_miss_3039, fg_miss_4049, fg_miss_50, na.rm = TRUE))
 
   # Checking to see if there is a 10-19 fg column listed in the table. If there
   # is then it is then the value is moved to the 0-19 column and the 10-19 column
@@ -219,13 +230,14 @@ kick_impute <- function(kick_tbl){
         dist_rate(kick_tbl, fg, fg_0019, fg_2029, fg_3039, fg_4049, fg_50)
     }
 
-    kicking <- kicking %>%
-      mutate(fg_miss_0019 = fg_miss * fg_0019 / fg,
-             fg_miss_2029 = fg_miss * fg_2029 / fg,
-             fg_miss_3039 = fg_miss * fg_3039 / fg,
-             fg_miss_4049 = fg_miss * fg_4049 / fg,
-             fg_miss_50 = fg_miss * fg_50 / fg
-      )
+    if("fg_miss" %in% names(kick_tbl))
+      kicking <- kicking %>% inner_join(select(kick_tbl, id, matches("^fg_miss")), by = "id") %>%
+        mutate(fg_miss_0019 = if_else(is.na(fg_miss_0019), fg_miss * fg_0019 / fg, fg_miss_0019),
+               fg_miss_2029 = if_else(is.na(fg_miss_2029), fg_miss * fg_2029 / fg, fg_miss_2029),
+               fg_miss_3039 = if_else(is.na(fg_miss_3039), fg_miss * fg_3039 / fg, fg_miss_3039),
+               fg_miss_4049 = if_else(is.na(fg_miss_4049), fg_miss * fg_4049 / fg, fg_miss_4049),
+               fg_miss_50 = if_else(is.na(fg_miss_50), fg_miss * fg_50 / fg, fg_miss_50)
+        )
   }
 
   return(kicking)

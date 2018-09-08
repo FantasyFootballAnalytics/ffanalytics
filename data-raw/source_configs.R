@@ -133,8 +133,8 @@ html_sites <- list(
       return(query)
     },
     url_positions = function(p)switch(p, QB = 1, RB = 2, WR = 3, TE= 4, K = 5, DST= 6),
-    min_week = 0,
-    max_week = 21,
+    min_week = -1,
+    max_week = -1,
     season_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     week_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     id_col = "fantasydata_id",
@@ -173,7 +173,7 @@ html_sites <- list(
     id_col = "fantasypro_id",
     table_css = "#data",
     pid_css = "a.player-name",
-    extract_pid = function(p_node){p_node %>% html_attr("href") %>% basename() %>% str_replace("\\.php$", "")},
+    extract_pid = function(p_node){p_node %>% html_attr("href") %>% basename() %>% str_replace("\\.php.*$", "")},
     rm_elem = list("tr.ad-row"),
     split_cols = list(
       list(
@@ -308,15 +308,16 @@ html_sites <- list(
       return(query)
     },
     url_positions = function(p)switch(p, "QB" = 4, "RB" = 1, "WR" = 2, "TE" = 8,
-                                      "Flex" = 11, "K" = 16, "DST" = 256, "DB" = 32,
-                                      "DL" = 64, "LB" = 128, "IDP" = 224),
-    min_week = 0,
+                                      "Flex" = 11, "K" = 16, "DST" = 256, "CB" = 512,
+                                      "S" = 1024, "DE" = 2048, "DT" = 4096,
+                                      "LB" = 128, "IDP" = 7808),
+    min_week = 1,
     max_week = 21,
-    season_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-    week_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
+    week_pos = c("QB", "RB", "WR", "TE", "K", "DST", "CB", "S", "DE", "DT", "LB", "IDP"),
     id_col = "fleaflicker_id",
     table_css = "#body-center-main table",
     pid_css = "a.player-text",
+    rm_elem = list("tr.table-pagination"),
     split_cols = list(
       list(
         col = function(p)list(TRUE ~ "Player Name"),
@@ -337,6 +338,7 @@ html_sites <- list(
       xp_att = "Kicking Att1", dst_int = "Defense INT", dst_sacks = "Defense Sack",
       dst_fum_force = "Defense FF", dst_fum_rec = "Defense FR",  dst_td = "Defense TD",
       dst_pts_allowed = "Defense Pts", dst_yds_allowed = "Defense Yd",
+      dst_pts_allowed = "Team Defense Pts", dst_yds_allowed = "Team Defense Yd",
       idp_asst = "Defense Ast", idp_solo = "Defense Solo", idp_int = "Defense INT",
       idp_sack = "Defense Sack", idp_fum_force = "Defense FF",
       idp_fum_rec = "Defense FR", idp_td = "Defense TD", site_pts = "Fantasy FPts"
@@ -519,7 +521,7 @@ json_sites <- list(
     stat_cols = c(pass_att = "passAtt", pass_comp = "passCmp", pass_yds = "passYds",
                   pass_tds = "passTD", pass_int = "passInt", rush_att = "rushAtt",
                   rush_yds = "rushYds", rush_tds = "rushTD", fumbles_lost = "fumblesLost",
-                  rec = "rec", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
+                  rec = "receptions", rec = "rec", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
                   dst_int = "defInt", dst_fum_rec = "defFR", dst_fum_force = "defFF",
                   dst_sacks = "defSack" , dst_td = "defTD", dst_ret_tds = "defRetTD",
                   dst_safety = "defSafety", dst_pts_allowed = "defPA",
@@ -530,7 +532,7 @@ json_sites <- list(
                   rec_yds = "recYards", dst_sacks = "sacks", dst_int = "interceptions",
                   dst_fum_rec = "fumbleRec", dst_td = "TD", dst_st_td = "specialTeamTD"
                   ),
-    player_cols = c(src_id = "player_id", player = "display_name",  pos = "position")
+    player_cols = c(src_id = "playerid", player = "display_name",  pos = "position")
 
 
   ),

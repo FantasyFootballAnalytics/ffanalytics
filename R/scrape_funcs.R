@@ -30,16 +30,40 @@ scrape_data <- function(
   if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos))
     pos <- c(pos, "IDP")
 
+  if(any(src == "FleaFlicker") & "DL" %in% pos)
+    pos <- c(pos, "DE", "DT")
+
+  if(any(src == "FleaFlicker") & "DB" %in% pos)
+    pos <- c(pos, "CB", "S")
+
   names(pos) <- pos
   src_data <- map(pos, ~ map(projection_sources[src], ~ .x)) %>% transpose() %>%
     map( ~ imap(.x, ~ scrape_source(.x, season, week, .y))) %>%
     transpose() %>% map(discard, is.null) %>% map(bind_rows, .id = "data_src")
 
   if(any(names(src_data) == "IDP")){
-    idp_data <- split(src_data$IDP, src_data$IDP$pos)
+    idp_data <- filter(src_data$IDP, data_src == "NumberFire") %>%
+      split(.$pos)
     for(p in names(idp_data)){
       src_data[[p]] <- bind_rows(list(src_data[[p]], idp_data[[p]]))
     }
+  }
+
+
+  if(any(names(src_data) == "CB")){
+    src_data$DB <- bind_rows(src_data$DB, filter(src_data$CB, data_src == "FleaFlicker"))
+  }
+
+  if(any(names(src_data) == "S")){
+    src_data$DB <- bind_rows(src_data$DB, filter(src_data$S, data_src == "FleaFlicker"))
+  }
+
+  if(any(names(src_data) == "DE")){
+    src_data$DL <- bind_rows(src_data$DL, filter(src_data$DE, data_src == "FleaFlicker"))
+  }
+
+  if(any(names(src_data) == "DT")){
+    src_data$DL <- bind_rows(src_data$DL, filter(src_data$DT, data_src == "FleaFlicker"))
   }
 
   src_data <- map(src_data,
@@ -50,7 +74,7 @@ scrape_data <- function(
                     }}
   )
 
-  src_data <- src_data[setdiff(pos, "IDP")]
+  src_data <- src_data[setdiff(pos, c("IDP", "CB", "S", "DT", "DE"))]
   attr(src_data, "season") <- season
   attr(src_data, "week") <- week
 
