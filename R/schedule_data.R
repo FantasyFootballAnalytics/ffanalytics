@@ -18,7 +18,7 @@ first_last_games <- schedule_data %>% purrr::modify_depth(2, `[[`, "kickoff") %>
 
 
 scrape_start_date <- first_last_games %>% purrr::map_chr(`[[`, "last") %>% lag %>% as.numeric() %>%
-  as.POSIXct(origin = "1970-01-01") %>% as.Date() %>% `+`(1)
+  as.POSIXct(origin = "1970-01-01") %>% as.Date()
 
 scrape_start_date[1] <-  first_last_games %>% purrr::map_chr(`[[`, "first") %>% min %>% as.numeric() %>%
   as.POSIXct(origin = "1970-01-01") %>% as.Date() %>% `-`(7)
