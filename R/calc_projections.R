@@ -122,8 +122,7 @@ weights_from_src <- function(src_pts, weights = NULL){
     weights <- default_weights[unique(src_pts$data_src)]
   }
 
-  weights %>% as.tibble() %>%
-    `names<-`("weight") %>% rownames_to_column('data_src')
+  weights %>% tibble(data_src = names(.), weight = .)
 }
 
 #' Calculate Standard Deviations for Projected Points
