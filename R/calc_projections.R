@@ -186,8 +186,7 @@ aggregate_stats <- function(data_result, src_weights = NULL){
     src_weights <- default_weights[data_src]
   }
 
-  weight_tbl <- src_weights %>% as.tibble() %>%
-    `names<-`("weight") %>% rownames_to_column('data_src')
+  weight_tbl <- src_weights %>% tibble(data_src = names(.), weight = .)
 
   data_result %>% stats_by_category() %>%
     map(inner_join, weight_tbl, by = "data_src") %>%
