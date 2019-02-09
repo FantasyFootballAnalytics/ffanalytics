@@ -1,7 +1,7 @@
 #' @import tidyverse httr janitor rvest glue
 #' @importFrom lubridate year
 .onLoad <- function(libname, pkgname){
-  player_table <<- httr::GET("https://www70.myfantasyleague.com/2018/export?TYPE=players&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+  player_table <<- httr::GET("https://www70.myfantasyleague.com/2019/export?TYPE=players&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
     httr::content() %>% `[[`("players") %>% `[[`("player") %>%
     purrr::map(tibble::as.tibble) %>%
     dplyr::bind_rows() %>%
@@ -11,5 +11,5 @@
     dplyr::mutate(birthdate = as.Date(as.POSIXct(as.numeric(birthdate), origin = "1970-01-01")),
                   position = dplyr::recode(position, Def = "DST", PK = "K"),
                   age = as.integer(lubridate::year(Sys.time()) - lubridate::year(birthdate)),
-                  exp = 2018 - as.integer(draft_year))
+                  exp = 2019 - as.integer(draft_year))
 }

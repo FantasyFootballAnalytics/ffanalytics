@@ -1,7 +1,7 @@
-schedule_url <- "https://www70.myfantasyleague.com/2018/export?TYPE=nflSchedule&W=ALL&JSON=1"
+schedule_url <- "https://www70.myfantasyleague.com/2019/export?TYPE=nflSchedule&W=ALL&JSON=1"
 
 schedule_data <- schedule_url %>% GET() %>% content() %>%
-  .[[c("fullNflSchedule", "nflSchedule")]] %>% keep(~ "matchup" %in% names(.))
+  .[[c("fullNflSchedule", "nflSchedule")]] %>% dplyr:::keep(~ "matchup" %in% names(.))
 
 names(schedule_data) <- paste0("week_", 1:length(schedule_data))
 
@@ -23,5 +23,6 @@ scrape_start_date <- first_last_games %>% purrr::map_chr(`[[`, "last") %>% lag %
 scrape_start_date[1] <-  first_last_games %>% purrr::map_chr(`[[`, "first") %>% min %>% as.numeric() %>%
   as.POSIXct(origin = "1970-01-01") %>% as.Date() %>% `-`(7)
 
+scrape_start_date[18:21] <- scrape_start_date[17] + c(7,14,21,35)
 
 scrape_week <- function(){which(Sys.Date() >= scrape_start_date) %>% length()}

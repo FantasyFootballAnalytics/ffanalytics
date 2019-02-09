@@ -367,7 +367,7 @@ projections_table <- function(data_result, scoring_rules = NULL, src_weights = N
     season <- attr(data_result, "season")
     week <- attr(data_result, "week")
 
-    data_result <- keep(data_result, ~ nrow(.) > 0) %>%
+    data_result <- dplyr:::keep(data_result, ~ nrow(.) > 0) %>%
       `attr<-`(which = "season", season) %>%
       `attr<-`(which = "week", week)
 
@@ -380,7 +380,7 @@ projections_table <- function(data_result, scoring_rules = NULL, src_weights = N
       map_chr(~ case_when(.x > 0.5 ~ "PPR", .x > 0  ~ "Half", TRUE ~ "Std"))
   } else {
     lg_type <- map(scoring_rules$rec[-which(names(scoring_rules$rec) == "all_pos")], `[[`, "rec") %>%
-      keep(~ !is.null(.x)) %>%
+      dplyr:::keep(~ !is.null(.x)) %>%
       map_chr(~ case_when(.x > 0.5 ~ "PPR", .x > 0  ~ "Half", TRUE ~ "Std"))
 
     lg_type[setdiff(names(data_result), names(lg_type))] < "Std"

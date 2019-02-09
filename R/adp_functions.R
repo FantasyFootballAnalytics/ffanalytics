@@ -277,7 +277,7 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
     return(tbl[!is.na(tbl$id),])
   })
 
-  draft_list <- keep(draft_list, ~ nrow(.x) > 0)
+  draft_list <- dplyr:::keep(draft_list, ~ nrow(.x) > 0)
 
   draft_funs <- draft_funs[names(draft_list)]
 
