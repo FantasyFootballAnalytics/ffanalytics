@@ -122,8 +122,7 @@ weights_from_src <- function(src_pts, weights = NULL){
     weights <- default_weights[unique(src_pts$data_src)]
   }
 
-  weights %>% as.tibble() %>%
-    `names<-`("weight") %>% rownames_to_column('data_src')
+  weights %>% tibble(data_src = names(.), weight = .)
 }
 
 #' Calculate Standard Deviations for Projected Points
@@ -187,8 +186,7 @@ aggregate_stats <- function(data_result, src_weights = NULL){
     src_weights <- default_weights[data_src]
   }
 
-  weight_tbl <- src_weights %>% as.tibble() %>%
-    `names<-`("weight") %>% rownames_to_column('data_src')
+  weight_tbl <- src_weights %>% tibble(data_src = names(.), weight = .)
 
   data_result %>% stats_by_category() %>%
     map(inner_join, weight_tbl, by = "data_src") %>%
