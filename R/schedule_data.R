@@ -1,9 +1,9 @@
 schedule_url <- "https://www70.myfantasyleague.com/2018/export?TYPE=nflSchedule&W=ALL&JSON=1"
 
 schedule_data <- schedule_url %>% GET() %>% content() %>%
-  .[[c("fullNflSchedule", "nflSchedule")]] %>% .[1:17]
+  .[[c("fullNflSchedule", "nflSchedule")]] %>% keep(~ "matchup" %in% names(.))
 
-names(schedule_data) <- paste0("week_", 1:17)
+names(schedule_data) <- paste0("week_", 1:length(schedule_data))
 
 schedule_data <- schedule_data %>%
   purrr::map(~ `names<-`(.x$matchup, paste0("match_", seq_along(.x$matchup))))
