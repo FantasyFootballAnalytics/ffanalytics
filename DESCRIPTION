@@ -12,7 +12,7 @@ Encoding: UTF-8
 LazyData: true
 Imports: R6
 Depends: tidyverse, rvest, httr, readxl, janitor, glue, Hmisc
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Collate:
     'adp_functions.R'
     'calc_projections.R'

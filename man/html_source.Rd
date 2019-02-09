@@ -68,4 +68,5 @@ Other source-class: \code{\link{json_source}},
   \code{\link{projection_source}},
   \code{\link{xlsx_source}}
 }
+\concept{source-class}
 \keyword{internal}

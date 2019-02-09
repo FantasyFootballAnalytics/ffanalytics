@@ -642,5 +642,5 @@ projection_sources <- append(append(
 )
 
 
-devtools::use_data(projection_sources, overwrite = TRUE)
+usethis::use_data(projection_sources, overwrite = TRUE)
 

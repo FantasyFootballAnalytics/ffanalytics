@@ -6,8 +6,9 @@
 \usage{
 scrape_data(src = c("CBS", "ESPN", "FantasyData", "FantasyPros",
   "FantasySharks", "FFToday", "FleaFlicker", "NumberFire", "Yahoo",
-  "FantasyFootballNerd", "NFL", "RTSports", "Walterfootball"), pos = c("QB",
-  "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"), season = 2018, week = 0)
+  "FantasyFootballNerd", "NFL", "RTSports", "Walterfootball"),
+  pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
+  season = 2018, week = 0)
 }
 \arguments{
 \item{src}{the sources that data should be scraped from should be one or more

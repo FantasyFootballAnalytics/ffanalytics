@@ -4,8 +4,8 @@
 \alias{add_adp}
 \title{Add ADP to the Projections Table}
 \usage{
-add_adp(projection_table, sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL",
-  "FFC"))
+add_adp(projection_table, sources = c("RTS", "CBS", "ESPN", "Yahoo",
+  "NFL", "FFC"))
 }
 \arguments{
 \item{projection_table}{An output from the \link{projections_table} function}

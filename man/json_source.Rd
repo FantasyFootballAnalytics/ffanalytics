@@ -42,4 +42,5 @@ Other source-class: \code{\link{html_source}},
   \code{\link{projection_source}},
   \code{\link{xlsx_source}}
 }
+\concept{source-class}
 \keyword{internal}

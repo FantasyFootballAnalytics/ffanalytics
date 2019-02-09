@@ -1,7 +1,7 @@
 schedule_url <- "https://www70.myfantasyleague.com/2019/export?TYPE=nflSchedule&W=ALL&JSON=1"
 
 schedule_data <- schedule_url %>% GET() %>% content() %>%
-  .[[c("fullNflSchedule", "nflSchedule")]] %>% dplyr:::keep(~ "matchup" %in% names(.))
+  .[[c("fullNflSchedule", "nflSchedule")]] %>% purrr:::keep(~ "matchup" %in% names(.))
 
 names(schedule_data) <- paste0("week_", 1:length(schedule_data))
 

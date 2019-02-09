@@ -26,4 +26,5 @@ Other source-class: \code{\link{html_source}},
   \code{\link{json_source}},
   \code{\link{projection_source}}
 }
+\concept{source-class}
 \keyword{internal}
