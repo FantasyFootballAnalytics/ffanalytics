@@ -51,8 +51,8 @@ html_sites <- list(
       return(query)
     },
     url_positions = function(p)switch(p, QB = 0, RB = 2, WR = 4,TE = 6, DST = 16, K = 17),
-    min_week = 0,
-    max_week = 17,
+    min_week = -1,
+    max_week = -1,
     season_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     week_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 
@@ -407,7 +407,7 @@ html_sites <- list(
   #### Yahoo ####
   Yahoo = list(
     base = "https://football.fantasysports.yahoo.com/f1/",
-    league_id = "48938",
+    league_id = "47241",
 
     get_query = function(season, week, pos_id, ...){
 
