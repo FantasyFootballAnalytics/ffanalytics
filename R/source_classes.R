@@ -322,10 +322,31 @@ html_source <- R6::R6Class(
           break
         }
 
+        # For CBS we need to set the colspan on the first two cells in the table header
+        if(private$data_host() == "www.cbssports.com" & position != "DST"){
+          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-child(-n+2)") %>%
+            `xml_attr<-`(attr = "colspan", value= "1")
+        }
+
+        if(private$data_host() == "www.cbssports.com" & position == "DST"){
+          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-child(-n+10)") %>%
+            `xml_attr<-`(attr = "colspan", value= "1")
+
+          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-last-child(-n+2)") %>%
+            `xml_attr<-`(attr = "colspan", value= "1")
+        }
 
         if(is.null(self$index)){
           data_table <- data_page %>% html_node(table_css) %>%
             html_table(header = TRUE, fill = TRUE)
+
+          header_rows <- data_page %>% html_node(table_css) %>%
+            html_node("thead") %>% html_children() %>% length()
+
+          if(header_rows > 1){
+            names(data_table) <- make_df_colnames(data_table)
+            data_table <- data_table %>% slice(-1)
+          }
         } else {
           data_table <- html_nodes(data_page, table_css)%>%
             html_table(header = TRUE, fill = TRUE) %>% .[self$index] %>%
@@ -337,8 +358,8 @@ html_source <- R6::R6Class(
 
         # Cheking to see if the less than 10% of cells in first row in the table
         # is a numeric value; If so, then we suspect a two table header.
-        num_cols <- ncol(data_table)
-        two_row_th <- suppressWarnings(mean(is.na(as.numeric(slice(data_table, 1)))) > 0.9)
+        #num_cols <- ncol(data_table)
+        two_row_th <- FALSE #suppressWarnings(mean(is.na(as.numeric(slice(data_table, 1)))) > 0.9)
 
         if(private$data_host() == "fantasydata.com"){
           names(data_table)[2:length(data_table)] <- data_page %>%
@@ -366,6 +387,13 @@ html_source <- R6::R6Class(
             data_table <- rename(data_table, !!!src_id_col) %>%
               mutate(src_id = as.character(src_id))
           }
+        }
+
+        if(private$data_host() == "www.cbssports.com" & position == "DST"){
+          team_names <- data_page %>% html_nodes("span.TeamName a") %>%
+            html_attr("href") %>% str_extract("[A-Z]{2,3}")
+
+          data_table <- mutate(data_table, Team = team_names)
         }
 
         table_data <- bind_rows(table_data, data_table)

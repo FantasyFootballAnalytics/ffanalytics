@@ -10,13 +10,29 @@ make_df_colnames <- function(tbl){
   return(make.unique(cnames, sep = ""))
 }
 
+num_header_rows <- function(html_pg, tbl_css){
+  header_rows <- html_pg %>% html_node(tbl_css) %>%
+    html_node("thead") %>% html_children() %>% length()
+
+  return(header_rows)
+}
+
 check_2rth <- function(tbl){
-  num_cols <- ncol(tbl)
-  two_row_th <- suppressWarnings(mean(is.na(as.numeric(slice(tbl, 1)))) > 0.9)
-  if(two_row_th){
+  nm <- names(tbl)
+
+  if(any(nchar(nm) == 0)){
     names(tbl) <- make_df_colnames(tbl)
     tbl <- tbl %>% slice(-1)
+  } else {
+
+    num_cols <- ncol(tbl)
+    two_row_th <- suppressWarnings(mean(is.na(as.numeric(slice(tbl, 1)))) > 0.9)
+    if(two_row_th){
+      names(tbl) <- make_df_colnames(tbl)
+      tbl <- tbl %>% slice(-1)
+    }
   }
+  return(tbl)
 }
 
 id_col <- function(x, match_col){

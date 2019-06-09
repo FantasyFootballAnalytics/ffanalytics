@@ -1,40 +1,48 @@
 html_sites <- list(
   #### CBS ####
   CBS = list(
-    base = "https://www.cbssports.com/fantasy/football/stats/sortable/points/",
+    base = "https://www.cbssports.com/fantasy/football/stats/",
     get_path = function(season, week, position){
-      period <- ifelse(week == 0, "", as.character(week))
-      paste(toupper(position), "standard/projections", season, period, sep  = "/")
+      period <- ifelse(week == 0, "season", as.character(week))
+      paste(toupper(position), season, period,"projections/nonppr", sep  = "/")
     },
-    get_query = function(season, week, pos_id, ...)list(print_rows = 9999),
+    get_query = NULL,  #function(season, week, pos_id, ...)list(print_rows = 9999),
     min_week = 0,
     max_week = 17,
     season_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     week_pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 
     id_col = "cbs_id",
-    table_css = "table.data",
-    pid_css = "table.data a[href *= 'players']",
-    rm_elem = list("table.data tr.title", "table.data tr.footer"),
+    table_css = "table.TableBase-table",
+    pid_css = "table.TableBase-table a[href *= 'players']",
+    rm_elem = list("colgroup", "div.Tablebase-tooltip", "span.CellPlayerName--short"),
     extract_pid = function(p_node){
       p_node %>% html_attr("href") %>% str_extract("[0-9]{2,8}")},
     split_cols = list(
       list(
         col = function(p)list(TRUE ~ "Player"),
-        into = function(p)list(TRUE ~ c("player", "team")),
-        regex = function(p)list(TRUE ~ "([A-Za-z0-9'-. ]+),\\s([A-Za-z]+)")
+        into = function(p)list(TRUE ~ c("player", "position", "team")),
+        regex = function(p)list(TRUE ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
       )),
     stat_cols = c(
-      pass_att = "Passing Att", pass_comp = "Passing Cmp", pass_yds = "Passing Yd",
+      pass_att = "Passing Att", pass_comp = "Passing Cmp", pass_yds = "Passing Yds",
       pass_tds = "Passing TD",  pass_int = "Passing INT", pass_comp_pct = "Passing CmpPct",
-      pass_avg = "Passing YAtt", rush_att = "Rushing Att", rush_yds = "Rushing Yd",
-      rush_avg = "Rushing Avg", rush_tds = "Rushing TD", rec = "Receiving Recpt",
-      rec_tgt = "Receiving Targt",
-      rec_yds = "Receiving Yd", rec_avg = "Receiving Avg", rec_tds = "Receiving TD",
-      fumbles_lost = "Misc FL",  fg = "FG", fg_att = "FGA",  dst_int = "Int",
-      dst_fum_rec = "DFR", dst_fum_force = "FF", dst_sacks = "SACK", dst_td = "DTD",
-      dst_safety = "STY",  dst_pts_allowed = "PA", dst_yds_allowed = "TYdA",
-      site_pts = "FPTS", site_pts = "Misc FPTS")
+      pass_avg = "Passing YAtt", rush_att = "Rushing Att", rush_yds = "Rushing Yds",
+      rush_avg = "Rushing Avg", rush_tds = "Rushing TD", rec = "Receiving Rec",
+      rec_tgt = "Receiving Tgt", pass_rate = "Passing Rate", pass_yds_g = "Passing yds/g",
+      rec_yds_g = "Receiving Yds/g", games = "GP",
+      rec_yds = "Receiving Yds", rec_avg = "Receiving Avg", rec_tds = "Receiving TD",
+      fumbles_lost = "Misc FL",  fg = "FG FGM", fg_att = "FG FGA", fg_long = "fg lng",
+      fg_0019 = "FG 1-19", fg_2029 = "FG 20-29", fg_3039 = "FG 30-39", fg_4049 = "FG 40-49",
+      fg_50 = "FG 50", fg_att_0019 = "FG 1-19A", fg_att_2029 = "FG 20-29A",
+      fg_att_3039 = "FG 30-39A", fg_att_4049 = "FG 40-49A", fg_att_50 = "FG 50+A",
+      xp = "XP XPM", xp_att = "XP XPA",
+      dst_int = "INT", dst_tackles = "TK",
+      dst_fum_rec = "FREC", dst_fum_force = "FUM", dst_sacks = "SCK", dst_td = "DTD",
+      dst_safety = "SfTY",  dst_pts_allowed = "PTS", dst_yds_allowed = "Yards Allowed total",
+      dst_pts_allowed_g = "PPG", dst_rush_yds_allowed = "Yards Allowed rush",
+      dst_pass_yds_allowed = "Yards Allowed pass", dst_avg_yds_allowed = "Yards Allowed avg",
+      site_pts = "FPTS", site_pts = "Misc FPTS", fppg = "Misc FPPG")
   ),
   #### ESPN ####
   ESPN = list(

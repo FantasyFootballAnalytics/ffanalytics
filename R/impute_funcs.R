@@ -240,7 +240,7 @@ kick_impute <- function(kick_tbl){
       if("fg_miss" %in% intersect(names(kicking), names(kick_tbl)))
         kick_tbl <- select(kick_tbl, -fg_miss)
 
-      kicking <- kicking %>% inner_join(select(kick_tbl, id, matches("^fg_miss")), by = "id") %>%
+      kicking <- kicking %>% inner_join(select(kick_tbl, id, data_src, matches("^fg_miss")), by = c("id", "data_src")) %>%
         mutate(fg_miss_0019 = if_else(is.na(fg_miss_0019), fg_miss * fg_0019 / fg, fg_miss_0019),
                fg_miss_2029 = if_else(is.na(fg_miss_2029), fg_miss * fg_2029 / fg, fg_miss_2029),
                fg_miss_3039 = if_else(is.na(fg_miss_3039), fg_miss * fg_3039 / fg, fg_miss_3039),
