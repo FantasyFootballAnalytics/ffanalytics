@@ -273,11 +273,15 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
     if("aav" %in% names(formals(f)))
       f_args$aav <- type == "AAV"
 
+    f <- possibly(f, otherwise = tibble())
     tbl <- do.call(f, args = f_args)
-    return(tbl[!is.na(tbl$id),])
+    if(nrow(tbl) > 0)
+      return(tbl[!is.na(tbl$id),])
   })
 
-  draft_list <- dplyr:::keep(draft_list, ~ nrow(.x) > 0)
+
+  #draft_list <- keep(draft_list, ~ nrow(.x) > 0)
+  draft_list <- compact(draft_list)
 
   draft_funs <- draft_funs[names(draft_list)]
 
@@ -310,7 +314,7 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
 
   names(draft_table) <-  c("id", names(draft_list), "Avg")[1:length(draft_table)]
 
-  return(draft_table)
+  return(distinct(draft_table))
 }
 
 #' Get ADP data from Fantasy Football Calculator

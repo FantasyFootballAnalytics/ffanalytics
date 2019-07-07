@@ -98,5 +98,8 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
     rank_tbl <- rank_tbl %>% add_column(id = ffanalytics:::id_col(rank_tbl$fantasypro_id, "fantasypro_id"), .before = 1)
 
 
+  rank_tbl <- rank_tbl %>%
+    mutate_at(vars(one_of(c("pos_rank", "bye", "best", "worst", "avg", "std_dev", "adp", "vs_adp"))), as.numeric)
+
   return(rank_tbl %>% `attr<-`("experts", num_experts))
 }

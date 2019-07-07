@@ -20,7 +20,7 @@ scrape_data <- function(
           "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
           "RTSports","Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-  season = 2018, week = 0){
+  season = 2019, week = 0){
 
   if(missing(week))
     week <- 0
