@@ -24,10 +24,8 @@ check_2rth <- function(tbl){
     names(tbl) <- make_df_colnames(tbl)
     tbl <- tbl %>% slice(-1)
   } else {
-
     num_cols <- ncol(tbl)
-    two_row_th <- suppressWarnings(mean(is.na(as.numeric(slice(tbl, 1)))) > 0.9)
-    if(two_row_th){
+    if(length(unique(nm)) < num_cols){
       names(tbl) <- make_df_colnames(tbl)
       tbl <- tbl %>% slice(-1)
     }
