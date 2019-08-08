@@ -6,7 +6,7 @@
 #' @return A \link{data.frame} with the results.
 #' @export
 rts_draft <- function(aav = FALSE){
-  draft_url <- "https://www.freedraftguide.com/football/adp-aav-provider.php?NUM=&AAV="
+  draft_url <- "https://www.freedraftguide.com/football/adp-aav-provider.php?NUM=&STYLE=0&AAV="
   if(aav)
     draft_url <- paste0(draft_url, "YES")
 
@@ -329,9 +329,9 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
 #' @export
 ffc_draft <- function(format=c("standard", "ppr", "2qb", "dynasty", "rookie"),
                       pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
-                              season=2018){
+                              season=2019){
 
-  ffc_url <- "https://fantasyfootballcalculator.com/adp?format=standard&year=2018&teams=12&view=graph&pos=all"
+  ffc_url <- paste0("https://fantasyfootballcalculator.com/adp?format=standard&year=", season, "&teams=12&view=graph&pos=all")
   format <- match.arg(format)
   pos <- match.arg(pos)
 
