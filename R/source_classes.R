@@ -322,6 +322,7 @@ html_source <- R6::R6Class(
           break
         }
 
+
         # For CBS we need to set the colspan on the first two cells in the table header
         if(private$data_host() == "www.cbssports.com" & position != "DST"){
           data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-child(-n+2)") %>%
@@ -336,6 +337,7 @@ html_source <- R6::R6Class(
             `xml_attr<-`(attr = "colspan", value= "1")
         }
 
+
         if(is.null(self$index)){
           data_table <- data_page %>% html_node(table_css) %>%
             html_table(header = TRUE, fill = TRUE)
@@ -343,9 +345,23 @@ html_source <- R6::R6Class(
           header_rows <- data_page %>% html_node(table_css) %>%
             html_node("thead") %>% html_children() %>% length()
 
+          if(private$data_host() == "www.fftoday.com" & !(position %in% c("DL", "LB", "DB")))
+            header_rows <- 2
+
+          if(private$data_host() == "www.fftoday.com" & (position %in% c("DL", "LB", "DB"))){
+            names(data_table) <- data_table %>% make_df_colnames()
+            data_table <- data_table %>% slice(-1)
+          }
+
           if(header_rows > 1){
             names(data_table) <- make_df_colnames(data_table)
             data_table <- data_table %>% slice(-1)
+
+            if(private$data_host() == "www.fftoday.com"){
+              names(data_table) <- names(data_table) %>%
+              str_remove("^[0-9\\s]+") %>%
+              grep("^[^NA]", ., value = TRUE) %>% str_remove_all("[0-9]")
+            }
           }
         } else {
           data_table <- html_nodes(data_page, table_css)%>%

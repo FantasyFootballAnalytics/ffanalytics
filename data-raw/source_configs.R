@@ -285,9 +285,9 @@ html_sites <- list(
     season_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
     week_pos = c("QB", "RB", "WR", "TE", "K"),
     id_col = "fftoday_id",
-    table_css = "table",
+    table_css = "table table table",
     pid_css = "a[href *='stats/players/']",
-    index = 11,
+    #index = 1,
     extract_pid = function(p_node){
       p_node %>% html_attr("href") %>% str_extract("[0-9]{2,8}")},
     stat_cols = c(

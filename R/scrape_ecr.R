@@ -71,8 +71,9 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   p_col <- rank_tbl %>% select(matches("\\(Team\\)$|DST$")) %>% names()
 
   rank_tbl <- rank_tbl %>% extract(p_col , c("Player", "Abbr Name", "team"), "([A-Za-z0-9\\.\\-'\\s]+)([A-Z]\\.\\s[A-Za-z0-9\\.\\-']+)\\s([A-Z]{2,}$)")
-  fp_ids <- rank_page %>% html_nodes("#rank-data tr.player-row td.player-label > a[href*='players'],a[href*='/teams/']") %>%
-    html_attr("href") %>% basename() %>% gsub(".php", "", .)
+  fp_ids <- rank_page %>%
+    html_nodes("#rank-data tr.player-row td.player-label  a[href*='nfl/rankings'], #rank-data tr.player-row td.player-label  a[href*='/teams/']") %>%
+    html_attr("href") %>% str_remove("\\?.+$") %>%  basename() %>% gsub(".php", "", .)
 
   if(all(is.na(rank_tbl$`Abbr Name`))){
     return(rank_tbl %>% add_column(id = NA_character_, .before = 1)  %>%
