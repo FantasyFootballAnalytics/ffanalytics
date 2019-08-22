@@ -37,9 +37,9 @@ scrape_data <- function(
     pos <- c(pos, "CB", "S")
 
   names(pos) <- pos
-  src_data <- map(pos, ~ map(projection_sources[src], ~ .x)) %>% transpose() %>%
+  src_data <- map(pos, ~ map(projection_sources[src], ~ .x)) %>% purrr::transpose() %>%
     map( ~ imap(.x, ~ scrape_source(.x, season, week, .y))) %>%
-    transpose() %>% map(discard, is.null) %>% map(bind_rows, .id = "data_src")
+    purrr::transpose() %>% map(discard, is.null) %>% map(bind_rows, .id = "data_src")
 
   if(any(names(src_data) == "IDP")){
     idp_data <- filter(src_data$IDP, data_src == "NumberFire") %>%
