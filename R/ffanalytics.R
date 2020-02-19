@@ -1,7 +1,7 @@
 #' @import tidyverse httr janitor rvest glue
 #' @importFrom lubridate year
 .onLoad <- function(libname, pkgname){
-  player_table <<- httr::GET("https://www70.myfantasyleague.com/2019/export?TYPE=players&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+  player_table <<- httr::GET("https://api.myfantasyleague.com/2019/export?TYPE=players&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
     httr::content() %>% `[[`("players") %>% `[[`("player") %>%
     purrr::map(tibble::as.tibble) %>%
     dplyr::bind_rows() %>%
