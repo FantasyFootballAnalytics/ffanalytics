@@ -588,7 +588,7 @@ json_sites <- list(
       rec_tds = "Rec TD", ret_tds = "Return TD", idp_solo = "Tack",  idp_asst = "Ast",
       xp = "PAT Made", fg_0019 = "FG 0-19", fg_2029 = "FG 20-29", fg_3039 = "FG 30-39",
       fg_4049 = "FG 40-49", fg_50 = "FG Miss 50+", dst_sacks = "Sack", dst_int = "Int",
-      dst_fum_Rec = "Fum Rec", dst_td = "TD", dst_pts_allowed = "Pts Allow", dst_ret_td = "Return TD",
+      dst_fum_Rec = "Fum Rec", dst_td = "TD", dst_pts_allowed = "Pts Allow", dst_ret_tds = "Return TD",
       dst_safety = "Saf", dst_blk = "Block" , idp_sack = "Sack", idp_fum_force = "Frc Fum",
       idp_pd = "Pass Def", idp_blk = "Blk", idp_fum_rec = "Fum Rec", idp_int = "Int",
       idp_safety = "Saf", site_season_pts = "seasonProjectedPts", site_pts = "weekProjectedPts"
