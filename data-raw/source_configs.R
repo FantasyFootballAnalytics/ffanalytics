@@ -20,9 +20,9 @@ html_sites <- list(
       p_node %>% html_attr("href") %>% str_extract("[0-9]{2,8}")},
     split_cols = list(
       list(
-        col = function(p)list(TRUE ~ "Player"),
-        into = function(p)list(TRUE ~ c("player", "position", "team")),
-        regex = function(p)list(TRUE ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
+        col = function(p)list(p != "DST" ~ "Player"),
+        into = function(p)list(p != "DST" ~ c("player", "position", "team")),
+        regex = function(p)list(p != "DST" ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
       )),
     stat_cols = c(
       pass_att = "Passing Att", pass_comp = "Passing Cmp", pass_yds = "Passing Yds",
