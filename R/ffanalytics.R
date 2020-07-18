@@ -3,7 +3,7 @@
 .onLoad <- function(libname, pkgname){
   player_table <<- httr::GET("https://api.myfantasyleague.com/2020/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
     httr::content() %>% `[[`("players") %>% `[[`("player") %>%
-    purrr::map(tibble::as.tibble) %>%
+    purrr::map(tibble::as_tibble) %>%
     dplyr::bind_rows() %>%
     dplyr::filter(position %in% c("QB", "RB", "WR", "TE", "PK", "Def", "DE", "DT", "LB", "CB", "S")) %>%
     dplyr::select(id, name, position, team, weight, draft_year, draft_team, draft_round, draft_pick, birthdate) %>%
