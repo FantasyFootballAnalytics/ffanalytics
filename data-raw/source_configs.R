@@ -441,8 +441,8 @@ html_sites <- list(
       return(yahoo_qry)
     },
     url_positions = function(p)switch(p, "DST" = "DEF", p),
-    min_week = 0,
-    max_week = 17,
+    min_week = -1, # will fix when I can test log-in
+    max_week = -1,
     season_pos = c("O", "DP", "QB", "RB", "WR", "TE", "K", "DST", "D", "DB", "DL",
                    "LB", "DT", "DE", "CB", "S"),
     week_pos = c("O", "DP", "QB", "RB", "WR", "TE", "K", "DST", "D", "DB", "DL",
@@ -573,8 +573,8 @@ json_sites <- list(
       return(nfl_qry)
     },
     url_positions = function(p)switch(p, "DST" = "DEF", p),
-    min_week = 0,
-    max_week = 16,
+    min_week = -1, # API changed, will fix with manual scrape
+    max_week = -1,
     season_pos = c("QB", "RB", "WR", "TE", "K" , "DST", "DL", "LB", "DB"),
     week_pos = c("QB", "RB", "WR", "TE", "K" , "DST", "DL", "LB", "DB"),
     id_col = "nfl_id",

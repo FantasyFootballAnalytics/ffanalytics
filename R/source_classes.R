@@ -554,6 +554,16 @@ json_source <- R6::R6Class(
     scrape = function(season, week = NULL, position , ...){
       scrape_url <- self$get_url(season, week, position , ...)
 
+      if(is.null(scrape_url))
+        return(NULL)
+
+      json_elem <- ifelse(week == 0, self$json_elem$season,
+                          self$json_elem$weekly)
+
+      json_res <- httr::content(httr::GET(scrape_url))
+
+      json_res <- json_res[[json_elem]]
+
       if(!is.null(self$stat_elem)){
         stats <- self$stat_elem
         stat_cols <- json_res %>% map(`[[`, stats) %>% map(as_tibble) %>% map_df(type.convert, as.is = TRUE)
