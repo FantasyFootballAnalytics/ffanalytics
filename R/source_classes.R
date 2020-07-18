@@ -454,7 +454,7 @@ html_source <- R6::R6Class(
       ex_cols <-  split_cols[!map_lgl(split_cols, ~ any(names(.x) == "sep"))]
 
       src_table <- src_table %>%
-        mutate_if(is.character, funs(str_replace_all(., "\\-\\-", "")))
+        mutate_if(is.character, ~ str_replace_all(., "\\-\\-", ""))
 
       if(length(sep_cols) > 0)
         src_table <- accumulate(sep_cols,
@@ -487,9 +487,11 @@ html_source <- R6::R6Class(
       if(private$data_host() == "www.fftoday.com" & position == "DST")
         src_table <- rename(src_table, player = team)
 
+      if(private$data_host() == "www.numberfire.com")
+        src_table <- select(src_table, -abbr_name)
 
       if(any(grepl("name$", names(src_table)))){
-        rn_name <- function(x)return("player")
+        rn_name <- function(x) return("player")
         src_table <- src_table %>% rename_at(vars(matches("name$")), funs(rn_name(.)))
       }
       src_table <- src_table %>% self$set_id()
@@ -564,7 +566,7 @@ json_source <- R6::R6Class(
 
       if(!is.null(self$stat_elem)){
         stats <- self$stat_elem
-        stat_cols <- json_res %>% map(`[[`, stats) %>% map(as.tibble) %>% bind_rows()
+        stat_cols <- json_res %>% map(`[[`, stats) %>% map(as_tibble) %>% map_df(type.convert, as.is = TRUE)
 
         if(!is.null(self$player_elem)){
           player_info <- self$player_elem
@@ -573,12 +575,11 @@ json_source <- R6::R6Class(
         }
 
         data_table <- json_res %>%
-          map(`[`, player_info) %>% map(discard, is.null) %>% map(as.tibble) %>% bind_rows()
+          map(`[`, player_info) %>% map(discard, is.null) %>% map(as_tibble) %>% bind_rows()
 
-        data_table <- data_table %>%
-          bind_cols(stat_cols)
+        data_table <- bind_cols(data_table, stat_cols)
       } else {
-        data_table <- json_res %>%  map(as.tibble) %>% bind_rows()
+        data_table <- bind_rows(map(json_res, as_tibble))
       }
 
       if(private$data_host() == "api.fantasy.nfl.com"){

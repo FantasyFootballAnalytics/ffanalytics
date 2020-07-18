@@ -20,9 +20,9 @@ html_sites <- list(
       p_node %>% html_attr("href") %>% str_extract("[0-9]{2,8}")},
     split_cols = list(
       list(
-        col = function(p)list(TRUE ~ "Player"),
-        into = function(p)list(TRUE ~ c("player", "position", "team")),
-        regex = function(p)list(TRUE ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
+        col = function(p)list(p != "DST" ~ "Player"),
+        into = function(p)list(p != "DST" ~ c("player", "position", "team")),
+        regex = function(p)list(p != "DST" ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
       )),
     stat_cols = c(
       pass_att = "Passing Att", pass_comp = "Passing Cmp", pass_yds = "Passing Yds",
@@ -441,8 +441,8 @@ html_sites <- list(
       return(yahoo_qry)
     },
     url_positions = function(p)switch(p, "DST" = "DEF", p),
-    min_week = 0,
-    max_week = 17,
+    min_week = -1, # will fix when I can test log-in
+    max_week = -1,
     season_pos = c("O", "DP", "QB", "RB", "WR", "TE", "K", "DST", "D", "DB", "DL",
                    "LB", "DT", "DE", "CB", "S"),
     week_pos = c("O", "DP", "QB", "RB", "WR", "TE", "K", "DST", "D", "DB", "DL",
@@ -573,8 +573,8 @@ json_sites <- list(
       return(nfl_qry)
     },
     url_positions = function(p)switch(p, "DST" = "DEF", p),
-    min_week = 0,
-    max_week = 16,
+    min_week = -1, # API changed, will fix with manual scrape
+    max_week = -1,
     season_pos = c("QB", "RB", "WR", "TE", "K" , "DST", "DL", "LB", "DB"),
     week_pos = c("QB", "RB", "WR", "TE", "K" , "DST", "DL", "LB", "DB"),
     id_col = "nfl_id",
