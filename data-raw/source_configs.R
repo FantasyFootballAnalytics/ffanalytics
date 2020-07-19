@@ -22,7 +22,7 @@ html_sites <- list(
       list(
         col = function(p)list(p != "DST" ~ "Player"),
         into = function(p)list(p != "DST" ~ c("player", "position", "team")),
-        regex = function(p)list(p != "DST" ~ "([A-Za-z0-9'-. ]+)[\\s[:cntrl:]]+([A-Z]+)[\\s[:cntrl:]]+•\\s([A-Z]+$)")
+        regex = function(p)list(p != "DST" ~ "([A-Za-z'-]+\\s[A-Za-z'-]+)\\s+([A-Z]+)\\s+([A-Z]+)")
       )),
     stat_cols = c(
       pass_att = "Passing Att", pass_comp = "Passing Cmp", pass_yds = "Passing Yds",
