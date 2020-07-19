@@ -11,8 +11,16 @@ License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports: R6
-Depends: tidyverse, rvest, httr, readxl, janitor, glue, Hmisc
-RoxygenNote: 6.1.1
+Depends: 
+    tidyverse,
+    rvest,
+    httr,
+    readxl,
+    janitor,
+    glue,
+    Hmisc,
+    R (>= 2.10)
+RoxygenNote: 7.1.0
 Collate:
     'adp_functions.R'
     'calc_projections.R'

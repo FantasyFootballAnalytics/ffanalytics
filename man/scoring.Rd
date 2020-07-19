@@ -4,7 +4,9 @@
 \name{scoring}
 \alias{scoring}
 \title{Default scoring rules for the calculations}
-\format{An object of class \code{list} of length 9.}
+\format{
+An object of class \code{list} of length 9.
+}
 \usage{
 scoring
 }

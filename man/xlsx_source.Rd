@@ -4,9 +4,8 @@
 \name{xlsx_source}
 \alias{xlsx_source}
 \title{xlsx source object}
-\format{An R6 class object.}
-\usage{
-xlsx_source
+\format{
+An R6 class object.
 }
 \description{
 This objects represent the basic set of data needed for defining a projection
@@ -22,9 +21,80 @@ object with some specific fields and methods related to scraping xlsx data.
 }
 
 \seealso{
-Other source-class: \code{\link{html_source}},
-  \code{\link{json_source}},
-  \code{\link{projection_source}}
+Other source-class: 
+\code{\link{html_source}},
+\code{\link{json_source}},
+\code{\link{projection_source}}
 }
 \concept{source-class}
 \keyword{internal}
+\section{Super class}{
+\code{\link[ffanalytics:projection_source]{ffanalytics::projection_source}} -> \code{xlsx_source}
+}
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{xlsx_source$new()}}
+\item \href{#method-scrape}{\code{xlsx_source$scrape()}}
+\item \href{#method-clone}{\code{xlsx_source$clone()}}
+}
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="get_url">}\href{../../ffanalytics/html/projection_source.html#method-get_url}{\code{ffanalytics::projection_source$get_url()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="name_cols">}\href{../../ffanalytics/html/projection_source.html#method-name_cols}{\code{ffanalytics::projection_source$name_cols()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="print">}\href{../../ffanalytics/html/projection_source.html#method-print}{\code{ffanalytics::projection_source$print()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="set_id">}\href{../../ffanalytics/html/projection_source.html#method-set_id}{\code{ffanalytics::projection_source$set_id()}}\out{</span>}
+}
+\out{</details>}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{xlsx_source$new(
+  id_col = NULL,
+  base = NULL,
+  league_id = NULL,
+  api_key = NULL,
+  get_query = NULL,
+  get_path = NULL,
+  url_positions = NULL,
+  min_week = 0,
+  max_week = NULL,
+  season_pos = NULL,
+  week_pos = NULL,
+  stat_cols = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-scrape"></a>}}
+\if{latex}{\out{\hypertarget{method-scrape}{}}}
+\subsection{Method \code{scrape()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{xlsx_source$scrape(season, week = NULL, position, ...)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{xlsx_source$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
+}
+}

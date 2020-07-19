@@ -4,8 +4,13 @@
 \alias{projections_table}
 \title{Create a Projections Table}
 \usage{
-projections_table(data_result, scoring_rules = NULL,
-  src_weights = NULL, vor_baseline = NULL, tier_thresholds = NULL)
+projections_table(
+  data_result,
+  scoring_rules = NULL,
+  src_weights = NULL,
+  vor_baseline = NULL,
+  tier_thresholds = NULL
+)
 }
 \arguments{
 \item{data_result}{An output from the \link{scrape_data} function}

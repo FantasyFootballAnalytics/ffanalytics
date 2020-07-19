@@ -4,7 +4,9 @@
 \name{default_baseline}
 \alias{default_baseline}
 \title{Default VOR Baseline}
-\format{An object of class \code{numeric} of length 9.}
+\format{
+An object of class \code{numeric} of length 9.
+}
 \usage{
 default_baseline
 }

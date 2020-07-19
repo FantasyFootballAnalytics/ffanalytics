@@ -4,17 +4,35 @@
 \name{json_source}
 \alias{json_source}
 \title{JSON source object}
-\format{An R6 class object.}
-\usage{
-json_source
+\format{
+An R6 class object.
 }
 \description{
 This objects represent the basic set of data needed for defining a projection
 source with JSON data. It is an extesnsion of the \link{projection_source}
 object with some specific fields and methods related to scraping JSON data.
 }
-\section{Fields}{
+\section{Methods}{
 
+\describe{
+  \item{\code{scrape}}{Scrape the data from the source based on season, week
+  and position provided}
+}
+}
+
+\seealso{
+Other source-class: 
+\code{\link{html_source}},
+\code{\link{projection_source}},
+\code{\link{xlsx_source}}
+}
+\concept{source-class}
+\keyword{internal}
+\section{Super class}{
+\code{\link[ffanalytics:projection_source]{ffanalytics::projection_source}} -> \code{json_source}
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{json_elem}}{String containing the name of the JSON element in the result
 that identifies the data}
@@ -27,20 +45,77 @@ in the JSON result if applicable}
 
 \item{\code{player_cols}}{Named character vector used to rename the player columns in
 the JSON result if needed.}
-}}
-
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{json_source$new()}}
+\item \href{#method-scrape}{\code{json_source$scrape()}}
+\item \href{#method-clone}{\code{json_source$clone()}}
+}
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="get_url">}\href{../../ffanalytics/html/projection_source.html#method-get_url}{\code{ffanalytics::projection_source$get_url()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="name_cols">}\href{../../ffanalytics/html/projection_source.html#method-name_cols}{\code{ffanalytics::projection_source$name_cols()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="print">}\href{../../ffanalytics/html/projection_source.html#method-print}{\code{ffanalytics::projection_source$print()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ffanalytics" data-topic="projection_source" data-id="set_id">}\href{../../ffanalytics/html/projection_source.html#method-set_id}{\code{ffanalytics::projection_source$set_id()}}\out{</span>}
+}
+\out{</details>}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{json_source$new(
+  id_col = NULL,
+  base = NULL,
+  league_id = NULL,
+  api_key = NULL,
+  get_query = NULL,
+  get_path = NULL,
+  url_positions = NULL,
+  min_week = 0,
+  max_week = NULL,
+  season_pos = NULL,
+  week_pos = NULL,
+  json_elem = NULL,
+  stat_elem = NULL,
+  player_elem = NULL,
+  stat_cols = NULL,
+  player_cols = NULL
+)}\if{html}{\out{</div>}}
+}
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-scrape"></a>}}
+\if{latex}{\out{\hypertarget{method-scrape}{}}}
+\subsection{Method \code{scrape()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{json_source$scrape(season, week = NULL, position, ...)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{json_source$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
 \describe{
-  \item{\code{scrape}}{Scrape the data from the source based on season, week
-  and position provided}
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
 }
 }
-
-\seealso{
-Other source-class: \code{\link{html_source}},
-  \code{\link{projection_source}},
-  \code{\link{xlsx_source}}
 }
-\concept{source-class}
-\keyword{internal}
