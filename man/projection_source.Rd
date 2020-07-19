@@ -4,9 +4,8 @@
 \name{projection_source}
 \alias{projection_source}
 \title{Projection Source Object}
-\format{An R6 class object.}
-\usage{
-projection_source
+\format{
+An R6 class object.
 }
 \description{
 This objects represent the basic set of data needed for defining a projection
@@ -14,8 +13,29 @@ source. It is used as superclass for the specific source objects that are
 specific to which type of data is returned. Use \link{html_source},
 \link{json_source} and \link{xlsx_source} to create a projection source.
 }
-\section{Fields}{
+\section{Methods}{
 
+\describe{
+  \item{\code{get_url}}{Function of \code{season, week, position} that will
+  generate the full URL that will be scraped for that season, week and
+  position}
+  \item{\code{name_cols}}{Method that will take a table and set the column
+  names as specified in the \code{stat_cols} field}
+  \item{\code{set_id}}{Method that will take a table and add the MFL id column
+  with values based on the \link{player_ids} table}
+}
+}
+
+\seealso{
+Other source-class: 
+\code{\link{html_source}},
+\code{\link{json_source}},
+\code{\link{xlsx_source}}
+}
+\concept{source-class}
+\keyword{internal}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{base}}{The base url for the source}
 
@@ -49,24 +69,93 @@ for for weekly data,}
 
 \item{\code{stat_cols}}{A named character vector that will convert the site column
 names to standard column names.}
-}}
-
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{projection_source$new()}}
+\item \href{#method-print}{\code{projection_source$print()}}
+\item \href{#method-get_url}{\code{projection_source$get_url()}}
+\item \href{#method-name_cols}{\code{projection_source$name_cols()}}
+\item \href{#method-set_id}{\code{projection_source$set_id()}}
+\item \href{#method-clone}{\code{projection_source$clone()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$new(
+  id_col = NULL,
+  base = NULL,
+  league_id = NULL,
+  api_key = NULL,
+  get_query = NULL,
+  get_path = NULL,
+  url_positions = NULL,
+  min_week = 0,
+  max_week = NULL,
+  season_pos = NULL,
+  week_pos = NULL,
+  stat_cols = NULL
+)}\if{html}{\out{</div>}}
+}
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-print"></a>}}
+\if{latex}{\out{\hypertarget{method-print}{}}}
+\subsection{Method \code{print()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_url"></a>}}
+\if{latex}{\out{\hypertarget{method-get_url}{}}}
+\subsection{Method \code{get_url()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$get_url(season, week = NULL, position, ...)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-name_cols"></a>}}
+\if{latex}{\out{\hypertarget{method-name_cols}{}}}
+\subsection{Method \code{name_cols()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$name_cols(data_tbl, position)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_id"></a>}}
+\if{latex}{\out{\hypertarget{method-set_id}{}}}
+\subsection{Method \code{set_id()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$set_id(data_tbl)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{projection_source$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
 \describe{
-  \item{\code{get_url}}{Function of \code{season, week, position} that will
-  generate the full URL that will be scraped for that season, week and
-  position}
-  \item{\code{name_cols}}{Method that will take a table and set the column
-  names as specified in the \code{stat_cols} field}
-  \item{\code{set_id}}{Method that will take a table and add the MFL id column
-  with values based on the \link{player_ids} table}
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
 }
 }
-
-\seealso{
-Other source-class: \code{\link{html_source}},
-  \code{\link{json_source}}, \code{\link{xlsx_source}}
 }
-\concept{source-class}
-\keyword{internal}

@@ -4,8 +4,11 @@
 \alias{set_vor}
 \title{Calculate VOR}
 \usage{
-set_vor(points_table, vor_baseline = NULL, vor_var = c("points",
-  "floor", "ceiling"))
+set_vor(
+  points_table,
+  vor_baseline = NULL,
+  vor_var = c("points", "floor", "ceiling")
+)
 }
 \arguments{
 \item{points_table}{An output from the \link{projected_points} function and merged

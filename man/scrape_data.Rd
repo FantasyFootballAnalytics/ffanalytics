@@ -4,11 +4,14 @@
 \alias{scrape_data}
 \title{Scrape data from multiple sources and multiple positions}
 \usage{
-scrape_data(src = c("CBS", "ESPN", "FantasyData", "FantasyPros",
-  "FantasySharks", "FFToday", "FleaFlicker", "NumberFire", "Yahoo",
-  "FantasyFootballNerd", "NFL", "RTSports", "Walterfootball"),
+scrape_data(
+  src = c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
+    "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL", "RTSports",
+    "Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-  season = 2019, week = 0)
+  season = 2019,
+  week = 0
+)
 }
 \arguments{
 \item{src}{the sources that data should be scraped from should be one or more

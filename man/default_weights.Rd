@@ -4,7 +4,9 @@
 \name{default_weights}
 \alias{default_weights}
 \title{Default Weights for Projection Sources}
-\format{An object of class \code{numeric} of length 13.}
+\format{
+An object of class \code{numeric} of length 13.
+}
 \usage{
 default_weights
 }

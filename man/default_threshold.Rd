@@ -4,7 +4,9 @@
 \name{default_threshold}
 \alias{default_threshold}
 \title{Default Threshold Values for Tiers}
-\format{An object of class \code{numeric} of length 9.}
+\format{
+An object of class \code{numeric} of length 9.
+}
 \usage{
 default_threshold
 }

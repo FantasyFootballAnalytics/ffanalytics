@@ -4,8 +4,10 @@
 \alias{get_adp}
 \title{Get ADP/AAV data from multple sources}
 \usage{
-get_adp(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
-  type = c("ADP", "AAV"))
+get_adp(
+  sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
+  type = c("ADP", "AAV")
+)
 }
 \arguments{
 \item{sources}{Indicates what sources to retrieve data from. Choose from
