@@ -1,3 +1,10 @@
+
+# Info --------------------------------------------------------------------
+
+# This script will parse player directories for CBS, FFToday, Fantasypros and NFL.
+# Make sure you load the ffanalytics package first to have access to tidyverse and rvest.
+# The command to create the sysdata.rda file is usethis::use_data(player_ids, overwrite = TRUE, internal = TRUE). This command needs to be executed from the package root folder.
+
 #### CBS Players ####
 team_links <- read_html("https://www.cbssports.com/search/football/players/#tab-content-2") %>%
   html_nodes("a[href*='roster']") %>% html_attr("href") %>% as.list()
