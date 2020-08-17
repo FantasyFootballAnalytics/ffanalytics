@@ -168,7 +168,7 @@ projection_source <- R6::R6Class(
       else{
         pos <- private$session$pos
         if(!is.null(pos) && pos == "DST"){
-          dst_data <- filter(ff_player_data, position == "Def")
+          dst_data <- ff_player_data[ff_player_data$position == "Def", ]
           if(private$data_host() == "www.cbssports.com") {
             dst_data$team <- replace(dst_data$team, dst_data$team == "OAK", "LV")
           }
