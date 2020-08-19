@@ -466,7 +466,7 @@ add_adp <- function(projection_table,
     return(projection_table)
   }
   adp_tbl <- get_adp(sources, type = "ADP") %>% select(1, length(.)) %>%
-    rename_at(length(.), ~ function(x)return("adp"))
+    rename_at(length(.), function(x){return("adp")})
 
   projection_table <- left_join(projection_table, adp_tbl, by = "id") %>%
     mutate(adp_diff = rank - adp)
@@ -499,8 +499,10 @@ add_aav <- function(projection_table,
     return(projection_table)
   }
   adp_tbl <- get_adp(sources, type = "AAV") %>% select(1, length(.)) %>%
-    rename_at(length(.), ~ function(x)return("aav"))
+    rename_at(length(.), function(x){return("aav")})
 
+  projection_table <- left_join(projection_table, adp_tbl, by = "id")
+  
   projection_table  %>%
     `attr<-`(which = "season", season) %>%
     `attr<-`(which = "week", week) %>%
