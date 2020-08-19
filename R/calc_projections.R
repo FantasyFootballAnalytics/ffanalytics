@@ -501,6 +501,8 @@ add_aav <- function(projection_table,
   adp_tbl <- get_adp(sources, type = "AAV") %>% select(1, length(.)) %>%
     rename_at(length(.), function(x){return("aav")})
 
+  projection_table <- left_join(projection_table, adp_tbl, by = "id")
+  
   projection_table  %>%
     `attr<-`(which = "season", season) %>%
     `attr<-`(which = "week", week) %>%
