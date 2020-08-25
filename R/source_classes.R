@@ -140,7 +140,7 @@ projection_source <- R6::R6Class(
       } else if (position %in% c("DL", "LB", "DB", "IDP", "D")){
         rename_cols <- stat_cols[matches("^idp|^site|^games", vars = names(stat_cols))]
       } else {
-        rename_cols <- stat_cols[matches("^pass|^rush|^rec|^rxx|^fum|^sac|^two|^reg|^ret|^site|^games|^kick|^punt", vars = names(stat_cols))]
+        rename_cols <- stat_cols[matches("^pass|^rush|^cat|^rec|^rxx|^fum|^sac|^two|^reg|^ret|^site|^games|^kick|^punt", vars = names(stat_cols))]
       }
 
       data_tbl <- data_tbl %>%
@@ -652,7 +652,7 @@ xlsx_source <- R6::R6Class(
 
       data_table <- read_xlsx(path = xl_file, sheet = sheet_name) %>%
         select_if(~ any(!is.na(.x))) %>%
-        select(matches("^Pass|^Rush|^Rec|^Reg TD$|^Int|^FG|^XP|name$|^player|^Team$|^Pos|^Bye"))
+        select(matches("^Pass|^Rush|^Catch|^Rec|^Reg TD$|^Int|^FG|^XP|name$|^player|^Team$|^Pos|^Bye"))
 
       if(length(matches("[La|Fir]st Name", vars = names(data_table))) > 0){
         data_table <- data_table %>%
