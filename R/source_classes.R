@@ -169,13 +169,13 @@ projection_source <- R6::R6Class(
         pos <- private$session$pos
         if(!is.null(pos) && pos == "DST"){
           dst_data <- filter(ff_player_data, position == "Def")
-          if(private$data_host() == "www.cbssports.com" && position == "DST") {
+          if(private$data_host() == "www.cbssports.com") {
             dst_data$team <- replace(dst_data$team, dst_data$team == "OAK", "LV")
           }
           if("player" %in% names(data_tbl) && all(data_tbl$player %in% dst_data$name))
-            data_tbl %>% add_column(id =   dst_data$id[match(data_tbl$player, dst_data$name)], .before = 1)
+            data_tbl <- data_tbl %>% add_column(id =   dst_data$id[match(data_tbl$player, dst_data$name)], .before = 1)
           else if("team" %in% names(data_tbl) && all(data_tbl$team %in% dst_data$team))
-            data_tbl %>% add_column(id =   dst_data$id[match(data_tbl$team, dst_data$team)], .before = 1)
+            data_tbl <- data_tbl %>% add_column(id =   dst_data$id[match(data_tbl$team, dst_data$team)], .before = 1)
         } else {
           data_tbl
         }
