@@ -239,7 +239,7 @@ html_sites <- list(
       pass_4049_tds = "40-49 Pass TDs", pass_50_tds = "50+ Pass TDs", pass_int = "Int",
       sacks = "Sck", pass_250_yds = ">= 250 yd", pass_300_yds = ">= 300 yd",
       pass_350_yds = ">= 350 yd", pass_400_yds =  ">= 400 yd", rush_att = "Rush",
-      rush_yds = "Rush Yds", rush_tds = "Rush TDs", rush_09_tds = "0-9 Rsh TDs",
+      rush_yds = "Rsh Yds", rush_tds = "Rsh TDs", rush_09_tds = "0-9 Rsh TDs",
       rush_1019_tds = "10-19 Rsh TDs", rush_2029_tds = "20-29 Rsh TDs",
       rush_3039_tds = "30-39 Rsh TDs", rush_4049_tds = "40-49 Rsh TDs",
       rush_50_tds = "50+ Rsh TDs", rxx_50_yds = ">= 50 yd", rxx_100_yds = ">= 100 yd",
@@ -383,7 +383,7 @@ html_sites <- list(
     split_cols = list(
       list(
         col = function(p)list(TRUE ~ "Player"),
-        into = function(p)list(TRUE ~ c("player", "abbr name", "pos", "team")),
+        into = function(p)list(TRUE ~ c("player", "abbr name", "position", "team")),
         regex = function(p)list(TRUE ~ "([A-Za-z ,.'-/]+)\\n *([A-Za-z ,.'-/]+)\\n *\\(([A-Z]+), ([A-Z]+)\\)")
       ),
       list(
@@ -401,7 +401,7 @@ html_sites <- list(
       pass_yds = "Passing Yds", pass_tds = "Passing TDs", pass_int = "Passing Ints",
       rush_att = "Rushing Att", rush_yds = "Rushing Yds", rush_tds = "Rushing TDs",
       rec = "Receiving Rec", rec_yds = "Receiving Yds", rec_tds = "Receiving TDs",
-      xp = "Kicking XPM", fg_att = "Kicking FGA", fg = "Kicking FGM",
+      rec_tgt = "Receiving Tgt", xp = "Kicking XPM", fg_att = "Kicking FGA", fg = "Kicking FGM",
       fg_0019 = "FG Made By Distance 0-19", fg_2029 = "FG Made By Distance 20-29",
       fg_3039 = "FG Made By Distance 30-39", fg_4049 = "FG Made By Distance 40-49",
       fg_50 = "FG Made By Distance 50", dst_pts_allowed = "Defense Points Allowed",
@@ -529,7 +529,7 @@ json_sites <- list(
     stat_cols = c(pass_att = "passAtt", pass_comp = "passCmp", pass_yds = "passYds",
                   pass_tds = "passTD", pass_int = "passInt", rush_att = "rushAtt",
                   rush_yds = "rushYds", rush_tds = "rushTD", fumbles_lost = "fumblesLost",
-                  rec = "receptions", rec = "rec", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
+                  rec = "rec", rec_yds = "recYds", rec_tds = "recTD", fg_att = "fgAtt",
                   dst_int = "defInt", dst_fum_rec = "defFR", dst_fum_force = "defFF",
                   dst_sacks = "defSack" , dst_td = "defTD", dst_ret_tds = "defRetTD",
                   dst_safety = "defSafety", dst_pts_allowed = "defPA",
@@ -539,8 +539,8 @@ json_sites <- list(
                   rush_yds = "rushYards", site_pts = "fantasyPoints", fumbles_lost = "fumbles",
                   rec_yds = "recYards", dst_sacks = "sacks", dst_int = "interceptions",
                   dst_fum_rec = "fumbleRec", dst_td = "TD", dst_st_td = "specialTeamTD"
-                  ),
-    player_cols = c(src_id = "playerid", player = "display_name",  pos = "position")
+    ),
+    player_cols = c(src_id = "playerid", player = "displayname",  pos = "position")
 
 
   ),
@@ -622,11 +622,10 @@ json_sites <- list(
       dst_sacks = "sacks", dst_int = "ints", dst_fum_rec = "fumbles_recovered",
       site_pts = "pts_ppr"
     ),
-    player_cols = c(src_id = "player_id", player = "name", team = "nfl_team")
+    player_cols = c(src_id = "player_id", player = "name_2", team = "nfl_team")
   )
 
 )
-
 
 xlsx_sites <- list(
   Walterfootball = list(
@@ -638,8 +637,8 @@ xlsx_sites <- list(
     season_pos = c("QB", "RB", "WR", "TE", "K"),
     stat_cols = c(
       pass_yds = "PASS YDS", pass_tds = "PASS TD", pass_int = "INT",
-      rush_yds = "RUSH YDS" , reg_tds = "REG TD", fg_0039 = "FG 1-39",
-      fg_4049 = "FG 40-49", fg_50 = "FG 50+", xp = "XP"
+      rush_yds = "RUSH YDS", rec = "CATCH", rec_yds = "REC YDS" , rec_tds = "REG TD",
+      fg_0039 = "FG 1-39", fg_4049 = "FG 40-49", fg_50 = "FG 50+", xp = "XP"
     )
   )
 )
@@ -649,6 +648,4 @@ projection_sources <- append(append(
   purrr::map(xlsx_sites, do.call, what = ffanalytics:::xlsx_source$new)
 )
 
-
 usethis::use_data(projection_sources, overwrite = TRUE)
-
