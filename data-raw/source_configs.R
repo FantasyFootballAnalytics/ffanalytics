@@ -415,7 +415,7 @@ html_sites <- list(
   #### Yahoo ####
   Yahoo = list(
     base = "https://football.fantasysports.yahoo.com/f1/",
-    league_id = "47241",
+    league_id = "124552",
 
     get_query = function(season, week, pos_id, ...){
 
