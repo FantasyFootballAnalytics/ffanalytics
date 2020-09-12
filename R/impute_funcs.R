@@ -361,7 +361,7 @@ get_stat_cols <- function(tbl, match_pattern){
 
   check_cols <- stat_cols %>% is.na() %>% rowSums()
 
-  check_sums <-  stat_cols %>% rowSums(na.rm=TRUE)
+  check_sums <-  stat_cols %>% mutate_all(as.numeric) %>% rowSums(na.rm=TRUE)
 
   if(length(stat_cols) > 0){
     stat_tbl <- bind_cols(id_cols, stat_cols)
