@@ -67,7 +67,7 @@ stats_by_category <- function(data_results){
       ungroup()
   }
 
-  data_cat <- discard(data_cat, no_rows) %>%
+  data_cat <- compact(data_cat) %>%
     map(inner_join, scrape_pos, by = c("id", "data_src")) %>%
     map(filter, !is.na(id))
 
