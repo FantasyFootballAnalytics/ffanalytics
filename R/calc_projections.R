@@ -5,11 +5,15 @@
 #' @param w The weights associated with each observation.
 #' @param na.rm If \code{TRUE}, then NA values will be removed.
 weighted.sd <- function(x, w, na.rm = FALSE){
+
+  if(length(x) != length(w) || all(is.na(w))) {
+    return(NA)
+  }
+
   sum.w <- sum(w, na.rm = na.rm)
   sum.w2 <- sum(w^2, na.rm = na.rm)
-  mean.w <- sum(x * w,na.rm = na.rm) / sum(w, na.rm = na.rm)
-  x.sd.w <- sqrt((sum.w / (sum.w^2 - sum.w2)) * sum(w * (x - mean.w)^2))
-  return(x.sd.w)
+  mean.w <- sum(x * w,na.rm = na.rm) / sum.w
+  sqrt((sum.w / (sum.w^2 - sum.w2)) * sum(w * (x - mean.w)^2))
 }
 
 #' Wilcox Location Parameter
@@ -68,8 +72,9 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
 
 # Helper functions to calculate the quantiles and standard deviations for the
 # source points. Used in the points_sd and confidence interval functions
-quant_funcs <- list(average = quantile, robust = quantile,
-                    weighted =  purrr::possibly(Hmisc::wtd.quantile, c(`5%` = NaN, `95%` = NaN)))
+quant_funcs <- list(average = quantile,
+                    robust = quantile,
+                    weighted = purrr::possibly(Hmisc::wtd.quantile, c(`5%` = NaN, `95%` = NaN)))
 quant_args <- list(list(probs = c(0.05, 0.95)),  list(probs = c(0.05, 0.95)),
                    list(probs = c(0.05, 0.95), type = "i/n"))
 
@@ -78,9 +83,18 @@ get_quant <- function(pts, wt)invoke_map(quant_funcs, quant_args, x = pts, na.rm
 sd_funcs <- list(average = function(x, w, na.rm)sd(x, na.rm = na.rm),
                  robust = function(x, w, na.rm)mad(x, na.rm = na.rm),
                  weighted = weighted.sd)
-sd_args <- list(list(na.rm = TRUE), list(na.rm = TRUE), list(na.rm = TRUE))
-get_sd <- function(pts, wt)invoke_map(sd_funcs, sd_args, x = pts, w = wt)
+get_sd <- function(pts, wt) {
+  length_pts = length(pts[!is.na(pts)])
 
+  if(length_pts <= 1) {
+    message(paste0("Nonmissing length of points is: ", length_pts))
+    return(list(average = NA, robust = NA, weighted = NA))
+  }
+
+  lapply(sd_funcs, function(fun) {
+    fun(pts, wt, na.rm = TRUE)
+  })
+}
 
 #' Calculate Source Points
 #'
@@ -136,14 +150,19 @@ points_sd <- function(src_pts, weights = NULL){
 
   weight_tbl <- weights_from_src(src_pts, weights)
 
-  src_pts %>% inner_join(weight_tbl, by = "data_src") %>%
+  src_pts %>%
+    inner_join(weight_tbl, by = "data_src") %>%
     group_by(id) %>%
     mutate(n_obs = n(),
            weight = if_else(n_obs == 1 & weight == 0, 1, weight)) %>%
-    ungroup() %>% select(-n_obs) %>%
-    split(.$pos) %>% map(~ split(.x, .x$id)) %>%
-    modify_depth(2, ~ get_sd(.x$points, .x$weight)) %>% modify_depth(2, as.tibble) %>%
-    modify_depth(1, bind_rows, .id = "id") %>% bind_rows(.id = "pos") %>%
+    ungroup() %>%
+    select(-n_obs) %>%
+    split(.$pos) %>%
+    map(~ split(.x, .x$id)) %>%
+    modify_depth(2, ~ get_sd(.x$points, .x$weight)) %>%
+    modify_depth(2, as_tibble) %>%
+    modify_depth(1, bind_rows, .id = "id") %>%
+    bind_rows(.id = "pos") %>%
     gather("avg_type", "sd_pts", -id, -pos)
 }
 
@@ -502,7 +521,7 @@ add_aav <- function(projection_table,
     rename_at(length(.), function(x){return("aav")})
 
   projection_table <- left_join(projection_table, adp_tbl, by = "id")
-  
+
   projection_table  %>%
     `attr<-`(which = "season", season) %>%
     `attr<-`(which = "week", week) %>%
