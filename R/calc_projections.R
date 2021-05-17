@@ -87,7 +87,6 @@ get_sd <- function(pts, wt) {
   length_pts = length(pts[!is.na(pts)])
 
   if(length_pts <= 1) {
-    message(paste0("Nonmissing length of points is: ", length_pts))
     return(list(average = NA, robust = NA, weighted = NA))
   }
 
