@@ -20,7 +20,7 @@ Depends:
     glue,
     Hmisc,
     R (>= 2.10)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Collate:
     'adp_functions.R'
     'calc_projections.R'
@@ -35,6 +35,7 @@ Collate:
     'scrape_ecr.R'
     'scrape_funcs.R'
     'source_classes.R'
+    'source_scrapes.R'
     'stats_aggregation.R'
 Suggests: knitr,
     rmarkdown

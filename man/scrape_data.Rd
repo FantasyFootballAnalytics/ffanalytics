@@ -9,7 +9,7 @@ scrape_data(
     "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL", "RTSports",
     "Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-  season = 2019,
+  season = 2021,
   week = 0
 )
 }
