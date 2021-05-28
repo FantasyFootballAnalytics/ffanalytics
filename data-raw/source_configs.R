@@ -206,7 +206,7 @@ html_sites <- list(
     get_query = function(season, week, pos_id, ...){
       query <- list()
       shark_segment <- function(season, week){
-        shark_season <- c("2017"= 586, "2018" = 618, "2019" = 650, "2020" = 682)
+        shark_season <- c("2017"= 586, "2018" = 618, "2019" = 650, "2020" = 682, "2021" = 714)
         segment <- shark_season[as.character(season)] + week + 9 * (week > 0)
         return(segment)
       }

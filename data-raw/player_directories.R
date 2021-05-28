@@ -108,7 +108,7 @@ repeat{
     html_attr("href")
   if(is.na(next_link))
     break()
-  next_link <- str_replace(next_link, "statSeason=2019", "statSeason=2020")
+  next_link <- str_replace(next_link, "statSeason=2020", "statSeason=2021")
   next_link <- str_replace(next_link, "statWeek=17", "statWeek=1")
   nfl_session <- nfl_session %>% jump_to(paste0(nfl_url, next_link))
 }
