@@ -18,7 +18,6 @@ Depends:
     purrr, 
     stringr, 
     httr, 
-    janitor, 
     rvest, 
     xml2,
     R (>= 2.10)
