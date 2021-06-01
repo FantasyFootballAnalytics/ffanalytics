@@ -49,7 +49,7 @@ fft <- map(fft, ~paste0("http://www.fftoday.com/stats/players?Pos=", .x)) %>%
 
 #### FantasyPros ####
 # Open FantasyPros depth charts page in an html session
-fp_dc_page <- rvest::html_session("https://www.fantasypros.com/nfl/depth-charts.php")
+fp_dc_page <- rvest::session("https://www.fantasypros.com/nfl/depth-charts.php")
 # Get the page content:
 page_content <- xml2::read_html(fp_dc_page)
 # Now we find links to each of the teams depth charts pages
@@ -92,7 +92,7 @@ for(tm in seq_along(team_dc_urls)){
 }
 #### NFL Players ####
 nfl_url <- "https://fantasy.nfl.com/research/players/"
-nfl_session <- html_session(nfl_url)
+nfl_session <- session(nfl_url)
 nfl_table <- tibble(nfl_id = character(), player = character(), pos = character(), team = character())
 repeat{
   print(nfl_session$url)

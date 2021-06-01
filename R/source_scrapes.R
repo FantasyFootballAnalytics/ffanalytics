@@ -56,7 +56,7 @@ open_session = function(season, week = NULL, position , ...){
   if(private$data_host() == "www.fantasysharks.com"){
     private$session <- session_url
   } else {
-    src_session <- html_session(session_url)
+    src_session <- session(session_url)
     src_session[c("season", "week", "position")] <- list(season, week, position)
     private$session <- src_session
   }
@@ -66,7 +66,7 @@ open_session = function(season, week = NULL, position , ...){
 
 
 
-
+# Starting to make new self-contained scrapes
 scrape_cbs <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
                        season = 2020,
                        week = 0) {

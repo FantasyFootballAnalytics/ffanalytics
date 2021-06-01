@@ -217,7 +217,7 @@ projection_source <- R6::R6Class(
 #' @section Methods:
 #' \describe{
 #'   \item{\code{open_session}}{Takes \code{season, week, position} as input and
-#'   and opens a session on the website via the \link{html_session} function after
+#'   and opens a session on the website via the \link{session} function after
 #'   determining the URL}
 #'   \item{\code{close_session}}{Closes the session that is currently open}
 #'   \item{\code{get_table}}{Retrieves the table from the session without any
@@ -275,7 +275,7 @@ html_source <- R6::R6Class(
       if(private$data_host() == "www.fantasysharks.com"){
         private$session <- session_url
       } else {
-        src_session <- html_session(session_url)
+        src_session <- session(session_url)
         src_session[c("season", "week", "position")] <- list(season, week, position)
         private$session <- src_session
       }
@@ -333,15 +333,15 @@ html_source <- R6::R6Class(
 
         # For CBS we need to set the colspan on the first two cells in the table header
         if(private$data_host() == "www.cbssports.com" & position != "DST"){
-          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-child(-n+2)") %>%
+          data_page %>% html_elements("tr.TableBase-headGroupTr th:nth-child(-n+2)") %>%
             `xml_attr<-`(attr = "colspan", value= "1")
         }
 
         if(private$data_host() == "www.cbssports.com" & position == "DST"){
-          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-child(-n+10)") %>%
+          data_page %>% html_elements("tr.TableBase-headGroupTr th:nth-child(-n+10)") %>%
             `xml_attr<-`(attr = "colspan", value= "1")
 
-          data_page %>% xml_nodes("tr.TableBase-headGroupTr th:nth-last-child(-n+2)") %>%
+          data_page %>% html_elements("tr.TableBase-headGroupTr th:nth-last-child(-n+2)") %>%
             `xml_attr<-`(attr = "colspan", value= "1")
         }
 
