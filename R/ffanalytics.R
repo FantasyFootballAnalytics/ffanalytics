@@ -1,6 +1,8 @@
-#' @import dplyr tibble tidyr purrr stringr httr janitor rvest glue
+#' @import dplyr tibble tidyr purrr stringr httr janitor rvest
+#' @importFrom glue glue
 #' @importFrom lubridate year
 #' @importFrom data.table fread
+#' @importFrom Hmisc wtd.quantile
 .onLoad <- function(libname, pkgname){
   player_table <<- dplyr::as_tibble(
     data.table::fread("https://s3.us-east-2.amazonaws.com/ffanalytics/packagedata/player_table.csv",
