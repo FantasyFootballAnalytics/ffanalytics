@@ -19,7 +19,6 @@ Depends:
     stringr, 
     httr, 
     janitor, 
-    readxl,
     rvest, 
     xml2,
     R (>= 2.10)
