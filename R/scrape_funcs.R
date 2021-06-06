@@ -28,7 +28,7 @@ scrape_data <- function(
   pos <- match.arg(pos, several.ok = TRUE)
 
   if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos))
-    pos <- c(pos, "IDP")
+    # pos <- c(pos, "IDP") # temporary, until I redo scrapes
 
   if(any(src == "FleaFlicker") & "DL" %in% pos)
     pos <- c(pos, "DE", "DT")
