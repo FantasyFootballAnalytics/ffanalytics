@@ -244,7 +244,7 @@ projected_points <- function(agg_stats, scoring_rules){
   dst_agg <- dst_src %>% slice(0)
 
   if(dst_bracket){
-    dst_agg <- agg_stats %>%  filter(data_col == "dst_pts_allowed") %>%
+    dst_agg <- agg_stats %>% filter(data_col == "dst_pts_allowed") %>%
       mutate(points = ffanalytics:::dst_points(stat_value, scoring_rules$pts_bracket))
   }
   agg_stats  %>%
@@ -254,8 +254,8 @@ projected_points <- function(agg_stats, scoring_rules){
     group_by(pos, avg_type, id) %>%
     summarise(points = if_else(all(is.na(points)), NA_real_, sum(points, na.rm = TRUE))) %>%
     mutate(pos_rank = dense_rank(-points),
-           drop_off =  points - (lead(points, order_by = pos_rank) +
-                                   lead(points, 2, order_by = pos_rank)) /2 ) %>%
+           drop_off = points - (lead(points, order_by = pos_rank) +
+                                  lead(points, 2, order_by = pos_rank)) / 2) %>%
     ungroup()
 }
 
@@ -335,7 +335,7 @@ set_tiers <- function(data_tbl, d_threshold = NULL, src_points){
     d_threshold <- default_threshold
 
   tier_tbl <- data_tbl %>% filter(pos %in% names(d_threshold)) %>%
-    mutate(dthres = d_threshold[pos], tier = ifelse(pos_rank == 1, 1L, NA))
+    mutate(dthres = d_threshold[pos], tier = ifelse(pos_rank == max(pos_rank, na.rm = TRUE), 1L, NA))
 
   repeat{
     before_na <- sum(is.na(tier_tbl$tier))
