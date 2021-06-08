@@ -331,8 +331,9 @@ default_threshold <-  c(QB = 1, RB = 1, WR = 1, TE = 1, K = 1, DST = 0.1, DL = 1
 #' determine the tiers. If omitted then the \link{default_threshold} will be used.
 #' @param src_points An output from the \link{source_points} function
 set_tiers <- function(data_tbl, d_threshold = NULL, src_points){
-  if(is.null(d_threshold))
+  if(is.null(d_threshold)) {
     d_threshold <- default_threshold
+  }
 
   tier_tbl <- data_tbl %>%
     filter(pos %in% names(d_threshold)) %>%
