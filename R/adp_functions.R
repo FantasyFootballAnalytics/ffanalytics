@@ -101,7 +101,7 @@ yahoo_draft <- function(aav = FALSE){
   draft_col <- ifelse(aav, "Avg Cost",  "Avg Pick")
   names(draft_col) <- ifelse(aav, "aav",  "adp")
 
-  draft_session <- html_session(draft_url)
+  draft_session <- session(draft_url)
   yahoo_adp <- data.frame()
   recode_vals <- c("jac" = "30", "bal" = "33", "lar" = "14", "phi" = "21", "det" = "8",
                        "lac" = "24", "nor" = "18", "sea" = "26", "chi" = "3",  "car" = "29",
@@ -339,11 +339,11 @@ ffc_draft <- function(format=c("standard", "ppr", "2qb", "dynasty", "rookie"),
   ffc_url <- modify_url(ffc_url, query = list(format = format, year = season, teams = 12, view = "graph", pos = pos))
 
   ffc_page <- read_html(ffc_url)
-  ffc_page %>% xml_nodes("table.adp tr th.visible-xs") %>% xml_remove()
-  ffc_page %>% xml_nodes("table.adp tr th:last-child") %>% xml_remove()
-  ffc_page %>% xml_nodes("table.adp tr td:last-child") %>% xml_remove()
+  ffc_page %>% html_elements("table.adp tr th.visible-xs") %>% xml_remove()
+  ffc_page %>% html_elements("table.adp tr th:last-child") %>% xml_remove()
+  ffc_page %>% html_elements("table.adp tr td:last-child") %>% xml_remove()
 
-  pids <- ffc_page %>% xml_nodes("table.adp td a") %>% xml_attr("href") %>% str_remove("/players/")
+  pids <- ffc_page %>% html_elements("table.adp td a") %>% xml_attr("href") %>% str_remove("/players/")
   ffc_page %>% xml_node("table.adp") %>% html_table() %>%
     clean_names() %>% rename(player = "name") %>%
     add_column(fp_id = pids, .before = 1) %>%

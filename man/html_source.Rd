@@ -20,7 +20,7 @@ on defining CSS selectors
 
 \describe{
   \item{\code{open_session}}{Takes \code{season, week, position} as input and
-  and opens a session on the website via the \link{html_session} function after
+  and opens a session on the website via the \link{session} function after
   determining the URL}
   \item{\code{close_session}}{Closes the session that is currently open}
   \item{\code{get_table}}{Retrieves the table from the session without any

@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 2.0.2.0001
+Version: 2.0.3.0001
 Authors@R: c(person("Dennis", "Andersen", email = "andersen.dennis@outlook.com",
                   role = c("aut", "cre")))
 Author: Dennis Andersen
@@ -12,15 +12,16 @@ Encoding: UTF-8
 LazyData: true
 Imports: R6
 Depends: 
-    tidyverse,
-    rvest,
-    httr,
-    readxl,
-    janitor,
-    glue,
-    Hmisc,
+    dplyr, 
+    tibble, 
+    tidyr, 
+    purrr, 
+    stringr, 
+    httr, 
+    rvest, 
+    xml2,
     R (>= 2.10)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Collate:
     'adp_functions.R'
     'calc_projections.R'
@@ -35,6 +36,7 @@ Collate:
     'scrape_ecr.R'
     'scrape_funcs.R'
     'source_classes.R'
+    'source_scrapes.R'
     'stats_aggregation.R'
 Suggests: knitr,
     rmarkdown

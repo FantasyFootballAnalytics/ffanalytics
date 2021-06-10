@@ -20,7 +20,7 @@ scrape_data <- function(
           "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
           "RTSports","Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-  season = 2020, week = 0){
+  season = 2021, week = 0){
 
   if(missing(week))
     week <- 0
@@ -28,7 +28,7 @@ scrape_data <- function(
   pos <- match.arg(pos, several.ok = TRUE)
 
   if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos))
-    pos <- c(pos, "IDP")
+    # pos <- c(pos, "IDP") # temporary, until I redo scrapes
 
   if(any(src == "FleaFlicker") & "DL" %in% pos)
     pos <- c(pos, "DE", "DT")
