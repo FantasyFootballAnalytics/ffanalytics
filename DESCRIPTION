@@ -36,7 +36,6 @@ Collate:
     'scrape_ecr.R'
     'scrape_funcs.R'
     'source_classes.R'
-    'source_scrapes.R'
     'stats_aggregation.R'
 Suggests: knitr,
     rmarkdown
