@@ -395,8 +395,10 @@ projections_table <- function(data_result, scoring_rules = NULL, src_weights = N
       `attr<-`(which = "season", season) %>%
       `attr<-`(which = "week", week)
 
-    if(is.null(scoring_rules))
-    scoring_rules <- scoring
+    if(is.null(scoring_rules)) {
+      scoring_rules <- scoring
+    }
+
 
   if(scoring_rules$rec$all_pos){
     lg_type <- scoring_rules$rec$rec %>% rep(length(data_result)) %>%
