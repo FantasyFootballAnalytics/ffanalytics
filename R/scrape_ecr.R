@@ -64,8 +64,10 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   rank_tab_names = gsub(":.*", "", rank_tab[[1]])
   rank_tab = lapply(rank_tab, function(x) gsub(".*:", "", x))
   rank_tab = lapply(rank_tab, function(x) `names<-`(x, rank_tab_names))
+  rank_tab = lapply(rank_tab, `[`, c("player_id", "rank_ave", "rank_std"))
 
   bind_rows(rank_tab) %>%
     select(id = player_id, avg = rank_ave, std_dev = rank_std)
-
 }
+
+
