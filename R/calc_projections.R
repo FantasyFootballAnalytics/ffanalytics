@@ -44,8 +44,10 @@ wtd_q = function(x, w, probs, na.rm = FALSE) {
     w = rep(1L, x_len)
   }
   if(length_x != length_w) {
-    on.exit(message("Length of x != length of w for at least one group. NA returned"),
-            add = TRUE)
+    message("Length of x != length of w for at least one group. NA returned")
+    return(NA)
+  }
+  if(length_x == 1) {
     return(NA)
   }
 
