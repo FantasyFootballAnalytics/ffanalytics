@@ -54,7 +54,7 @@ wtd_q = function(x, w, probs, na.rm = FALSE) {
   n = length(x)
   d_wtd = density(x, weights = w / sum(w, na.rm = na.rm), n = n, na.rm = na.rm)
 
-  vapply(probs, function(p) {
+  out = vapply(probs, function(p) {
     idx = cumsum(d_wtd$y * (d_wtd$x[2L] - d_wtd$x[1L])) >= p
     if(any(idx)) {
       d_wtd$x[which.max(idx)]
@@ -62,6 +62,7 @@ wtd_q = function(x, w, probs, na.rm = FALSE) {
       d_wtd$x[length(idx)]
     }
   }, numeric(1L))
+  setNames(out, sprintf("%1.0f%%", probs*100))
 
 }
 
