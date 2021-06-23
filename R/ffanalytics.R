@@ -2,7 +2,6 @@
 #' @importFrom glue glue
 #' @importFrom lubridate year
 #' @importFrom data.table fread
-#' @importFrom Hmisc wtd.quantile
 #' @importFrom readxl read_xlsx
 #' @importFrom janitor clean_names
 .onLoad <- function(libname, pkgname){

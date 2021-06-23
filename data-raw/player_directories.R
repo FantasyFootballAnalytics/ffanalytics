@@ -67,18 +67,22 @@ for(tm in seq_along(team_dc_urls)){
   for(i in 1:2){
     # Get the page conten
     team_page_content <- httr::content(team_page$response)
+
     # Extract player identifiers as players page name
-    player_ids <- gsub(".php", "", basename(rvest::html_attr(rvest::html_nodes(team_page_content, "a[class = 'player-name']"), "href")))
+    player_names = basename(rvest::html_attr(rvest::html_nodes(team_page_content, "a[class = 'player-name']"), "href"))
+    player_ids <- sub(".php", "", player_names, fixed = TRUE)
     # Get the position tables
     position_tables <- rvest::html_table(rvest::html_nodes(team_page_content, "table[class *= 'position-table']"))
     # Standardize the column names and get Position names and ensure rank is numeric
+    position_tables = position_tables[sapply(position_tables, nrow) > 0]
+
     pos_tables <- lapply(position_tables, function(p_tbl){
       names(p_tbl) <- gsub("Quarterbacks|Running Backs|Wide Receivers|Tight Ends|Defensive Lineman|Linebacker|Defensive Back",
                            "Player", names(p_tbl))
       names(p_tbl) <- gsub("(QB|RB|WR|TE|DL|LB|DB)\\s", "", names(p_tbl))
-      p_tbl$Pos <- gsub("[0-9]", "", p_tbl$Pos)
-      p_tbl[, grep("Rank",names(p_tbl))] <- as.numeric(p_tbl[, grep("Rank", names(p_tbl))])
-      return(p_tbl)
+      p_tbl$Pos <- sub("[0-9]+", "", p_tbl$Pos)
+      p_tbl[, grep("Rank",names(p_tbl))] <- as.numeric(p_tbl[[grep("Rank", names(p_tbl))]])
+      p_tbl
     })
     # Combine the tables and set player names and ids
     pos_table <- dplyr::bind_rows(pos_tables)
