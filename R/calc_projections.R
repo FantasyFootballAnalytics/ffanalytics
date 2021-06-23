@@ -16,6 +16,53 @@ weighted.sd <- function(x, w, na.rm = FALSE){
   sqrt((sum.w / (sum.w^2 - sum.w2)) * sum(w * (x - mean.w)^2))
 }
 
+#' Temp weighted quantile function
+#'
+#' From: https://stats.stackexchange.com/questions/373269/why-does-this-simple-weighted-quantile-differ-from-hmiscwtd-quantile-which-me
+wtd_q = function(x, w, probs, na.rm = FALSE) {
+
+  anyna_x = anyNA(x)
+  w_zero = w == 0 | is.na(w)
+
+  if(!na.rm && anyna_x) {
+    return(NA_real_)
+  } else if(na.rm && (anyna_x | any(w_zero))) {
+    isna_x = is.na(x)
+    if(isTRUE(any(w_zero))) {
+      x = x[!isna_x & !w_zero]
+      w = w[!isna_x & !w_zero]
+    } else {
+      x = x[!isna_x]
+      w = w[!isna_x]
+    }
+  }
+
+  length_x = length(x)
+  length_w = length(w)
+
+  if(length_w == 0L) {
+    w = rep(1L, x_len)
+  }
+  if(length_x != length_w) {
+    on.exit(message("Length of x != length of w for at least one group. NA returned"),
+            add = TRUE)
+    return(NA)
+  }
+
+  n = length(x)
+  d_wtd = density(x, weights = w / sum(w, na.rm = na.rm), n = n, na.rm = na.rm)
+
+  vapply(probs, function(p) {
+    idx = cumsum(d_wtd$y * (d_wtd$x[2L] - d_wtd$x[1L])) >= p
+    if(any(idx)) {
+      d_wtd$x[which.max(idx)]
+    } else {
+      d_wtd$x[length(idx)]
+    }
+  }, numeric(1L))
+
+}
+
 #' Wilcox Location Parameter
 #'
 #' Modified function to calculate Wilcox' Location paramenter
@@ -74,11 +121,11 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
 # source points. Used in the points_sd and confidence interval functions
 quant_funcs <- list(average = quantile,
                     robust = quantile,
-                    weighted = purrr::possibly(wtd.quantile, c(`5%` = NaN, `95%` = NaN)))
+                    weighted = wtd_q)
 quant_args <- list(list(probs = c(0.05, 0.95)),  list(probs = c(0.05, 0.95)),
-                   list(probs = c(0.05, 0.95), type = "i/n"))
+                   list(probs = c(0.05, 0.95)))
 
-get_quant <- function(pts, wt)invoke_map(quant_funcs, quant_args, x = pts, na.rm = TRUE, weights = wt)
+get_quant <- function(pts, wt)invoke_map(quant_funcs, quant_args, x = pts, na.rm = TRUE, w = wt)
 
 sd_funcs <- list(average = function(x, w, na.rm)sd(x, na.rm = na.rm),
                  robust = function(x, w, na.rm)mad(x, na.rm = na.rm),
@@ -551,7 +598,7 @@ calculate_risk <- function(var1, var2){
 
   risk_value <- 2 * scale(rowMeans(data.frame(Z_var1, Z_var2), na.rm=TRUE)) + 5
 
-  return(risk_value)
+  c(risk_value)
 
 }
 
