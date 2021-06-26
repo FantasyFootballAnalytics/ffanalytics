@@ -6,7 +6,7 @@
 # The command to create the sysdata.rda file is usethis::use_data(player_ids, overwrite = TRUE, internal = TRUE).
 # This command needs to be executed from the package root folder.
 
-#### CBS Players ####
+#### CBS Players #### ----
 team_links <- read_html("https://www.cbssports.com/search/football/players/#tab-content-2") %>%
   html_nodes("a[href*='roster']") %>% html_attr("href") %>% as.list()
 names(team_links) <- team_links %>% str_extract("[A-Z]{2,3}")
@@ -26,8 +26,8 @@ cbs_data <- function(u){
     mutate(pos = recode(pos, OLB = "LB", ILB = "LB", NT = "DL")) %>%
     filter(pos %in% c("QB", "RB", "WR", "TE", "K", "DL", "LB", "DB"))
 }
-cbs_players <- map(team_links, cbs_data) %>% bind_rows(.id = "team")
-#### FFToday Players ####
+final_cbs <- map(team_links, cbs_data) %>% bind_rows(.id = "team")
+#### FFToday Players #### ----
 fft_pos_players <- function(u){
   get_fft <- read_html(u)
   player_teams <- get_fft %>% html_nodes("td span.smallbody a") %>% html_text() %>%
@@ -45,56 +45,123 @@ fft <- c("QB", "RB", "WR", "TE", "K",  "DL",  "LB", "DB")
 fft <- setNames(fft, fft)
 fft <- map(fft, ~paste0("http://www.fftoday.com/stats/players?Pos=", .x)) %>%
   map(fft_pos_players) %>% bind_rows(.id = "pos")
+final_fft
+
+#### FantasyPros #### ----
+# Fantasy pros numeric ids
+
+# Getting Players from last years stats
+# Getting links
+fp_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")
+last_year = 2020
+
+fp_lastyr_links = paste0("https://www.fantasypros.com/nfl/stats/",
+                         tolower(fp_pos), ".php?year=", last_year)
+fp_lastyr_session = html_session(fp_lastyr_links[1])
+
+fp_lastyr_l = lapply(fp_lastyr_links, function(x) {
+
+  print(paste0("Starting ", x, " in 5 seconds"))
+  Sys.sleep(5)
+
+  html_page = fp_lastyr_session %>%
+    session_jump_to(x) %>%
+    read_html()
+
+  pos = sub(".*?stats/(.*?)\\..*", "\\1", x)
+
+  name_id = html_page %>%
+    html_elements("td.player-label > a.player-name") %>%
+    html_attr("href") %>%
+    sub(".*?stats/(.*?)\\.php$", "\\1", .)
+
+  internal_id = html_page %>%
+    html_elements("a.fp-player-link") %>%
+    html_attr("class") %>%
+    sub(".+\\-([0-9]+)$", "\\1", .)
+
+  player_name = html_page %>%
+    html_elements("a.fp-player-link") %>%
+    html_attr("fp-player-name") %>%
+    sub(".+\\-([0-9]+)$", "\\1", .)
+
+  data.frame(player_name,
+             pos,
+             name_id,
+             internal_id)
 
 
-#### FantasyPros ####
-# Open FantasyPros depth charts page in an html session
-fp_dc_page <- rvest::session("https://www.fantasypros.com/nfl/depth-charts.php")
-# Get the page content:
-page_content <- xml2::read_html(fp_dc_page)
-# Now we find links to each of the teams depth charts pages
-# a tags with a href that contains '/depth-chart/' and doesn't have a class
-# attribute
-team_dc_links <- rvest::html_nodes(fp_dc_page, css = "a[href *='/depth-chart/']:not([class])")
-# Extract the relative urls and team names
-team_dc_urls <- rvest::html_attr(team_dc_links, "href")
-team_names <-  rvest::html_text(team_dc_links)
-team_pos_tables <- data.frame()
-for(tm in seq_along(team_dc_urls)){
-  # go to the team page
-  team_page <- rvest::jump_to(fp_dc_page, team_dc_urls[[tm]])
-  # We have to extract data in two rounds, one for Off one for Def
+})
+rm(fp_lastyr_session)
+gc()
+fp_lastyr = bind_rows(fp_lastyr_l)
+
+# Pulling from the depth charts
+fp_dc_session = html_session("https://www.fantasypros.com/nfl/depth-charts.php")
+
+# Getting team links
+fp_dc_links <- read_html(fp_dc_session) %>%
+  html_nodes("a[href *='/depth-chart/']:not([class])") %>%
+  html_attr("href")
+
+fp_dc_l = lapply(fp_dc_links, function(x) {
+
+  print(paste0("Starting ", x, " in 5 seconds"))
+  Sys.sleep(5)
+
+  team_session = fp_dc_session %>%
+    session_jump_to(x)
+
+  html_page = read_html(team_session)
+  l = vector("list", 2L)
+
   for(i in 1:2){
-    # Get the page conten
-    team_page_content <- httr::content(team_page$response)
 
-    # Extract player identifiers as players page name
-    player_names = basename(rvest::html_attr(rvest::html_nodes(team_page_content, "a[class = 'player-name']"), "href"))
-    player_ids <- sub(".php", "", player_names, fixed = TRUE)
-    # Get the position tables
-    position_tables <- rvest::html_table(rvest::html_nodes(team_page_content, "table[class *= 'position-table']"))
-    # Standardize the column names and get Position names and ensure rank is numeric
-    position_tables = position_tables[sapply(position_tables, nrow) > 0]
+    name_id = html_page %>%
+      html_elements("td.player-label > a.player-name") %>%
+      html_attr("href") %>%
+      sub(".*?players/(.*?)\\.php$", "\\1", .)
 
-    pos_tables <- lapply(position_tables, function(p_tbl){
-      names(p_tbl) <- gsub("Quarterbacks|Running Backs|Wide Receivers|Tight Ends|Defensive Lineman|Linebacker|Defensive Back",
-                           "Player", names(p_tbl))
-      names(p_tbl) <- gsub("(QB|RB|WR|TE|DL|LB|DB)\\s", "", names(p_tbl))
-      p_tbl$Pos <- sub("[0-9]+", "", p_tbl$Pos)
-      p_tbl[, grep("Rank",names(p_tbl))] <- as.numeric(p_tbl[[grep("Rank", names(p_tbl))]])
-      p_tbl
-    })
-    # Combine the tables and set player names and ids
-    pos_table <- dplyr::bind_rows(pos_tables)
-    pos_table$Team <- team_names[tm]
-    pos_table$id <- player_ids
-    team_pos_tables <- dplyr::bind_rows(team_pos_tables, pos_table)
-    # On the first run through we need to switch to the Def page
-    if(i == 1)
-      team_page <- rvest::jump_to(team_page, "?side=dst")
+    internal_id = html_page %>%
+      html_elements("table > tbody > tr") %>%
+      html_attr("class") %>%
+      sub(".+\\-([0-9]+)$", "\\1", .)
+
+    player_name = html_page %>%
+      html_elements("td.player-label > a.player-name") %>%
+      html_text2()
+
+    pos = html_page %>%
+      html_elements("table > tbody > tr > td:nth-child(1)") %>%
+      html_text2() %>%
+      sub("\\d+", "", .) %>%
+      tolower()
+
+    l[[i]] = data.frame(player_name,
+                        pos,
+                        name_id,
+                        internal_id)
+
+    # Switch to defense
+    if(i == 1) {
+      html_page = session_jump_to(team_session, "?side=dst")
+    }
+
   }
-}
-#### NFL Players ####
+  bind_rows(l)
+
+})
+
+rm(fp_dc_session)
+gc()
+fp_dc = bind_rows(fp_dc_l)
+
+final_fp_all = bind_rows(fp_lastyr, fp_dc) %>%
+  distinct()
+
+rm(list = ls(pattern = "^fp_"))
+
+#### NFL Players #### ----
 nfl_url <- "https://fantasy.nfl.com/research/players/"
 nfl_session <- session(nfl_url)
 nfl_table <- tibble(nfl_id = character(), player = character(), pos = character(), team = character())
@@ -117,3 +184,5 @@ repeat{
   nfl_session <- nfl_session %>% jump_to(paste0(nfl_url, next_link))
 }
 
+
+#### NUmber fire #### ----
