@@ -1,6 +1,6 @@
 nfl_stats <- dplyr::bind_rows(
   lapply(httr::content(httr::GET("http://api.fantasy.nfl.com/v1/game/stats?format=json"))$stats,
-         tibble::as.tibble)
+         dplyr::as_tibble)
 )
 
 nfl_cols <- as.character(nfl_stats$id)

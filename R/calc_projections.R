@@ -18,52 +18,41 @@ weighted.sd <- function(x, w, na.rm = FALSE){
 
 #' Temp weighted quantile function
 #'
+#' Temp weighted quantile function that removes zero-weight and NA's in w and x
 #' From: https://stats.stackexchange.com/questions/373269/why-does-this-simple-weighted-quantile-differ-from-hmiscwtd-quantile-which-me
-wtd_q = function(x, w, probs, na.rm = FALSE) {
+wtd_q = function(x, w, probs, na.rm = TRUE) {
 
-  anyna_x = anyNA(x)
-  w_zero = w == 0 | is.na(w)
+  w_zero = !(w == 0 | is.na(w))
+  isna_x = !is.na(x)
 
-  if(!na.rm && anyna_x) {
-    return(NA_real_)
-  } else if(na.rm && (anyna_x | any(w_zero))) {
-    isna_x = is.na(x)
-    if(isTRUE(any(w_zero))) {
-      x = x[!isna_x & !w_zero]
-      w = w[!isna_x & !w_zero]
-    } else {
-      x = x[!isna_x]
-      w = w[!isna_x]
-    }
-  }
+  x = x[w_zero | isna_x]
+  w = w[w_zero | isna_x]
 
   length_x = length(x)
   length_w = length(w)
-
-  if(length_w == 0L) {
-    w = rep(1L, x_len)
+  if (length_w == 0L) {
+    w = rep(1L, length_x)
   }
-  if(length_x != length_w) {
-    message("Length of x != length of w for at least one group. NA returned")
+  if (length_x != length_w) {
+    message("Length of x != length of w. NA returned")
     return(NA)
   }
-  if(length_x == 1) {
+  if (length_x == 1L) {
     return(NA)
   }
 
-  n = length(x)
-  d_wtd = density(x, weights = w / sum(w, na.rm = na.rm), n = n, na.rm = na.rm)
-
+  d_wtd = density.default(x, weights = w / sum(w, na.rm = na.rm),
+                          n = length_x, na.rm = na.rm)
   out = vapply(probs, function(p) {
     idx = cumsum(d_wtd$y * (d_wtd$x[2L] - d_wtd$x[1L])) >= p
-    if(any(idx)) {
+    if (any(idx)) {
       d_wtd$x[which.max(idx)]
-    } else {
+    }
+    else {
       d_wtd$x[length(idx)]
     }
   }, numeric(1L))
-  setNames(out, sprintf("%1.0f%%", probs*100))
-
+  setNames(out, sprintf("%1.0f%%", probs * 100))
 }
 
 #' Wilcox Location Parameter
@@ -230,11 +219,16 @@ confidence_interval <- function(src_pts, weights = NULL){
     group_by(id) %>%
     mutate(n_obs = n(),
            weight = if_else(n_obs == 1 & weight == 0, 1, weight)) %>%
-    ungroup() %>% select(-n_obs) %>%
-    split(.$pos) %>% map(~ split(.x, .x$id)) %>%
-    modify_depth(2, ~ get_quant(.x$points, .x$weight)) %>% modify_depth(3, t) %>%
-    modify_depth(3, as.tibble) %>% modify_depth(2, bind_rows, .id  = "avg_type") %>%
-    modify_depth(1, bind_rows, .id = "id") %>% bind_rows(.id = "pos") %>%
+    ungroup() %>%
+    select(-n_obs) %>%
+    split(.$pos) %>%
+    map(~ split(.x, .x$id)) %>%
+    modify_depth(2, ~ get_quant(.x$points, .x$weight)) %>%
+    modify_depth(3, t) %>%
+    modify_depth(3, as_tibble) %>%
+    modify_depth(2, bind_rows, .id  = "avg_type") %>%
+    modify_depth(1, bind_rows, .id = "id") %>%
+    bind_rows(.id = "pos") %>%
     #mutate(`5%` = ifelse(is.na(`5%`),` 5%`, `5%`)) %>% select(-` 5%`) %>%
     rename(floor = "5%", ceiling = "95%")
 }
@@ -344,7 +338,8 @@ set_vor <- function(points_table, vor_baseline = NULL, vor_var = c("points", "fl
     rename(vor_var = !!vor_var) %>%
     mutate(vor = vor_var - vor_base,
            rank = dense_rank(-vor), !!vor_var := vor_var) %>%
-    select(id, pos, vor, rank) %>% rename_if(is.numeric, funs(paste(vor_var, ., sep = "_"))) %>%
+    select(id, pos, vor, rank) %>%
+    rename_with(~paste(vor_var, ., sep = "_"), where(is.numeric)) %>%
     ungroup()
 
   return(vor_tbl)
@@ -504,12 +499,13 @@ add_ecr <- function(projection_table){
   ecr_pos <- lg_type %>%
     imap(~ scrape_ecr(rank_period = ifelse(week == 0, "draft", "week"),
                       position = .y, rank_type = .x)) %>%
-    map(select, id, pos_ecr = avg, sd_ecr = std_dev) %>% bind_rows()
+    map(select, id, pos_ecr = avg, sd_ecr = std_dev) %>%
+    bind_rows()
 
   projection_table <- left_join(projection_table, ecr_pos, by = "id")
   if(week == 0){
     lg_ov <- ifelse(any(lg_type == "PPR"), "PPR", ifelse(any(lg_type == "Half"), "Half", "Std"))
-    ecr_overall <- scrape_ecr(rank_period = "draft", rank_type = lg_ov) %>%
+    ecr_overall <- scrape_ecr(rank_period = "draft", rank_type = lg_ov, position = "Overall") %>%
       select(id, ecr = avg)
     projection_table <- left_join(projection_table, ecr_overall, by = "id")
   }

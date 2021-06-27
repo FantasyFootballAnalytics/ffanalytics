@@ -17,7 +17,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   }
 
   base_link = paste0("https://www.cbssports.com/fantasy/football/stats/QB/2021/season/projections/nonppr/")
-  site_session = html_session(base_link)
+  site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
     scrape_link = paste0("https://www.cbssports.com/fantasy/football/stats/", pos, "/",
@@ -98,7 +98,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   base_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape[1],
                      "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
                      "&statType=seasonProjectedStats")
-  site_session = html_session(base_link)
+  site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
     pos_scrape = nfl_pos_idx[pos]

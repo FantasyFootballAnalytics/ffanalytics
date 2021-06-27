@@ -8,16 +8,16 @@
 
 #### CBS Players #### ----
 team_links <- read_html("https://www.cbssports.com/search/football/players/#tab-content-2") %>%
-  html_nodes("a[href*='roster']") %>% html_attr("href") %>% as.list()
+  html_elements("a[href*='roster']") %>% html_attr("href") %>% as.list()
 names(team_links) <- team_links %>% str_extract("[A-Z]{2,3}")
 cbs_data <- function(u){
   cbs_pge <- read_html(u)
-  cbs_pge %>% html_nodes("span.CellPlayerName-icon") %>% xml_remove()
-  cbs_pge %>% html_nodes("span.CellPlayerName--short") %>% xml_remove()
-  pids <- cbs_pge  %>% html_nodes("span.CellPlayerName--long a") %>%
+  cbs_pge %>% html_elements("span.CellPlayerName-icon") %>% xml_remove()
+  cbs_pge %>% html_elements("span.CellPlayerName--short") %>% xml_remove()
+  pids <- cbs_pge  %>% html_elements("span.CellPlayerName--long a") %>%
     projection_sources$CBS$extract_pid()
   cbs_pge %>%
-    html_nodes("div.Page-colMain table.TableBase-table") %>% html_table() %>%
+    html_elements("div.Page-colMain table.TableBase-table") %>% html_table() %>%
     map(mutate, EXP = as.character(EXP), NO = as.character(NO),
         Player = str_trim(str_remove_all(Player, "[:cntrl:]"))) %>% bind_rows() %>%
     add_column(src_id = pids, .before = 1) %>% select(src_id, Player, POS) %>%
@@ -30,11 +30,11 @@ final_cbs <- map(team_links, cbs_data) %>% bind_rows(.id = "team")
 #### FFToday Players #### ----
 fft_pos_players <- function(u){
   get_fft <- read_html(u)
-  player_teams <- get_fft %>% html_nodes("td span.smallbody a") %>% html_text() %>%
+  player_teams <- get_fft %>% html_elements("td span.smallbody a") %>% html_text() %>%
     str_extract("[A-Z]{2,3}$")
-  pids <- get_fft %>% html_nodes("td span.smallbody a") %>%
+  pids <- get_fft %>% html_elements("td span.smallbody a") %>%
     projection_sources$FFToday$extract_pid()
-  get_fft %>% html_nodes("td span.smallbody a") %>% html_text() %>%
+  get_fft %>% html_elements("td span.smallbody a") %>% html_text() %>%
     str_remove("[A-Z]{2,3}$") %>% str_trim() %>% str_remove("\\s(S|J)r\\.") %>%
     str_split(",\\s") %>%
     map(as.list) %>% map(`names<-`, c("last_name", "first_name")) %>%
@@ -57,7 +57,7 @@ last_year = 2020
 
 fp_lastyr_links = paste0("https://www.fantasypros.com/nfl/stats/",
                          tolower(fp_pos), ".php?year=", last_year)
-fp_lastyr_session = html_session(fp_lastyr_links[1])
+fp_lastyr_session = session(fp_lastyr_links[1])
 
 fp_lastyr_l = lapply(fp_lastyr_links, function(x) {
 
@@ -97,11 +97,11 @@ gc()
 fp_lastyr = bind_rows(fp_lastyr_l)
 
 # Pulling from the depth charts
-fp_dc_session = html_session("https://www.fantasypros.com/nfl/depth-charts.php")
+fp_dc_session = session("https://www.fantasypros.com/nfl/depth-charts.php")
 
 # Getting team links
 fp_dc_links <- read_html(fp_dc_session) %>%
-  html_nodes("a[href *='/depth-chart/']:not([class])") %>%
+  html_elements("a[href *='/depth-chart/']:not([class])") %>%
   html_attr("href")
 
 fp_dc_l = lapply(fp_dc_links, function(x) {
@@ -167,9 +167,9 @@ nfl_session <- session(nfl_url)
 nfl_table <- tibble(nfl_id = character(), player = character(), pos = character(), team = character())
 repeat{
   print(nfl_session$url)
-  player_ids <- nfl_session %>% read_html() %>% html_nodes("table td:first-child a.playerName") %>%
+  player_ids <- nfl_session %>% read_html() %>% html_elements("table td:first-child a.playerName") %>%
     html_attr("href") %>% str_extract("[0-9]+$")
-  player_data <- nfl_session %>% read_html() %>% html_nodes("table td:first-child") %>% html_text() %>%
+  player_data <- nfl_session %>% read_html() %>% html_elements("table td:first-child") %>% html_text() %>%
     str_trim() %>% str_remove("\\s[A-Z]$") %>% str_split_fixed(" - ", n= 2) %>%
     `colnames<-`(c("player", "team")) %>%  as_tibble()  %>%
     extract(player, c("player", "pos"), "(.+)\\s([QRWTBKDEF]{1,3}$)")  %>%
