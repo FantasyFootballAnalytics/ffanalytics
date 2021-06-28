@@ -112,7 +112,7 @@ impute_na_off <- function(tbl){
  }
 
  check_col <- function(x){is.na(x) | x ==0}
- tbl_cols <- select(out_df, -id, - data_src) %>% mutate_all(check_col) %>% rowSums()
+ tbl_cols <- select(out_df, -id, - data_src) %>% mutate(across(everything(), check_col)) %>% rowSums()
 
   return(out_df[tbl_cols < ncol(select(out_df, -id, - data_src)),])
 }
@@ -361,11 +361,13 @@ get_stat_cols <- function(tbl, match_pattern){
 
   check_cols <- stat_cols %>% is.na() %>% rowSums()
 
-  check_sums <-  stat_cols %>% mutate_all(as.numeric) %>% rowSums(na.rm=TRUE)
+  check_sums <-  stat_cols %>%
+    mutate(across(everything(), as.numeric)) %>%
+    rowSums(., na.rm = TRUE)
 
   if(length(stat_cols) > 0){
     stat_tbl <- bind_cols(id_cols, stat_cols)
-    stat_tbl <- stat_tbl[check_cols < length(stat_cols) & check_sums != 0,]
+    stat_tbl <- stat_tbl[check_cols < length(stat_cols) & check_sums != 0, ]
     return(stat_tbl)
   }
   return(data.frame())

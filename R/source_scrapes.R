@@ -17,7 +17,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   }
 
   base_link = paste0("https://www.cbssports.com/fantasy/football/stats/QB/2021/season/projections/nonppr/")
-  site_session = html_session(base_link)
+  site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
     scrape_link = paste0("https://www.cbssports.com/fantasy/football/stats/", pos, "/",
@@ -73,6 +73,10 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       out_df$src_id = dst_ids$id[match(site_id, dst_ids$team)]
     }
 
+    # Adding IDs
+    out_df$id = ffanalytics:::player_ids$id[match(out_df$src_id, ffanalytics:::player_ids$cbs_id)]
+
+
     # Misc cleanup before done
     out_df[out_df == "—"] = NA
     out_df
@@ -94,7 +98,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   base_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape[1],
                      "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
                      "&statType=seasonProjectedStats")
-  site_session = html_session(base_link)
+  site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
     pos_scrape = nfl_pos_idx[pos]
@@ -179,6 +183,11 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
     # Combining df's, removing NA's, filtering our all NA columns
     out = bind_rows(out_dfs)
     out = out[!is.na(out[[1]]), ]
+
+    # Adding IDs
+    out$id = ffanalytics:::player_ids$id[match(out$src_id, ffanalytics:::player_ids$nfl_id)]
+
+
     out
   })
 
@@ -189,4 +198,4 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 }
 
 
-
+# ESPN's undocumented API

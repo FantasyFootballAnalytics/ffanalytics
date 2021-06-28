@@ -174,7 +174,7 @@ url_data <- function(u){
       p_data <- u_data$players %>%
         map(`[`, c("id", "esbid")) %>%
         modify_depth(2, ~ if_else(is.null(.x), as.character(NA), .x )) %>%
-        map(as.tibble) %>%
+        map(as_tibble) %>%
         bind_rows() %>%
         rename(nfl_id = id)
       out_tbl <- bind_rows(out_tbl, p_data)
@@ -198,7 +198,7 @@ nfl_draft <- function(){
     nfl_tbl <- content(GET(api_url))$players %>%
       map(`[`, c("esbid", "rank", "aav", "teamAbbr", "position")) %>%
       modify_depth(2, ~ if_else(is.null(.x), as.character(NA), .x )) %>%
-      map(as.tibble) %>% bind_rows()
+      map(as_tibble) %>% bind_rows()
 
     if(nrow(nfl_tbl) == 0)
       break

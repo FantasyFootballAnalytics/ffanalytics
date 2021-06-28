@@ -4,8 +4,9 @@
 \alias{wtd_q}
 \title{Temp weighted quantile function}
 \usage{
-wtd_q(x, w, probs, na.rm = FALSE)
+wtd_q(x, w, probs, na.rm = TRUE)
 }
 \description{
+Temp weighted quantile function that removes zero-weight and NA's in w and x
 From: https://stats.stackexchange.com/questions/373269/why-does-this-simple-weighted-quantile-differ-from-hmiscwtd-quantile-which-me
 }

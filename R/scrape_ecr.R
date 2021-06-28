@@ -52,7 +52,7 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
     html_elements("script:contains('var ecrData')") %>%
     html_text2()
 
-  rank_tab = stringr::str_extract_all(rank_tab, "(\\{.*\\})")[[1]][1]
+  rank_tab = sub(".*?var ecrData = (.+?;).*", "\\1", rank_tab)
   rank_tab = strsplit(rank_tab, "\\},\\{|\\:\\[\\{")[[1]][-1]
   rank_tab = lapply(rank_tab, function(x) strsplit(x, ",", fixed = TRUE))
 
@@ -67,7 +67,9 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   rank_tab = lapply(rank_tab, `[`, c("player_id", "rank_ave", "rank_std"))
 
   bind_rows(rank_tab) %>%
-    select(id = player_id, avg = rank_ave, std_dev = rank_std)
+    transmute(id = player_ids$id[match(player_id, player_ids$fantasypro_num_id)],
+              avg = as.numeric(rank_ave),
+              std_dev = as.numeric(rank_std))
 }
 
 

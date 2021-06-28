@@ -17,7 +17,7 @@ make_scoring_tbl <- function(scoring_rules){
     map_lgl(all)
   if(any(check_one)){
     one_pos <- scoring_rules %>% map(names) %>% map(`!=`, "all_pos") %>%
-      map_lgl(all) %>% scoring_rules[.] %>% map(as.tibble) %>%
+      map_lgl(all) %>% scoring_rules[.] %>% map(as_tibble) %>%
       imap(~ add_column(.x, pos = scoring_positions[[.y]])) %>%
       map(gather, "data_col", "points", -pos) %>% bind_rows()
   } else {
@@ -34,7 +34,7 @@ make_scoring_tbl <- function(scoring_rules){
       imap(~ map(scoring_positions[[.y]], append, x = .x)) %>%
       modify_depth(2, function(x){
         names(x)[length(x)] <- "pos"
-        x}) %>% modify_depth(2, as.tibble) %>%
+        x}) %>% modify_depth(2, as_tibble) %>%
       modify_depth(2, select, -all_pos) %>%
       modify_depth(2, gather, "data_col", "points", -pos) %>%
       modify_depth(1, bind_rows) %>% bind_rows()
@@ -51,7 +51,7 @@ make_scoring_tbl <- function(scoring_rules){
       `!` %>% which(.) %>% names(.) %>% scoring_rules[.] %>%
       map(list_modify, all_pos = NULL) %>%
       map(function(lst){lst %>% imap(~ append(.x, list(pos = .y)))}) %>%
-      modify_depth(2, as.tibble)  %>%
+      modify_depth(2, as_tibble)  %>%
       modify_depth(2, gather, "data_col", "points", -pos) %>%
       modify_depth(1, bind_rows) %>% bind_rows()
   } else {
@@ -67,7 +67,7 @@ dst_points <- function(pts_allow, bracket){
     pts_allow <- pts_allow / 16
     season_factor <- 16
   }
-  bracket_tbl <- map(bracket, as.tibble) %>% bind_rows() %>%
+  bracket_tbl <- map(bracket, as_tibble) %>% bind_rows() %>%
     arrange(threshold) %>%
     mutate(low_thr = lag(threshold) + 1,
            low_thr = ifelse(is.na(low_thr), -99, low_thr))
