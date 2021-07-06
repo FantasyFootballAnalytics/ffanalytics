@@ -186,3 +186,58 @@ repeat{
 
 
 #### NUmber fire #### ----
+
+html_page = read_html("https://www.numberfire.com/nfl/players")
+
+# Player names
+nf_player_pos = html_page %>%
+  html_elements("div.all-players__wrap > div") %>%
+  html_text2()
+
+# Numberfire ids
+nf_ids = html_page %>%
+  html_elements("div.all-players__wrap > div > a") %>%
+  html_attr("href") %>%
+  basename()
+
+final_nf = data.frame(numberfire_id = nf_ids,
+                      player = sub("(.+?)\\s+\\(.*", "\\1", nf_player_pos),
+                      pos = sub(".+?\\s+\\(([A-Z]+),.+", "\\1", nf_player_pos))
+
+rm(list = ls(pattern = "^nf_|html_page"))
+
+#### RTSports #### ----
+
+
+rt_links = paste0("https://www.freedraftguide.com/football/draft-guide-rankings-provider.php?POS=",
+                  rts_pos_idx)
+
+rt_l = lapply(rt_links, function(x) {
+
+  print("Waiting 3 seconds")
+  Sys.sleep(3)
+
+  page_l = httr::content(httr::GET(x))
+  page_l = unlist(page_l[names(page_l) == "player_list"], recursive = FALSE)
+
+  page_l = lapply(page_l, `[`, c("name", "player_id", "position"))
+  bind_rows(page_l)
+
+})
+
+bind_rows(rt_l) %>%
+  transmute(pos = setNames(names(rts_pos_idx), rts_pos_idx)[position],
+            player = name,
+            rts_new_id = player_id)
+
+
+
+
+
+
+
+
+
+
+
+
