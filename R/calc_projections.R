@@ -25,8 +25,8 @@ wtd_q = function(x, w, probs, na.rm = TRUE) {
   w_zero = !(w == 0 | is.na(w))
   isna_x = !is.na(x)
 
-  x = x[w_zero | isna_x]
-  w = w[w_zero | isna_x]
+  x = x[w_zero & isna_x]
+  w = w[w_zero & isna_x]
 
   length_x = length(x)
   length_w = length(w)
@@ -59,15 +59,15 @@ wtd_q = function(x, w, probs, na.rm = TRUE) {
 #'
 #' Modified function to calculate Wilcox' Location paramenter
 wilcox.loc <- function(vec, na.rm = FALSE){
-  n <- length(vec)
+
   # If number of observations is less than 2 then we just return mean as location estimate
-  if(n <= 2){
+  if(length(vec) <= 2){
     return(mean(vec, na.rm = na.rm))
   }
 
-  # Calculating the paired avagerages
-  pairAvg <- sort(c(vec, combn(vec, 2, function(x)mean(x, na.rm = na.rm))))
-  return(median(pairAvg, na.rm = na.rm))
+  # Calculating the paired averages
+  pairAvg <- sort(c(vec, combn(vec, 2, function(x) sum(x, na.rm = na.rm) / 2)))
+  median.default(pairAvg, na.rm = na.rm)
 }
 
 #' Cohen's d
