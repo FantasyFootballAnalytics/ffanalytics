@@ -197,5 +197,140 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   l_pos
 }
 
+#Functional NFL Scrape...must run scrape_data function first for other sources. Will pull all OFF pos and DST then merge to my_scrape. Orginal data needs to be my_scrape. 
+#Sample test code###
+#my_scrape <- scrape_data(src= c("CBS", "FantasyPros", "FantasySharks", "FFToday", "NumberFire", "FantasyFootballNerd", "RTSports", "Walterfootball"),
+#                         pos = c("QB","RB","WR","TE","K","DST"))
+#scrape_nfl()
+####################
+scrape_nfl_test = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
+                      draft = TRUE, weekly = TRUE) {
+  
+  #Matched Stat Columns used on NFL Site
+  stat_cols = c(pass_yds = "Passing Yds", rush_yds = "Rushing Yds", pass_tds = "Passing TD",
+                pass_int = "Passing Int", rush_tds = "Rushing TD", fumbles_lost =  "Fum Lost",
+                two_pts = "Misc 2PT", games = "GP", rec = "Receiving Rec", rec_yds ="Receiving Yds",
+                rec_tds = "Receiving TD", ret_tds = "Ret TD",
+                xp = "PAT Made", fg_0019 = "FG Made 0-19", fg_2029 = "FG Made 20-29", fg_3039 = "FG Made 30-39",
+                fg_4049 = "FG Made 40-49", fg_50 = "FG Made 50+", 
+                dst_sacks = "Tackles Sack", dst_int = "Turnover Int",
+                dst_fum_Rec = "Turnover Fum Rec", dst_td = "Misc FumTD", dst_pts_allowed = "Points Pts Allow", 
+                dst_ret_tds = "Score TD", dst_2pt = "Score Def 2pt Ret",
+                dst_safety = "Score Saf", dst_blk = "Block" ,
+                site_season_pts = "Fantasy Points", site_pts = "Fantasy Points",
+                src_id = "src_id", data_src = "data_src", player = "player", player = "Team", team = "team", pos = "pos", opp = "Opp")
+  
+  stat_cols <- plyr::ldply(stat_cols, data.frame)
+  names(stat_cols) <- c("match","raw")
+  
+  NFL_DATA = lapply(pos, function(pos) {
+    pos_scrape = switch(pos,"QB"= 1,"RB"= 2,"WR"= 3,"TE"= 4,"K"= 7,"DST"= 8)
+    base_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+                       "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
+                       "&statType=seasonProjectedStats")
+    site_session = html_session(base_link)
+    offset=1
+    # Setting up hitting each page
+    i = 0L
+    
+    out_dfs = list()
+    
+    # Going through pages of NFL.com until a player has zero possible fantasy points
+    # (sorted by Fantasy Points by default). With the exception of DST where it exits the loop
+    # after the second page
+    #site_pts is Fantasy Points on the NFL site
+    while(i == 0L || min(out_dfs[[i]]$"Fantasy Points") != 0) {
+      i = i + 1L
+      
+      if(i == 3L && pos == "DST") {
+        break
+      }
+      
+      if(week == 0) {
+        scrape_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+                             "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
+                             "&statType=seasonProjectedStats&offset=",offset)
+      } else {
+        scrape_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+                             "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
+                             "weekProjectedStats&statWeek=", week)
+      }
+      
+      cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+      page_link = scrape_link
+      html_page = site_session %>%
+        session_jump_to(page_link) %>%
+        read_html()
+      
+      # Get PID
+      site_id = html_page %>%
+        html_elements("table td:first-child a.playerName") %>%
+        html_attr("href") %>%
+        sub(".*=", "",  .)
+      
+      # Getting column names
+      col_names = html_page %>%
+        html_element("table > thead") %>%
+        html_table(header = FALSE)
+      
+      col_names = trimws(paste(col_names[1, ], col_names[2, ]))
+      #col_names = nfl_columns[col_names]
+      
+      # Creating and cleaning table
+      temp_df = html_page %>%
+        html_element("table > tbody") %>%
+        html_table(header = FALSE) %>%
+        `names<-`(col_names)
+      
+      # Breaking out first column / cleaning (for DST)
+      if(pos != "DST") {
+        temp_df = temp_df %>%
+          extract(Player, c("player", "pos", "team"),
+                  "(.*?)\\s+\\b(QB|RB|WR|TE|K)\\b.*?([A-Z]{2,3})")
+      } else {
+        temp_df$Team = sub("\\s+DEF$", "", temp_df$Team)        
+      }
+      # Misc column cleanup before done
+      temp_df$data_src = "NFL"
+      temp_df$src_id = site_id
+      temp_df$opp = NULL
+      
+      # Type cleanup
+      temp_df[temp_df == "-"] = NA
+      temp_df = type.convert(temp_df, as.is = TRUE)
+      
+      # Adding it to a list of DF's from the pages
+      out_dfs[[i]] = temp_df
+      
+      # Getting the next link
+      offset = offset + 25
+      page_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+                         "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
+                         "&statType=seasonProjectedStats&offset=",offset)
+      
+    }
+    
+    # Combining df's, removing NA's, filtering our all NA columns
+    out = bind_rows(out_dfs)
+    out = out[!is.na(out[[1]]), ]
+  
+  })
+  names(NFL_DATA) <- c(pos)
+  names(NFL_DATA[["QB"]]) <- stat_cols$match[match(names(NFL_DATA[["QB"]]), stat_cols$raw)]
+  names(NFL_DATA[["RB"]]) <- stat_cols$match[match(names(NFL_DATA[["RB"]]), stat_cols$raw)]
+  names(NFL_DATA[["WR"]]) <- stat_cols$match[match(names(NFL_DATA[["WR"]]), stat_cols$raw)]
+  names(NFL_DATA[["TE"]]) <- stat_cols$match[match(names(NFL_DATA[["TE"]]), stat_cols$raw)]
+  names(NFL_DATA[["K"]]) <- stat_cols$match[match(names(NFL_DATA[["K"]]), stat_cols$raw)]
+  names(NFL_DATA[["DST"]]) <- stat_cols$match[match(names(NFL_DATA[["DST"]]), stat_cols$raw)]
+  
+  my_scrape[["QB"]] <- as_tibble(plyr::rbind.fill(my_scrape[["QB"]],NFL_DATA[["QB"]]))
+  my_scrape[["RB"]] <- as_tibble(plyr::rbind.fill(my_scrape[["RB"]],NFL_DATA[["RB"]]))
+  my_scrape[["WR"]] <- as_tibble(plyr::rbind.fill(my_scrape[["WR"]],NFL_DATA[["WR"]]))
+  my_scrape[["TE"]] <- as_tibble(plyr::rbind.fill(my_scrape[["TE"]],NFL_DATA[["TE"]]))
+  my_scrape[["K"]] <- as_tibble(plyr::rbind.fill(my_scrape[["K"]],NFL_DATA[["K"]]))
+  my_scrape[["DST"]] <- as_tibble(plyr::rbind.fill(my_scrape[["DST"]],NFL_DATA[["DST"]]))
+  return(my_scrape)
+}
+
 
 # ESPN's undocumented API
