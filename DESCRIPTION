@@ -10,7 +10,13 @@ Description: Scrapes data from multiple public sources of data and compiles into
 License: GPL
 Encoding: UTF-8
 LazyData: true
-Imports: R6
+Imports: 
+    R6,
+    janitor,
+    data.table,
+    glue,
+    readxl,
+    lubridate
 Depends: 
     dplyr, 
     tibble, 
