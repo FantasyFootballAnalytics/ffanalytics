@@ -186,7 +186,6 @@ repeat{
 
 
 #### NUmber fire #### ----
-
 html_page = read_html("https://www.numberfire.com/nfl/players")
 
 # Player names
@@ -214,8 +213,8 @@ rt_links = paste0("https://www.freedraftguide.com/football/draft-guide-rankings-
 
 rt_l = lapply(rt_links, function(x) {
 
-  print("Waiting 3 seconds")
-  Sys.sleep(3)
+  print("Waiting 10 seconds")
+  Sys.sleep(10)
 
   page_l = httr::content(httr::GET(x))
   page_l = unlist(page_l[names(page_l) == "player_list"], recursive = FALSE)
@@ -225,16 +224,12 @@ rt_l = lapply(rt_links, function(x) {
 
 })
 
-bind_rows(rt_l) %>%
+final_rt = bind_rows(rt_l) %>%
   transmute(pos = setNames(names(rts_pos_idx), rts_pos_idx)[position],
             player = name,
             rts_new_id = player_id)
 
-
-
-
-
-
+####  ----
 
 
 
