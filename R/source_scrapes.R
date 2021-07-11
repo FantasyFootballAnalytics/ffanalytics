@@ -334,3 +334,98 @@ scrape_nfl_test = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season =
 
 
 # ESPN's undocumented API
+scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
+                           draft = TRUE, weekly = TRUE) {
+  #Columns listed on the site. ALOT more available, i just dont have any mapping
+  stat_cols = c(id = "id", src_id = "src_id", player = "player", team = "team",  position = "position", data_src = "data_src",
+                pass_att = 0, pass_comp= 1, pass_yds = 3, pass_tds = 4, pass_int = 20,
+                rush_att = 23, rush_yds = 24, rush_tds = 25,
+                rec = 53, rec_yds = 42, rec_tds = 43, rec_tgt = 58)
+  stat_cols <- plyr::ldply(stat_cols, data.frame)
+  names(stat_cols) <- c("match","raw")
+  
+  #Used to add columns dynamuclly since if a player doesnt have say any rushing yards they wont return any data for that stat
+  stat_cols_raw <- c(id = NA, src_id =  NA, player = "", team = NA,  position = "", data_src = "ESPN",
+                     "0" = NA, "1" = NA, "3" = NA, "4" = NA, "20" = NA,
+                     "23" = NA, "24" = NA, "25" = NA,
+                     "53" = NA, "42" = NA, "43" = NA, "58" = NA)
+  
+  #used to map position and team id to a text
+  slotcodes = list(stat_cols = c("1" = "QB","2" = "RB", "3" = "WR", "4" = "TE", "5" = "K", "7" = "P", "9" = "IDP", "16" = "Def"))
+  
+  teamcodes = list(team_cols = c("0" = "FA", "1" = "ATL", "2" = "BUF", "3" = "CHI",  "4" = "CIN", "5" = "CLE", "6" = "DAL", "7" = "DEN", "8" = "DET",
+                                 "9" ="GBP", "10" = "TEN", "11" = "IND", "12" = "KCC", "13" = "LVR", "14" = "LAR", "15" = "MIA", "16" = "MIN", "17" = "NEP",
+                                 "18" = "NOS", "19" = "NYG", "20" = "NYJ",  "21" = "PHI", "22" = "ARI", "23" = "PIT", "24" = "LAC", "25" = "SFF", "26" = "SEA",
+                                 "27" = "TBB", "28" = "WAS", "29" = "CAR", "30" = "JAX", "33" = "BAL", "34" = "HOU"))
+  #create base dataset to add too  
+  data_out <- tibble(id = NA, src_id =  NA, player = "", team = NA,  position = "", data_src = "ESPN", 
+                            "0" = NA, "1" = NA, "3" = NA, "4" = NA, "20" = NA,
+                            "23" = NA, "24" = NA, "25" = NA,
+                            "53" = NA, "42" = NA, "43" = NA, "58" = NA)
+  
+  ESPN_DATA = lapply(pos, function(pos){
+    
+    pos_scrape <- switch(pos,"QB"= 0,"RB"= 2,"WR"= 4,"TE"= 6,"K"= 5,"DST"= 16)
+    base_url <- "https://fantasy.espn.com/apis/v3/games/ffl/seasons/"
+    season_yr <- 2021
+    scrape_link <- paste0(base_url,season_yr,"/segments/0/leaguedefaults/1?scoringPeriodId=0&view=kona_player_info")
+    xff=paste0('{"players":{"filterStatsForExternalIds":{"value":[2021]},
+      "filterSlotIds":{"value":[',pos_scrape,']},
+      "filterStatsForSourceIds":{"value":[1]},
+      "sortAppliedStatTotal":{"sortAsc":false,"sortPriority":2,"value":"102021"},
+      "sortDraftRanks":{"sortPriority":3,"sortAsc":true,"value":"STANDARD"},
+      "sortPercOwned":{"sortPriority":4,"sortAsc":false},"limit":100,"offset":0,
+      "filterRanksForScoringPeriodIds":{"value":[1]},
+      "filterRanksForRankTypes":{"value":["STANDARD"]},
+      "filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},
+      "filterStatsForTopScoringPeriodIds":{"value":2,"additionalValue":["002021","102021","002020","022021"]}}}')
+    
+    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+    
+    data <- httr::GET(scrape_link,httr::add_headers(`X-Fantasy-Filter` = xff)) %>% 
+      httr::content("parsed", "application/json") %>% .[["players"]]
+    #get data, clean up, and add characterustic data
+    for (p in 1:length(data)){
+      if (length(data[[p]][["player"]][["stats"]][[1]][["stats"]]) == 0){next}
+      id_name <- data[[p]][["player"]][["fullName"]]
+      tmp <- data %>% .[[p]] %>% .[["player"]] %>% .[["stats"]] %>% .[[1]] %>% .[["stats"]] %>% 
+        lapply(c) %>% t() %>% as_tibble() %>%
+        tibble::add_column(!!!stat_cols_raw[!names(stat_cols_raw) %in% names(.)]) %>% 
+        select(c(id, src_id, player, team, position, data_src,"0","1","3","4",
+                 "20","23","24","25","53","42","43","58")) %>% 
+        NCmisc::Unlist(depth = 1) %>%
+        mutate(across(c("0","1","3","4","20","23","24","25","53","42","43","58"), ~as.numeric(.)),
+               src_id = as.character(data[[p]][["player"]][["id"]]),
+               player = data[[p]][["player"]][["fullName"]],
+               team = teamcodes[["team_cols"]][[as.character(data[[p]][["player"]][["proTeamId"]])]],
+               position =slotcodes[["stat_cols"]][[as.character(data[[p]][["player"]][["defaultPositionId"]])]],
+               id = ffanalytics:::player_ids$id[match(tolower(gsub(" ", "-", id_name)), 
+                                                      ffanalytics:::player_ids$fantasypro_id)])
+      
+        data_out <- dplyr::bind_rows(data_out, tmp) %>% as_tibble()
+      rm(tmp)
+    }
+    # remove first blank row, and filter N/A cols
+    data_out <- slice_tail(data_out,n = nrow(data_out)-1) %>% mutate_if(is.numeric, round, digits=0)
+    out = data_out
+    out = out[!is.na(out[[1]]), ] 
+  })
+  
+  names(ESPN_DATA) <- c(pos)
+  names(ESPN_DATA[["QB"]]) <- stat_cols$match[match(names(ESPN_DATA[["QB"]]), stat_cols$raw)] 
+  names(ESPN_DATA[["RB"]]) <- stat_cols$match[match(names(ESPN_DATA[["RB"]]), stat_cols$raw)]
+  names(ESPN_DATA[["WR"]]) <- stat_cols$match[match(names(ESPN_DATA[["WR"]]), stat_cols$raw)]
+  names(ESPN_DATA[["TE"]]) <- stat_cols$match[match(names(ESPN_DATA[["TE"]]), stat_cols$raw)]
+  names(ESPN_DATA[["K"]]) <- stat_cols$match[match(names(ESPN_DATA[["K"]]), stat_cols$raw)]
+  names(ESPN_DATA[["DST"]]) <- stat_cols$match[match(names(ESPN_DATA[["DST"]]), stat_cols$raw)]
+  
+  my_scrape[["QB"]] <- as_tibble(plyr::rbind.fill(my_scrape[["QB"]],ESPN_DATA[["QB"]]))
+  my_scrape[["RB"]] <- as_tibble(plyr::rbind.fill(my_scrape[["RB"]],ESPN_DATA[["RB"]]))
+  my_scrape[["WR"]] <- as_tibble(plyr::rbind.fill(my_scrape[["WR"]],ESPN_DATA[["WR"]]))
+  my_scrape[["TE"]] <- as_tibble(plyr::rbind.fill(my_scrape[["TE"]],ESPN_DATA[["TE"]]))
+  my_scrape[["K"]] <- as_tibble(plyr::rbind.fill(my_scrape[["K"]],ESPN_DATA[["K"]]))
+  my_scrape[["DST"]] <- as_tibble(plyr::rbind.fill(my_scrape[["DST"]],ESPN_DATA[["DST"]]))
+  .GlobalEnv$ESPN_DATA <- ESPN_DATA
+  .GlobalEnv$my_scrape <- my_scrape
+
+}
