@@ -1,6 +1,11 @@
 
 # Note, experimental w/ source_scrapes.R. Do not use yet.
 
+# Creating player_table object so it is no longer sent to the
+# global environemnt upon loading
+player_table = NULL
+
+
 # CBS ----
 cbs_columns = c(
   "Player" = "player",
@@ -110,6 +115,10 @@ nfl_columns = c(
   "weekProjectedPts" = "site_pts"
 )
 nfl_pos_idx = c("QB" = 1, "RB" = 2, "WR" = 3, "TE" = 4, "K" = 7, "DST" = 8)
+
+# RT Sports ----
+
+rts_pos_idx = c("QB" = 0, "RB" = 1, "WR" = 2, "TE" = 3, "K" = 4, "DST" = 5)
 
 # ESPN ----
 
