@@ -16,20 +16,39 @@ weighted.sd <- function(x, w, na.rm = FALSE){
   sqrt((sum.w / (sum.w^2 - sum.w2)) * sum(w * (x - mean.w)^2))
 }
 
-#' Temp weighted quantile function
+#' Altered MAD function
 #'
-#' Temp weighted quantile function that removes zero-weight and NA's in w and x
-#' From: https://stats.stackexchange.com/questions/373269/why-does-this-simple-weighted-quantile-differ-from-hmiscwtd-quantile-which-me
-wtd_q = function(x, w, probs, na.rm = TRUE) {
+#' NA for length = 1 & an ignored weight function
+mad2 = function(x, center = median(x), constant = 1.4826, na.rm = FALSE,
+                low = FALSE, high = FALSE, w) {
+  if(length(x) %in% c(0, 1)) {
+    return(NA)
+  } else {
+    mad(x, center, constant, na.rm, low, high)
+  }
+}
 
-  w_zero = !(w == 0 | is.na(w))
-  isna_x = !is.na(x)
+#' Weighted Harrell-Davis quantile estimator
+#'
+#' From: https://aakinshin.net/posts/weighted-quantiles/
+whdquantile <- function(x, w = NA, probs, na.rm) { #na.rm is ignored
 
-  x = x[w_zero & isna_x]
-  w = w[w_zero & isna_x]
+  cdf.gen <- function(n, p) {
+    function(cdf.probs) {
+      pbeta(cdf.probs, (n + 1L) * p, (n + 1L) * (1L - p))
+    }
+  }
+
+  w_zero = !(w <= 0 | is.na(w))
+  x_non_na = !is.na(x)
+  x = x[w_zero & x_non_na]
+  w = w[w_zero & x_non_na]
 
   length_x = length(x)
   length_w = length(w)
+  if (length_x <= 1L) {
+    return(NA)
+  }
   if (length_w == 0L) {
     w = rep(1L, length_x)
   }
@@ -37,28 +56,29 @@ wtd_q = function(x, w, probs, na.rm = TRUE) {
     message("Length of x != length of w. NA returned")
     return(NA)
   }
-  if (length_x == 1L) {
-    return(NA)
-  }
 
-  d_wtd = density.default(x, weights = w / sum(w, na.rm = na.rm),
-                          n = length_x, na.rm = na.rm)
-  out = vapply(probs, function(p) {
-    idx = cumsum(d_wtd$y * (d_wtd$x[2L] - d_wtd$x[1L])) >= p
-    if (any(idx)) {
-      d_wtd$x[which.max(idx)]
-    }
-    else {
-      d_wtd$x[length(idx)]
-    }
+  nw <- sum(w)^2L / sum(w^2L) # Kish's effective sample size
+  idx <- order(x)
+  x <- x[idx]
+  w <- w[idx]
+
+  w <- w / sum(w)
+  cdf.probs <- cumsum(c(0, w))
+  names(probs) = sprintf("%1.0f%%", probs * 100)
+
+  vapply(probs, function(p) {
+    cdf <- cdf.gen(nw, p)
+    q <- cdf(cdf.probs)
+    w <- tail(q, -1L) - head(q, -1L)
+    sum(w * x)
   }, numeric(1L))
-  setNames(out, sprintf("%1.0f%%", probs * 100))
+
 }
 
 #' Wilcox Location Parameter
 #'
 #' Modified function to calculate Wilcox' Location paramenter
-wilcox.loc <- function(vec, na.rm = FALSE){
+wilcox.loc <- function(vec, na.rm = FALSE, w = NULL){
 
   # If number of observations is less than 2 then we just return mean as location estimate
   if(length(vec) <= 2){
@@ -113,7 +133,7 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
 # source points. Used in the points_sd and confidence interval functions
 quant_funcs <- list(average = quantile,
                     robust = quantile,
-                    weighted = wtd_q)
+                    weighted = whdquantile)
 quant_args <- list(list(probs = c(0.05, 0.95)),  list(probs = c(0.05, 0.95)),
                    list(probs = c(0.05, 0.95)))
 

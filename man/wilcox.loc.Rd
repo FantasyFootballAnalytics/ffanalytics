@@ -4,7 +4,7 @@
 \alias{wilcox.loc}
 \title{Wilcox Location Parameter}
 \usage{
-wilcox.loc(vec, na.rm = FALSE)
+wilcox.loc(vec, na.rm = FALSE, w = NULL)
 }
 \description{
 Modified function to calculate Wilcox' Location paramenter
