@@ -17,4 +17,5 @@
   player_table <- as_tibble(player_table)
   environment(player_table) <- asNamespace("ffanalytics")
   assignInNamespace("player_table", player_table, ns = "ffanalytics")
+  options(dplyr.summarise.inform = FALSE)
 }
