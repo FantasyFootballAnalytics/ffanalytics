@@ -112,9 +112,9 @@ impute_na_off <- function(tbl){
  }
 
  check_col <- function(x){is.na(x) | x ==0}
- tbl_cols <- select(out_df, -id, - data_src) %>% mutate(across(everything(), check_col)) %>% rowSums()
+ tbl_cols <- select(out_df, -id, -data_src) %>% mutate(across(everything(), check_col)) %>% rowSums()
 
-  return(out_df[tbl_cols < ncol(select(out_df, -id, - data_src)),])
+  return(out_df[tbl_cols < ncol(select(out_df, -id, - data_src)), ])
 }
 
 
@@ -377,5 +377,177 @@ sum_columns <- function(tbl, ..., na.rm = FALSE){
   sum_vars <- quos(...)
   select(tbl, !!! sum_vars) %>% rowSums(na.rm = na.rm)
 }
+
+# Below are all the impute functions that are used in the new projections table app
+call_impute_fun = function(df, col) {
+  col_fun = fun_list[[col]]
+  args = sapply(formalArgs(col_fun), as.symbol, simplify = FALSE)
+
+  mutate(df, !!col := col_fun(!!!args)) # `!!!` unquotes list of arguments for function
+}
+
+derive_from_rate = function(need, ref) {
+  idx = is.na(need)
+  if(all(idx)) {
+    return(NA)
+  }
+  replace(need, idx, (sum(need / ref, na.rm = TRUE) / sum(!idx)) * ref[idx])
+}
+derive_from_mean = function(need) {
+  idx = is.na(need)
+  if(all(idx)) {
+    return(NA)
+  }
+  replace(need, idx, mean.default(need, na.rm = TRUE))
+}
+
+fun_list = list(
+  pass_att = function(pass_att, pass_yds) {
+    derive_from_rate(pass_att, pass_yds)
+  },
+  pass_comp = function(pass_comp, pass_yds) {
+    derive_from_rate(pass_comp, pass_yds)
+  },
+  pass_yds = function(pass_yds, pass_att) { # inverse of attempts...doesn't make sense
+    derive_from_rate(pass_yds, pass_yds)
+  },
+  pass_tds = function(pass_tds, pass_comp) {
+    derive_from_rate(pass_tds, pass_comp)
+  },
+  pass_int = function(pass_int, pass_att) {
+    derive_from_rate(pass_int, pass_att)
+  },
+  rush_att = function(rush_att, rush_yds) {
+    derive_from_rate(rush_att, rush_yds)
+  },
+  rush_yds = function(rush_yds, rush_att) { # inverse of attempts...doesn't make sense
+    derive_from_rate(rush_yds, rush_att)
+  },
+  rush_tds = function(rush_tds, rush_yds) {
+    derive_from_rate(rush_tds, rush_yds)
+  },
+  rec_tgt = function(rec_tgt, rec) {
+    derive_from_rate(rec_tgt, rec)
+  },
+  rec_tgt = function(rec, rec_yds) {
+    derive_from_rate(rec, rec_yds)
+  },
+  rec_tds = function(rec_tds, rec_yds) {
+    derive_from_rate(rec_tds, rec_yds)
+  },
+  fumbles_lost = function(fumbles_lost) {
+    derive_from_mean(fumbles_lost)
+  },
+  fumbles_total = function(fumbles_total) {
+    derive_from_mean(fumbles_total)
+  },
+  games = function(games) {
+    derive_from_mean(games)
+  },
+  sacks = function(sacks) {
+    derive_from_mean(sacks)
+  },
+  xp = function(xp) {
+    derive_from_mean(xp)
+  },
+  xp_att = function(xp_att, xp) {
+    derive_from_rate(xp_att, xp)
+  },
+  fg_att = function(fg_att, fg) {
+    derive_from_rate(fg_att, fg)
+  },
+  fg_0019 = function(fg_0019, fg_1019, fg) {
+    df_names = names(df)
+    if(all(c("fg_1019", "fg_0019") %in% df_names)) {
+      fg_0019 = ifelse(is.na(fg_0019) & !is.na(fg_1019), fg_1019, fg_0019)
+    }
+    derive_from_rate(fg_0019, fg)
+  },
+  fg_2029 = function(fg_2029, fg) {
+    derive_from_rate(fg_2029, fg)
+  },
+  fg_3039 = function(fg_3039, fg) {
+    derive_from_rate(fg_3039, fg)
+  },
+  fg_4049 = function(fg_4049, fg) {
+    derive_from_rate(fg_4049, fg)
+  },
+  fg_50 = function(fg_50, fg) {
+    derive_from_rate(fg_50, fg)
+  },
+  fg_miss = function(fg_miss, fg, fg_pct, fg_att) {
+    fg_miss = replace(fg_miss, !is.na(fg_att), fg_att - fg)
+    fg_miss = replace(fg_miss, !is.na(fg_pct), fg * (1 - fg_pct * .01))
+    derive_from_rate(fg_miss, fg)
+  },
+  dst_fum_rec = function(dst_fum_rec) {
+    derive_from_mean(dst_fum_rec)
+  },
+  dst_int = function(dst_int) {
+    derive_from_mean(dst_int)
+  },
+  dst_safety = function(dst_safety) {
+    derive_from_mean(dst_safety)
+  },
+  dst_sacks = function(dst_sacks) {
+    derive_from_mean(dst_sacks)
+  },
+  dst_td = function(dst_td) {
+    derive_from_mean(dst_td)
+  },
+  dst_blk = function(dst_blk) {
+    derive_from_mean(dst_blk)
+  },
+  dst_ret_yds = function(dst_ret_yds) {
+    derive_from_mean(dst_ret_yds)
+  },
+  dst_pts_allowed = function(dst_pts_allowed) {
+    derive_from_mean(dst_pts_allowed)
+  },
+  idp_solo = function(idp_solo) {
+    derive_from_mean(idp_solo)
+  },
+  idp_asst = function(idp_asst) {
+    derive_from_mean(idp_asst)
+  },
+  idp_sack = function(idp_sack) {
+    derive_from_mean(idp_sack)
+  },
+  idp_int = function(idp_int) {
+    derive_from_mean(idp_int)
+  },
+  idp_fum_force = function(idp_fum_force) {
+    derive_from_mean(idp_fum_force)
+  },
+  idp_fum_rec = function(idp_fum_rec) {
+    derive_from_mean(idp_fum_rec)
+  },
+  idp_pd = function(idp_pd) {
+    derive_from_mean(idp_pd)
+  },
+  idp_td = function(idp_td) {
+    derive_from_mean(idp_td)
+  },
+  idp_safety = function(idp_safety) {
+    derive_from_mean(idp_safety)
+  },
+  two_pts = function(two_pts) {
+    derive_from_mean(two_pts)
+  },
+  return_tds = function(return_tds) {
+    derive_from_mean(return_tds)
+  },
+  return_yds = function(return_yds) {
+    derive_from_mean(return_yds)
+  }
+)
+
+score_pts_bracket = function(points, pts_bracket) {
+  criteria = vapply(pts_bracket, `[[`, numeric(1L), 1L)
+  vals = vapply(pts_bracket, `[[`, numeric(1L), 2L)
+  thresh_idx = t(vapply(points, `<=`, logical(length(criteria)), criteria))
+  vals[max.col(thresh_idx, "first")]
+}
+
 
 
