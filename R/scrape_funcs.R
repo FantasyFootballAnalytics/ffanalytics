@@ -25,6 +25,8 @@ scrape_data <- function(
   if(missing(week))
     week <- 0
   src <- match.arg(src, several.ok = TRUE)
+  src_selfcont = match.arg(src, c("NFL", "CBS"), several.ok = TRUE)
+  src = setdiff(src, src_selfcont)
   pos <- match.arg(pos, several.ok = TRUE)
 
   if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos))
@@ -74,11 +76,44 @@ scrape_data <- function(
                     }}
   )
 
-  src_data <- src_data[setdiff(pos, c("IDP", "CB", "S", "DT", "DE"))]
-  attr(src_data, "season") <- season
-  attr(src_data, "week") <- week
+  # Running the sefl-contained scrapes (temporary, untill new scrapes are finalized)
+  l_selfcont = lapply(src_selfcont, function(self_src) {
+    scrape_fun = match.fun(paste0("scrape_", tolower(self_src)))
+    fun_formals = formals(scrape_fun)
 
-  return(src_data)
+    if(week == 0 && !fun_formals$draft) {
+      stop(paste0("Draft data not available for ", self_src))
+    }
+    if(week > 0 && !fun_formals$weekly) {
+      stop(paste0("Weekly data not available for ", self_src))
+    }
+
+    scrape = scrape_fun(pos = intersect(pos, as.character(fun_formals$pos)[-1]),
+                        season = season,
+                        week = week)
+    lapply(scrape, function(x) Filter(function(j) any(!is.na(j)), x)) # remove all NA columns
+  })
+
+  # Merging the scrapes
+  scraped_positions = unique(unlist(lapply(l_selfcont, names)))
+  l_out = vector("list", length(scraped_positions))
+  names(l_out) = scraped_positions
+  for(scr_pos in names(src_data)) {
+    l_out[[scr_pos]] = bind_rows(l_out[[scr_pos]], src_data[[scr_pos]])
+  }
+  for(self_scr in l_selfcont) {
+    for(scr_pos in names(self_scr)) {
+      l_out[[scr_pos]] = bind_rows(l_out[[scr_pos]], self_scr[[scr_pos]])
+    }
+  }
+
+  l_out
+
+  l_out <- l_out[setdiff(pos, c("IDP", "CB", "S", "DT", "DE"))]
+  attr(l_out, "season") <- season
+  attr(l_out, "week") <- week
+
+  l_out
 }
 
 #' Scrape data for a specific position from a single source
