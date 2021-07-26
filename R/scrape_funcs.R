@@ -78,7 +78,7 @@ scrape_data <- function(
 
   # Running the sefl-contained scrapes (temporary, untill new scrapes are finalized)
   l_selfcont = lapply(src_selfcont, function(self_src) {
-    scrape_fun = match.fun(paste0("scrape_", tolower(self_src)))
+    scrape_fun = get(paste0("scrape_", tolower(self_src)), mode = "function", envir = asNamespace("ffanalytics"))
     fun_formals = formals(scrape_fun)
 
     if(week == 0 && !fun_formals$draft) {
