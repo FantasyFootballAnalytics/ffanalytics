@@ -4,9 +4,7 @@ library(rvest)
 library(dplyr)
 library(tidyr)
 
-# TODO add ID columns, add on.exit
 # Note: experimental. Not to be used yet.
-
 scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
                       draft = TRUE, weekly = TRUE) {
 
@@ -64,31 +62,30 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       out_df = out_df %>%
         separate(player, c("player", "pos", "team"), "\\s{2,}") %>%
         mutate(src_id = site_id,
-               data_src = "CBS")
+               data_src = "CBS",
+               id = player_ids$id[match(src_id, player_ids$cbs_id)])
     } else {
       out_df$team = site_id
       out_df$data_src = "CBS"
       dst_ids = ff_player_data[ff_player_data$position == "Def", c("id", "team")]
       dst_ids$team[dst_ids$team == "OAK"] = "LV"
-      out_df$src_id = dst_ids$id[match(site_id, dst_ids$team)]
+      out_df$id = dst_ids$id[match(site_id, dst_ids$team)]
+      out_df$src_id = player_ids$cbs_id[match(out_df$id, player_ids$id)]
     }
-
-    # Adding IDs
-    out_df$id = ffanalytics:::player_ids$id[match(out_df$src_id, ffanalytics:::player_ids$cbs_id)]
-
 
     # Misc cleanup before done
     out_df[out_df == "—"] = NA
-    out_df
 
+    idx = names(out_df) %in% c("id", "src_id")
+    out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
+    out_df
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
   })
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
   l_pos
 }
-
-
 
 scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
                       draft = TRUE, weekly = TRUE) {
@@ -163,12 +160,13 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       }
       # Misc column cleanup before done
       temp_df$data_src = "NFL"
-      temp_df$src_id = site_id
+      temp_df$src_id = as.character(site_id)
       temp_df$opp = NULL
 
       # Type cleanup
       temp_df[temp_df == "-"] = NA
-      temp_df = type.convert(temp_df, as.is = TRUE)
+      idx = names(temp_df) %in% c("id", "src_id")
+      temp_df[!idx] = type.convert(temp_df[!idx], as.is = TRUE)
 
       # Adding it to a list of DF's from the pages
       out_dfs[[i]] = temp_df
@@ -186,9 +184,9 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 
     # Adding IDs
     out$id = ffanalytics:::player_ids$id[match(out$src_id, ffanalytics:::player_ids$nfl_id)]
-
-
     out
+
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
   })
 
   names(l_pos) = pos
@@ -199,3 +197,6 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 
 
 # ESPN's undocumented API
+
+
+
