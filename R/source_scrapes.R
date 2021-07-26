@@ -21,6 +21,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
     scrape_link = paste0("https://www.cbssports.com/fantasy/football/stats/", pos, "/",
                          season, "/", scrape_week, "/projections/nonppr/")
 
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
     cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
 
     html_page = site_session %>%
@@ -79,7 +80,6 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
     idx = names(out_df) %in% c("id", "src_id")
     out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
     out_df
-    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
   })
   names(l_pos) = pos
   attr(l_pos, "season") = season
@@ -125,6 +125,8 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       if(i == 3L && pos == "DST") {
         break
       }
+
+      Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
 
       html_page = site_session %>%
         session_jump_to(page_link) %>%
@@ -186,7 +188,6 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
     out$id = ffanalytics:::player_ids$id[match(out$src_id, ffanalytics:::player_ids$nfl_id)]
     out
 
-    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
   })
 
   names(l_pos) = pos
