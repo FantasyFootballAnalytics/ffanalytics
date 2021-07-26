@@ -62,18 +62,16 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       out_df = out_df %>%
         separate(player, c("player", "pos", "team"), "\\s{2,}") %>%
         mutate(src_id = site_id,
-               data_src = "CBS")
+               data_src = "CBS",
+               id = player_ids$id[match(src_id, player_ids$cbs_id)])
     } else {
       out_df$team = site_id
       out_df$data_src = "CBS"
       dst_ids = ff_player_data[ff_player_data$position == "Def", c("id", "team")]
       dst_ids$team[dst_ids$team == "OAK"] = "LV"
       out_df$id = dst_ids$id[match(site_id, dst_ids$team)]
+      out_df$src_id = player_ids$cbs_id[match(out_df$id, player_ids$id)]
     }
-
-    # Adding IDs
-    out_df$id = ffanalytics:::player_ids$id[match(out_df$src_id, ffanalytics:::player_ids$cbs_id)]
-
 
     # Misc cleanup before done
     out_df[out_df == "—"] = NA
