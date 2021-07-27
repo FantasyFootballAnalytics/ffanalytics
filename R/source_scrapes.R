@@ -79,7 +79,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 
     idx = names(out_df) %in% c("id", "src_id")
     out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
-    out_df
+    out_df[out_df$site_pts > 0,]
   })
   names(l_pos) = pos
   attr(l_pos, "season") = season
@@ -160,6 +160,11 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       } else {
         temp_df$team = sub("\\s+DEF$", "", temp_df$team)
       }
+
+      if(pos %in% c("RB", "WR", "TE") && "pass_int" %in% names(temp_df)) {
+        temp_df$pass_int = NULL
+      }
+
       # Misc column cleanup before done
       temp_df$data_src = "NFL"
       temp_df$src_id = as.character(site_id)
