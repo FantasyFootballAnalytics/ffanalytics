@@ -429,6 +429,9 @@ fun_list = list(
   rec_tgt = function(rec_tgt, rec) {
     derive_from_rate(rec_tgt, rec)
   },
+  rec_yds = function(rec_yds) {
+    derive_from_mean(rec_yds)
+  },
   rec_tgt = function(rec, rec_yds) {
     derive_from_rate(rec, rec_yds)
   },
