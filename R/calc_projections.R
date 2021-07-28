@@ -353,7 +353,8 @@ set_vor <- function(points_table, vor_baseline = NULL, vor_var = c("points", "fl
   vor_tbl <- select(points_table, "id", "pos", vor_var) %>%
     rename(vor_var = !!vor_var) %>% group_by(pos) %>%
     mutate(vor_rank = dense_rank(-vor_var), vor_base = vor_baseline[pos]) %>%
-    filter(vor_rank >= vor_base - 1 &  vor_rank <= vor_base + 1)  %>% arrange(pos)
+    filter(vor_rank >= vor_base - 1 &  vor_rank <= vor_base + 1)  %>%
+    arrange(pos) %>%
     summarise(vor_base = mean(vor_var)) %>%  ungroup() %>%
     select(pos, vor_base) %>% inner_join(points_table, by = c("pos")) %>%
     rename(vor_var = !!vor_var) %>%
@@ -792,9 +793,15 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
     #   }
     # }
     df = group_by(df, id)
+    fun_names = names(fun_list)
 
     for (col in impute_cols) {
-      df = call_impute_fun(df, col)
+      if(col %in% fun_names) {
+        df = call_impute_fun(df, col)
+      } else {
+        df = mutate(df, !!col := derive_from_mean(!!as.symbol(col)))
+      }
+
     }
     df
 
