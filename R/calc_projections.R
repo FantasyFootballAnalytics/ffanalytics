@@ -748,6 +748,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   # Imputing values
   data_result = sapply(names(data_result), function(pos) {
     df = data_result[[pos]]
+    df = df[!is.na(df$id), ]
     df$weights = src_weights[df$data_src]
     df_names = names(df)
 
@@ -759,7 +760,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
       if(!("fg_miss" %in% df_names) && all(mis_cols %in% df_names)) {
         df$fg_miss = rowSums(df[mis_cols], na.rm = TRUE)
       }
-      if(anyNA(df$fg) || !("fg" %in% df_names)) {
+      if("fg" %in% df_names && anyNA(df$fg)) {
         tot_cols = intersect(df_names, fg_cols)
         idx = is.na(df$fg)
         df$fg[idx] = rowSums(df[idx, tot_cols], na.rm = TRUE)
@@ -772,7 +773,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
         }
       }
       if(!"fg_att" %in% df_names) {
-        if(!"xp_miss" %in% df_names) {
+        if(!"fg_miss" %in% df_names) {
           df$fg_miss = NA
         } else {
           df$fg_att = df$fg + df$fg_miss
@@ -858,7 +859,8 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
                dropoff = c(NA_real_, diff(points))) %>%
         arrange(desc(points)) %>%
         mutate(tier = 1 + trunc((cumsum(dropoff) - dropoff[1]) / (pts_sd * tier_thresh)),
-               tier = dense_rank(tier))
+               tier = dense_rank(tier)) %>%
+        filter(points > 0)
 
     }, simplify = FALSE)
 

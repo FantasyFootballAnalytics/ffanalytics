@@ -185,10 +185,9 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 
     }
 
-    # Combining df's, removing NA's, filtering our all NA columns
+    # Combining df's, removing NA's, filtering out rows with
     out = bind_rows(out_dfs)
-    out = out[!is.na(out[[1]]), ]
-
+    out = out[out$site_pts > 0, ]
     # Adding IDs
     out$id = ffanalytics:::player_ids$id[match(out$src_id, ffanalytics:::player_ids$nfl_id)]
     out
