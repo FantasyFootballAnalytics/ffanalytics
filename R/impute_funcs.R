@@ -478,11 +478,9 @@ fun_list = list(
   fg_50 = function(fg_50, fg) {
     derive_from_rate(fg_50, fg)
   },
-  fg_miss = function(fg_miss, fg, fg_pct, fg_att) {
-    att_nonmis = !is.na(fg_att)
-    pct_nonmis = !is.na(fg_pct)
-    fg_miss = replace(fg_miss, att_nonmis, fg_att[att_nonmis] - fg[att_nonmis])
-    fg_miss = replace(fg_miss, pct_nonmis, fg[pct_nonmis] * (1 - fg_pct[pct_nonmis] * .01))
+  fg_miss = function(fg_miss, fg, fg_att) {
+    idx = is.na(fg_miss)
+    fg_miss[idx] = fg_att[idx] - fg[idx]
     derive_from_rate(fg_miss, fg)
   },
   dst_fum_rec = function(dst_fum_rec) {
