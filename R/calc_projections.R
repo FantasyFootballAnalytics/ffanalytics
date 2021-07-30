@@ -772,12 +772,16 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
           df$xp_att = df$xp + df$xp_miss # if either are NA it returns NA
         }
       }
-      if(!"fg_att" %in% df_names) {
-        if(!"fg_miss" %in% df_names) {
-          df$fg_miss = NA
-        } else {
-          df$fg_att = df$fg + df$fg_miss
-        }
+      if(!"fg_miss" %in% df_names) {
+        df$fg_miss = NA
+      } else {
+        idx = is.na(df$fg_att)
+        df$fg_att[idx] = df$fg[idx] + df$fg_miss[idx]
+      }
+
+      if("fg_pct" %in% df_names) {
+        idx = is.na(df$fg_att)
+        df$fg_att[idx] = df$fg[idx] / (df$fg_pct[idx] * .01)
       }
     }
 
