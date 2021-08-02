@@ -408,8 +408,8 @@ fun_list = list(
   pass_comp = function(pass_comp, pass_yds) {
     derive_from_rate(pass_comp, pass_yds)
   },
-  pass_yds = function(pass_yds, pass_att) { # inverse of attempts...doesn't make sense
-    derive_from_rate(pass_yds, pass_yds)
+  pass_yds = function(pass_yds) { # making mean, should be most populated
+    derive_from_mean(pass_yds)
   },
   pass_tds = function(pass_tds, pass_comp) {
     derive_from_rate(pass_tds, pass_comp)
@@ -420,8 +420,8 @@ fun_list = list(
   rush_att = function(rush_att, rush_yds) {
     derive_from_rate(rush_att, rush_yds)
   },
-  rush_yds = function(rush_yds, rush_att) { # inverse of attempts...doesn't make sense
-    derive_from_rate(rush_yds, rush_att)
+  rush_yds = function(rush_yds) { # making mean, should be most populated
+    derive_from_mean(rush_yds)
   },
   rush_tds = function(rush_tds, rush_yds) {
     derive_from_rate(rush_tds, rush_yds)
