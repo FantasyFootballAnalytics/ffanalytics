@@ -864,7 +864,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
         arrange(desc(points)) %>%
         mutate(tier = 1 + trunc((cumsum(dropoff) - dropoff[1]) / (pts_sd * tier_thresh)),
                tier = dense_rank(tier)) %>%
-        filter(points > 0)
+        filter(points > 0 & is.finite(points))
 
     }, simplify = FALSE)
 
