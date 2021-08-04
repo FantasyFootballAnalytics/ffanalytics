@@ -203,5 +203,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
 
 # ESPN's undocumented API
 
-
+# Walter football
+# Numberfire
+# Fantasy sharks
 
