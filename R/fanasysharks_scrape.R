@@ -8,6 +8,8 @@ library(rvest)
 library(tidyverse)
 
 
+
+
 # FantasySharks
 scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0) {
 
