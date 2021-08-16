@@ -200,13 +200,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   l_pos
 }
 
-
-# ESPN's undocumented API
-
-
-
-# FantasySharks
-scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
+scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"), season = 2021, week = 0,
                                  draft = TRUE, weekly = TRUE) {
 
   # historical scrapes (doesn't work)
@@ -235,10 +229,11 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
     scrape_link <- paste0("https://www.fantasysharks.com/apps/bert/forecasts/projections.php?League=-1&Position=",
                           position, "&scoring=1&Segment=", segment,"&uid=4")
 
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
+    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+
     scrape <- scrape_link %>%
-      read_html() %>%
-      html_nodes(xpath = '//*[@id="toolData"]') %>%
-      html_table()
+      read_html()
 
 
     # Rename duplicated column names
@@ -246,7 +241,10 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
       # suppress the "new names" message generated from .name_repair = "unique"
       suppressMessages(
-        scrape[[1]] %>%
+        scrape %>%
+          html_nodes(xpath = '//*[@id="toolData"]') %>%
+          html_table() %>%
+          `[[`(1) %>%
           as_tibble(.name_repair = "unique") %>%
           filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
           rename(">= 50 yd rush" = ">= 50 yd...13",
@@ -258,8 +256,10 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
     } else if (pos %in% c("WR", "TE")) {
 
-      scrape[[1]] %>%
-        as_tibble() %>%
+      scrape %>%
+        html_nodes(xpath = '//*[@id="toolData"]') %>%
+        html_table() %>%
+        `[[`(1) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename(">= 50 yd rec" = ">= 50 yd",
                ">= 100 yd rec" = ">= 100 yd",
@@ -269,8 +269,10 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
     } else if (pos %in% "DST") {
 
-      scrape[[1]] %>%
-        as_tibble() %>%
+      scrape %>%
+        html_nodes(xpath = '//*[@id="toolData"]') %>%
+        html_table() %>%
+        `[[`(1) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename("dst_int" = "Int",
                "dst_fum_rec" = "Fum") %>%
@@ -278,8 +280,10 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
     } else if (pos %in% c("DL", "LB", "DB")) {
 
-      scrape[[1]] %>%
-        as_tibble() %>%
+      scrape %>%
+        html_nodes(xpath = '//*[@id="toolData"]') %>%
+        html_table() %>%
+        `[[`(1)  %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename("idp_sack" = "Scks",
                "idp_int" = "Int",
@@ -289,64 +293,37 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
     } else {
 
-      scrape[[1]] %>%
-        as_tibble() %>%
+      scrape %>%
+        html_nodes(xpath = '//*[@id="toolData"]') %>%
+        html_table() %>%
+        `[[`(1) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         select(-`#`)
     }
 
     # Player ID's
-    p_id <- scrape_link %>%
-      read_html() %>%
+    p_id <- scrape %>%
       html_elements(css = 'td.playerLink a') %>%
       html_attr("href") %>%
-      as_tibble() %>%
-      mutate(value = str_extract(value, "[:digit:]{3,5}$")) %>%
-      mutate(value = str_pad(value, 5, side = "left", 0)) %>%
-      rename(id = value)
+      tibble(id = .) %>%
+      mutate(id = str_extract(id, "[:digit:]{3,5}$"))
+
+    if(pos == "DST") {
+      p_id = p_id %>%
+        mutate(id = str_pad(id, 4, side = "left", 0))
+    }
 
     # Combine player data with ID's
     pos_df <- data %>%
-      bind_cols(p_id) %>%
-      select(id, everything())
-
-    # New column names
-    # subset by the columns in pos_df
-    stat_cols <- tibble(
-      id = "id", Player = "player", Tm = "tm", Att = "pass_att", Comp = "pass_comp", `Pass Yds` = "pass_yds",
-      `Pass TDs` = "pass_tds", `0-9 Pass TDs` = "pass_09_tds", `10-19 Pass TDs` = "pass_1019_tds",
-      `20-29 Pass TDs` = "pass_2029_tds", `30-39 Pass TDs` = "pass_3039_tds", `40-49 Pass TDs` = "pass_4049_tds",
-      `50+ Pass TDs` = "pass_50_tds", Int = "pass_int", Sck = "sacks",
-      `>= 250 yd` = "pass_250_yds",  `>= 300 yd` = "pass_300_yds", `>= 350 yd` = "pass_350_yds",
-      Rush = "rush_att", `Rsh Yds` = "rush_yds", `Rsh TDs` = "rush_tds", Fum = "fumbles_lost", Opp = "opp",
-      `0-9 Rsh TDs` = "rush_09_tds", `10-19 Rsh TDs` = "rush_1019_tds", `20-29 Rsh TDs` = "rush_2029_tds",
-      `30-39 Rsh TDs` = "rush_3039_tds", `40-49 Rsh TDs` = "rush_4049_tds", `50+ Rsh TDs` = "rush_50_tds",
-      `>= 50 yd rush` = "rush_50_yds", `>= 100 yd rush` = "rush_100_yds",
-      Tgt = "rec_tgt", `RZ Tgt` = "rec_rz_tgt", Rec = "rec", `Rec Yds` = "rec_yds", `Rec TDs` = "rec_tds",
-      `>= 50 yd rec` = "rec_50_yds", `>= 100 yd rec` = "rec_100_yds",
-      `>= 150 yd rec` = "rec_150_yds", `>= 200 yd rec` = "rec_200_yds",
-      `0-9 Rec TDs` = "rec_09_tds", `10-19 Rec TDs` = "rec_1019_tds", `20-29 Rec TDs` = "rec_2029_tds",
-      `30-39 Rec TDs` = "rec_3039_tds", `40-49 Rec TDs` = "rec_4049_tds", `50+ Rec TDs` = "rec_50_tds",
-      `Punt Ret Yds` = "punt_ret_yds", `Kick Ret Yds` = "kick_ret_yds", XPM = "xp", XPA = "xp_att",
-      FGM = "fg", FGA = "fg_att", `10-19 FGM` = "fg_0019", `20-29 FGM` = "fg_2029", `30-39 FGM` = "fg_3039",
-      `40-49 FGM` = "fg_4049", `50+ FGM` = "fg_50", Miss = "fg_miss",
-      `Yds Allowed` = "dst_yds_allowed", `100-199` = "dst_yds_199", `200-299` = "dst_yds_299",
-      `300-349` = "dst_yds_349", `350-399` = "dst_yds_399", `400-449` = "dst_yds_449",
-      `450-499` = "dst_yds_499", `500-549` = "dst_yds_549", `550+` = "dst_yds_550",
-      `Pts Agn` = "dst_pts_allowed", `1-6` = "dst_pts_6", `7-13` = "dst_pts_13", `14-17` = "dst_pts_17",
-      `18-20` = "dst_pts_20", `21-27` = "dst_pts_27", `28-34` = "dst_pts_34", `35-45` = "dst_pts_45", `46+` = "dst_pts_46",
-      Scks = "dst_sacks", dst_int = "dst_int", dst_fum_rec = "dst_fum_rec", DefTD = "dst_td", Safts = "dst_safety",
-      Tack = "idp_solo", Asst = "idp_asst", idp_sack = "idp_sack", PassDef = "idp_pd", idp_int = "idp_int",
-      FumFrc = "idp_fum_force", idp_fum_rec = "idp_fum_rec",idp_tds = "idp_tds",
-      Pts = "site_pts"
-    ) %>% select(colnames(pos_df)) %>%
-      as.character()
+      mutate(pos = !!pos,
+             data_src = "FantasySharks") %>%
+      bind_cols(p_id, .)
 
     # Rename columns with new names
-    colnames(pos_df) <- stat_cols
+    names(pos_df) = fantasysharks_columns[names(pos_df)]
 
+    pos_df[-1] = type.convert(pos_df[-1], as.is = TRUE)
     pos_df
-
 
   })
 
@@ -359,8 +336,6 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), se
 
 }
 
-
-# NumberFire
 scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", "DB"), season = 2021, week = 0,
                               draft = TRUE, weekly = TRUE) {
 
@@ -381,34 +356,35 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
     scrape_link <- case_when(week == 0 ~ paste0("https://www.numberfire.com/nfl/fantasy/remaining-projections/", position),
                              week > 0 ~ paste0("https://www.numberfire.com/nfl/fantasy/fantasy-football-projections/", position))
 
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
+    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+
+
+    # grabbing position page
+    html_page <- site_session %>%
+      session_jump_to(scrape_link) %>%
+      read_html()
+
 
     # numberFire unique player ID's
-    numberfire_ids <- site_session %>%
-      session_jump_to(scrape_link) %>%
-      read_html() %>%
+    numberfire_ids <- html_page %>%
       html_elements(css = "td[class='player'] a") %>%
       html_attr("href") %>%
       basename() %>%
-      as_tibble() %>%
-      rename(numfire_id = value)
+      tibble(numfire_id = .)
 
     # scrape contains list of player names and a list of data
-    scrape <- site_session %>%
-      session_jump_to(scrape_link) %>%
-      read_html() %>%
+    scrape <- html_page %>%
       html_elements(css = 'table.projection-table') %>%
       html_table()
 
 
     # player names
     players <- scrape[[1]] %>%
-      as_tibble(.name_repair = "minimal") %>%
-      rename(Player = 1 ) %>%
+      rename(Player = 1) %>%
       slice(-1L) %>%
-      separate(col = 1, into = c("Player", "player_abv", "position_team"), sep = "\\n") %>%
-      mutate(position = str_extract(position_team, pattern = "(?<=\\()[:upper:]{1,3}"),
-             team = str_extract(position_team, pattern = "[:upper:]{2,3}(?=\\))")) %>%
-      select(-player_abv, -position_team)
+      extract(Player, into = c("Player", "position", "team"),
+              "(.*?)\\n.*\\n.*?([A-Z]{1,3}),\\s*([A-Z]{2,3})")
 
 
     # Data
@@ -444,51 +420,34 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
     # FFA unique player ID's
     FFA_ids <- ffanalytics:::player_ids %>%
-      as_tibble() %>%
       select(id, numfire_id)
 
     # combine numberFire ID's with player names and data
     pos_df <- numberfire_ids %>%
       bind_cols(players) %>%
       bind_cols(table) %>%
-      inner_join(FFA_ids, by = "numfire_id") %>%
+      left_join(FFA_ids, by = "numfire_id") %>%
       mutate(data_src = "NumberFire")
 
     # New column names
     # subset by the columns in pos_df
     # replicated names between DST and IDP positions
     if (pos %in% c("DB", "LB")) {
-
-      stat_cols <- tibble(
-        id = "id",  numfire_id = "src_id", Player = "player", position = "position", team = "team", data_src = "data_src",
-        `Defense Tackles` = "idp_solo", `Defense Sacks` = "idp_sack", `Defense INTs` = "idp_int",
-        `Defense TDs` = "idp_tds", `Defense Passes Defended` = "idp_pd", `Defense Fum Rec` = "idp_fum_rec") %>%
-        select(colnames(pos_df)) %>%
-        as.character()
-
+      names(pos_df) <- numberfire_idp_columns[names(pos_df)]
     } else {
-
-      stat_cols <- tibble(
-        id = "id", numfire_id = "src_id", Player = "player", position = "position", team = "team", data_src = "data_src",
-        `numberFire FP` = "site_pts", Lower = "site_ci_low", Upper = "site_ci_high", `Ranks Ovr.` = "ranks_ovr", `Ranks Pos.` = "ranks_pos",
-        pass_comp = "pass_comp", pass_att = "pass_att", `Passing Yds` = "pass_yds", `Passing TDs` = "pass_tds", `Passing Ints` = "pass_ints",
-        `Rushing Att` = "rush_att", `Rushing Yds` = "rush_yds", `Rushing TDs` = "rush_tds",
-        `Receiving Rec` = "rec", `Receiving Yds` = "rec_yds", `Receiving TDs` = "rec_tds",
-        `Receiving Tgt` = "rec_tgt", `Kicking XPM` = "xp", `Kicking FGA` = "fg_att", `Kicking FGM` = "fg",
-        `FG Made By Distance 0-19` = "fg_0019", `FG Made By Distance 20-29` = "fg_2029",
-        `FG Made By Distance 30-39` = "fg_3039", `FG Made By Distance 40-49` = "fg_4049",
-        `FG Made By Distance 50+` = "fg_50", `Defense Points Allowed` = "dst_pts_allowed",
-        `Defense Yards Allowed` = "dst_yds_allowed", `Defense Sacks` = "dst_sacks",
-        `Defense INTs` = "dst_int", `Defense Fumbles` = "dst_fum_rec", `Defense TDs` = "dst_td") %>%
-        select(colnames(pos_df)) %>%
-        as.character()
+      names(pos_df) <- numberfire_columns[names(pos_df)]
     }
 
-    # Rename columns with new names
-    colnames(pos_df) <- stat_cols
 
-    pos_df
+    # Changing types before merging
+    id_idx = !names(pos_df) %in% "id"
+    pos_df[id_idx] <- type.convert(pos_df[id_idx], as.is = TRUE)
 
+    if("site_pts" %in% names(pos_df)) {
+      pos_df[pos_df$site_pts > 0, ]
+    } else {
+      pos_df
+    }
 
   })
 
@@ -500,18 +459,20 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
 }
 
-
-# Walter Football
 scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season = 2021, week = 0,
-                                  draft = TRUE, weekly = FALSE) {
+                                  draft = TRUE, weekly = FALSE, impute_reg = TRUE) {
 
-  url <- "http://walterfootball.com/fantasy2021rankingsexcel.xlsx"
+  # Currently unnamed argument for imputing REG TD columns, defaults to TRUE
+
+  url <- paste0("http://walterfootball.com/fantasy", season, "rankingsexcel.xlsx")
 
   xlsx_file <- tempfile("wf", fileext = ".xlsx")
   xl_download <- download.file(url = url, destfile = xlsx_file, mode = "wb", quiet = TRUE)
 
 
   l_pos <- lapply(pos, function(pos){
+
+    cat(paste0("Scraping ", pos, " projections from"), url, sep = "\n  ")
 
     position <- case_when(pos %in% "QB" ~ "QBs",
                           pos %in% "RB" ~ "RBs",
@@ -543,29 +504,39 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
 
     # FFA unique player ID's
     FFA_ids <- ffanalytics:::player_table %>%
-      as_tibble() %>%
-      select(id, last_name, first_name, position)
+      transmute(id,
+                join_idx = paste0(gsub("[[:punct:]]|\\s+", "", tolower(first_name)),
+                                  gsub("[[:punct:]]|\\s+", "", tolower(last_name)),
+                                  tolower(position)))
 
     # Combine data w/ player ID's
     pos_df <- data %>%
-      inner_join(FFA_ids, by = c("last_name", "first_name", "position")) %>%
-      select(-last_name, -first_name) %>%
-      mutate(data_src = "Walterfootball")
+      mutate(data_src = "Walterfootball",
+             join_idx = gsub("[[:punct:]]|\\s+", "", tolower(Player)),
+             join_idx = paste0(join_idx, tolower(position))) %>%
+      left_join(FFA_ids, by = "join_idx") %>%
+      select(-last_name, -first_name, -join_idx)
 
 
     # New column names
     # subset by the columns in pos_df
-    stat_cols = tibble(
-      id = "id", Player = "player", Team = "tm", Bye = "bye", position = "pos", data_src = "data_src",
-      `PASS YDS` = "pass_yds", `PASS TD` = "pass_tds", INT = "pass_int",
-      `RUSH YDS` = "rush_yds", CATCH = "rec", `REC YDS` = "rec_yds", `REG TD` = "rec_tds",
-      `FG 1-39` = "fg_0039", `FG 40-49` = "fg_4049", `FG 50+` = "fg_50", XP = "xp",
-      `Points (ESPN Scoring)` = "site_pts"
-    ) %>% select(colnames(pos_df)) %>%
-      as.character()
+    names(pos_df) = walterfootball_columns[names(pos_df)]
+    df_names = names(pos_df)
 
-    # Rename columns with new names
-    colnames(pos_df) <- stat_cols
+
+    if(impute_reg && "reg_tds" %in% df_names) {
+      if(all(c("rush_yds", "rec_yds") %in% df_names)) {
+        total_yds = pos_df$rush_yds + pos_df$rec_yds
+        pos_df$rush_tds = ifelse(total_yds == 0, 0,
+                                 (pos_df$rush_yds / total_yds) * pos_df$reg_tds)
+        pos_df$rec_tds = ifelse(total_yds == 0, 0,
+                                 (pos_df$rec_yds / total_yds) * pos_df$reg_tds)
+        pos_df$reg_tds = NULL
+      } else if(any(c("rush_yds", "rec_yds") %in% df_names)) {
+        col_name = grep("(rush|rec)_yds", df_names, value = TRUE)
+        names(pos_df)[df_names == "reg_tds"] = sub("(rush|rec)_yds", "\\1_tds", col_name)
+      }
+    }
 
     pos_df
 
@@ -578,4 +549,5 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
   l_pos
 
 }
+
 
