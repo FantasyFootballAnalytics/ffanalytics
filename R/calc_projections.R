@@ -961,7 +961,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   out = bind_rows(lapply(l_avg_types, bind_rows, .id = "pos"), .id = "avg_type")
 
   # Adding VOR and rank
-  out$temp_vor_pos = default_baseline[out$pos]
+  out$temp_vor_pos = vor_baseline[out$pos]
 
   out = out %>%
     group_by(avg_type, pos) %>%
