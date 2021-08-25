@@ -874,11 +874,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
 
           out = df %>%
             summarise(points = fun_avg(!!col_sym, na.rm = TRUE, w = weights),
-                      sd = fun_sd(!!col_sym, na.rm = TRUE, w = weights),
-                      drop_quantile = list(fun_quan(!!col_sym, c(.05, .95), na.rm = TRUE, w = weights)),
-                      floor = drop_quantile[[1]][1],
-                      ceiling = drop_quantile[[1]][2]) %>%
-            select(-drop_quantile)
+                      sd = fun_sd(!!col_sym, na.rm = TRUE, w = weights))
 
           names(out)[-1] = sub("_points", "", paste0(col, "_", names(out)[-1]))
           out
