@@ -799,6 +799,11 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
 
     # intersecting column names (that have a non-zero scoring value)
     impute_cols = intersect(df_names, scoring_table$column[scoring_table$val != 0])
+
+    if(pos == "DST") {
+      impute_cols = unique(c(impute_cols, "dst_pts_allowed"))
+    }
+
     impute_cols = names(Filter(anyNA, df[impute_cols])) # only grabbing columns with missing values
 
     df = group_by(df, id)
@@ -817,8 +822,14 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
     if(pos == "DST") {
       if(week == 0) {
         set.seed(1L)
+
+        ids_idx = coalesce(
+          match(df$id, pts_bracket_coefs$id),
+          match(df$id, pts_bracket_coefs$nfl_id)
+        )
+
         ppg = df$dst_pts_allowed / 17
-        team = pts_bracket_coefs$team[match(df$id, pts_bracket_coefs$id)]
+        team = pts_bracket_coefs$team[ids_idx]
         idx = match(team, pts_bracket_coefs$team)
         ppg_sd = pts_bracket_coefs$Intercept[idx] + (pts_bracket_coefs$season_mean[1] * ppg)
 
