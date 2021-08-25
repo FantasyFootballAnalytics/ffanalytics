@@ -552,5 +552,42 @@ score_pts_bracket = function(points, pts_bracket) {
   vals[max.col(thresh_idx, "first")]
 }
 
+# df1 = nflfastR::fast_scraper_schedules(2020) %>%
+#   dplyr::select(game_id, away_team:home_score) %>%
+#   tidyr::pivot_longer(-game_id, names_to = c("var", ".value"), names_sep = "_") %>%
+#   dplyr::group_by(game_id) %>%
+#   dplyr::mutate(opp_score = rev(score)) %>%
+#   dplyr::filter(as.numeric(substr(game_id, 6, 7)) <= 17) %>%
+#   dplyr::group_by(team) %>%
+#   dplyr::summarise(n = n(),
+#                    season_mean = mean(opp_score),
+#                    season_sd = sd(opp_score))
+#
+# model_coefs = coef(nlme::lme(season_sd ~ season_mean, random = ~ 1 | team, data = df1))
+# model_coefs$team = rownames(model_coefs)
+# model_coefs = model_coefs[(c(3, 1, 2))]
+# rownames(model_coefs) = NULL
+# model_coefs[-1] = round(model_coefs[-1], 5)
+#
+# Imperfect approach but will work for now. Predicts the SD so we can do season
+# long points bracket estimates
+pts_bracket_coefs = structure(list(id = c("0519", "0526", "0531", "0501", "0527", "0521", "0506", "0507",
+                                          "0516", "0511", "0522", "0523", "0532", "0502", "0509", "0512",
+                                          "0528", "0514", "0513", "0503", "0524", "0504", "0529", "0517",
+                                          "0505", "0518", "0510", "0515", "0530", "0525", "0508", "0520"),
+                                   team = c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
+                                            "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAC", "KC",
+                                            "LA", "LAC", "LV", "MIA", "MIN", "NE", "NO", "NYG",
+                                            "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WAS"),
+                                   Intercept = c(10.9284, 11.22833, 12.28351, 10.55347, 12.12183, 10.22914, 9.5448, 13.09031,
+                                                 12.34902, 11.76556, 11.53739, 9.38975, 10.91778, 11.06655, 8.19833,
+                                                 10.80697, 10.15926, 10.02538, 12.1941, 14.58895, 11.40904, 10.9585,
+                                                 12.40523, 8.66592, 9.32409, 9.68914, 9.0589, 11.48744, 12.67995,
+                                                 10.43775, 11.20782, 10.12359),
+                                   season_mean = rep(-.06533, 32)),
+                              row.names = c(NA, -32L), class = c("coef.lme", "ranef.lme", "data.frame"))
+
+
+
 
 

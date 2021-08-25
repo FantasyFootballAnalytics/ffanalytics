@@ -667,7 +667,8 @@ add_player_info <- function(projection_table){
 #' Testing & improving now TO replace the current function in the next major app update
 projections_table2 = function(data_result, scoring_rules = NULL, src_weights = NULL,
                               vor_baseline = NULL, tier_thresholds = NULL,
-                              avg_type = c("average", "robust", "weighted")) {
+                              avg_type = c("average", "robust", "weighted"),
+                              return_raw_stats = FALSE) {
 
   # Filling in missing arguments
   if(is.null(scoring_rules)) {
@@ -705,8 +706,9 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   scoring_l = vector("list", length(data_result))
   names(scoring_l) = names(data_result)
   all_pos_idx = unlist(lapply(scoring_rules, `[[`, "all_pos"))
-  l_pts_bracket = scoring_rules$pts_bracket
+  l_pts_bracket = rapply(scoring_rules$pts_bracket, as.numeric, how = "replace")
   scoring_rules$pts_bracket = NULL
+
 
   if(all(all_pos_idx)) { # if no custom scoring
     scoring_table = dplyr::tibble(
@@ -715,6 +717,10 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
       val = unlist(scoring_rules)
     )
     for(pos in names(scoring_l)) {
+      if(pos %in% "DST") {
+        scoring_table = rbind(scoring_table,
+                              data.frame(category = "dst", column = "pts_bracket", val = 1))
+      }
       scoring_l[[pos]] = scoring_table
     }
   } else { # if there is custom scoring
@@ -735,6 +741,12 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
         column = sub(".*?\\.", "", names(unlist(temp_scoring, recursive = FALSE))),
         val = unlist(temp_scoring)
       )
+
+      if(pos %in% "DST") {
+        scoring_table = rbind(scoring_table,
+                              data.frame(category = "dst", column = "pts_bracket", val = 1))
+      }
+
       scoring_l[[pos]] = scoring_table
     }
   }
@@ -789,14 +801,6 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
     impute_cols = intersect(df_names, scoring_table$column[scoring_table$val != 0])
     impute_cols = names(Filter(anyNA, df[impute_cols])) # only grabbing columns with missing values
 
-    # Commented out for now to match old projections_table() function results
-    # if(pos == "DST") {
-    #   if(week == 0) {
-    #     score_pts_bracket(df$dst_pts_allowed / 17, l_pts_bracket)
-    #   } else {
-    #     score_pts_bracket(df$dst_pts_allowed, l_pts_bracket)
-    #   }
-    # }
     df = group_by(df, id)
     fun_names = names(fun_list)
 
@@ -808,9 +812,88 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
       }
 
     }
+
+    # Commented out for now to match old projections_table() function results
+    if(pos == "DST") {
+      if(week == 0) {
+        set.seed(1L)
+        ppg = df$dst_pts_allowed / 17
+        team = pts_bracket_coefs$team[match(df$id, pts_bracket_coefs$id)]
+        idx = match(team, pts_bracket_coefs$team)
+        ppg_sd = pts_bracket_coefs$Intercept[idx] + (pts_bracket_coefs$season_mean[1] * ppg)
+
+        game_l = Map(function(x, y) {
+          season_games = round(rnorm(17, x, y))
+          season_games = replace(season_games, season_games < 0, 0)
+          score_pts_bracket(season_games, l_pts_bracket)
+        }, ppg, ppg_sd)
+        df$pts_bracket = vapply(game_l, sum, numeric(1L))
+
+      } else {
+        df$pts_bracket = score_pts_bracket(df$dst_pts_allowed, l_pts_bracket)
+      }
+    }
+
     df
 
   }, simplify = FALSE)
+
+  if(return_raw_stats) { # if it should return raw stats
+
+    df_l = sapply(names(data_result), function(pos) {
+      df = group_by(data_result[[pos]], id)
+      scoring_table = scoring_l[[pos]]
+      cols = intersect(names(df), scoring_table$column[scoring_table$val != 0])
+      l_avg_types = vector("list", length(avg_type))
+      names(l_avg_types) = avg_type
+
+      # Removing one-only source id's
+      df = df %>%
+        filter(n() > 1)
+
+      for(type in avg_type) {
+
+        # Setting up avg_type summary function
+        if(type == "average") {
+          fun_avg = mean.default
+          fun_sd = function(x, na.rm = FALSE, w) sd(x, na.rm)
+          fun_quan = quantile
+        } else if(type == "robust") {
+          fun_avg = wilcox.loc
+          fun_sd = mad2
+          fun_quan = quantile
+        } else if(type == "weighted") {
+          fun_avg = weighted.mean
+          fun_sd = weighted.sd
+          fun_quan = whdquantile
+        }
+
+        l_avg_types[[type]] = lapply(cols, function(col) {
+
+          col_sym = as.symbol(col)
+
+          out = df %>%
+            summarise(points = fun_avg(!!col_sym, na.rm = TRUE, w = weights),
+                      sd = fun_sd(!!col_sym, na.rm = TRUE, w = weights))
+
+          names(out)[-1] = sub("_points", "", paste0(col, "_", names(out)[-1]))
+          out
+        })
+
+        l_avg_types[[type]] = Reduce(function(x, y) left_join(x, y, "id") , l_avg_types[[type]])
+
+      }
+
+      df[c("id", "player")] %>%
+        filter(!duplicated(id)) %>%
+        left_join(bind_rows(l_avg_types, .id = "avg_type"), "id")
+
+    })
+
+    return(bind_rows(df_l, .id = "position"))
+
+  }
+
 
   # Scoring sources / totaling sources
   l_raw_points = lapply(names(data_result), function(pos) {
@@ -852,6 +935,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
                   floor = drop_quantile[[1]][1],
                   ceiling = drop_quantile[[1]][2]) %>%
         select(-drop_quantile) %>%
+        filter(points > 0 & is.finite(points)) %>%
         arrange(points)
 
       pts_sd = median(df$sd_pts, na.rm = TRUE)
@@ -863,8 +947,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
                dropoff = c(NA_real_, diff(points))) %>%
         arrange(desc(points)) %>%
         mutate(tier = 1 + trunc((cumsum(dropoff) - dropoff[1]) / (pts_sd * tier_thresh)),
-               tier = dense_rank(tier)) %>%
-        filter(points > 0 & is.finite(points))
+               tier = dense_rank(tier))
 
     }, simplify = FALSE)
 
@@ -874,7 +957,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   out = bind_rows(lapply(l_avg_types, bind_rows, .id = "pos"), .id = "avg_type")
 
   # Adding VOR and rank
-  out$temp_vor_pos = default_baseline[out$pos]
+  out$temp_vor_pos = vor_baseline[out$pos]
 
   out = out %>%
     group_by(avg_type, pos) %>%
@@ -899,5 +982,11 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   attr(out, "lg_type") = lg_type
   out
 }
+
+
+
+
+
+
 
 
