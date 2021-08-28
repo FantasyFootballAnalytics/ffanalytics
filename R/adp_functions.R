@@ -36,25 +36,31 @@ rts_draft <- function(aav = FALSE){
 #' @return A \link{data.frame} with the results.
 #' @export
 cbs_draft <- function(){
-  draft_url <- "https://www.cbssports.com/fantasy/football/draft/averages?&print_rows=9999"
+  draft_url <- "https://www.cbssports.com/fantasy/football/draft/averages/both/h2h/all"
 
-  draft_pge <- read_html(draft_url)
+  draft_page <- read_html(draft_url)
 
-  draft_pge %>% html_node("table.data tr.title") %>% xml_remove()
-  draft_pge %>% html_node("table.data tr.footer") %>% xml_remove()
+  cbs_ids = draft_page %>%
+    html_elements("span.CellPlayerName--short > span > a") %>%
+    html_attr("href") %>%
+    dirname() %>%
+    basename()
 
-  cbs_ids <- draft_pge %>% html_nodes("table.data tr td a") %>% html_attr("href") %>%
-    str_extract_all(pattern = "[0-9]{3,}") %>% unlist(use.names = FALSE)
+  draft_page %>%
+    html_element("#TableBase > div > div > table") %>%
+    html_table() %>%
+    extract(Player, c("player", "pos", "team"), "(.*?)\\n\\s+(.*?)\\s+(.*)") %>%
+    transmute(id = player_ids$id[match(cbs_ids, player_ids$cbs_id)],
+              cbs_id = cbs_ids,
+              player,
+              pos,
+              team,
+              change = as.numeric(replace(Trend, Trend == "—", 0)),
+              adp = as.numeric(`Avg Pos`),
+              high = as.numeric(sub("/\\d+", "", `Hi/Lo`)),
+              low = as.numeric(sub("\\d+/", "", `Hi/Lo`)),
+              percent_drafted = Pct)
 
-  draft_tbl <- draft_pge %>% html_node("table.data") %>% html_table(header = TRUE) %>%
-    extract(Player, c("Player", "Pos", "Team"), "(.+)\\,\\s(.+)\\,\\s(.+)") %>%
-    extract("HI/LO", c("Best", "Worst"), "([0-9]+)/([0-9]+)") %>%
-    rename(adp = "Avg Pos") %>% add_column(cbs_id = cbs_ids, .before = 1)
-
-  draft_tbl <- add_column(draft_tbl, id = id_col(draft_tbl$cbs_id, "cbs_id"), .before = 1) %>%
-    clean_names() %>% mutate(adp = as.numeric(adp))
-
-  return(draft_tbl)
 }
 
 #' Get ADP/AAV data from ESPN
@@ -98,7 +104,7 @@ yahoo_draft <- function(aav = FALSE){
   draft_url <- sprintf("https://football.fantasysports.yahoo.com/f1/draftanalysis?tab=%s&pos=ALL",
                        draft_type)
 
-  draft_col <- ifelse(aav, "Avg Cost",  "Avg Pick")
+  draft_col <- ifelse(aav, "Avg Salary",  "Avg Pick")
   names(draft_col) <- ifelse(aav, "aav",  "adp")
 
   draft_session <- session(draft_url)
@@ -110,24 +116,26 @@ yahoo_draft <- function(aav = FALSE){
                        "buf" = "2", "cin" = "4", "atl" = "1", "gnb" = "9", "mia" = "15",
                        "ind" = "11", "nyg" = "19",  "hou" = "34", "sfo" = "25", "cle" = "5",
                        "nyj" = "20", "oak" = "13")
-  repeat({
+  while(nrow(yahoo_adp) < 200) {
 
     draft_page <- read_html(draft_session)
 
-    draft_tbl <- draft_page %>% html_node("#draftanalysistable") %>% html_table()
+    draft_tbl <- draft_page %>% html_element("#draftanalysistable") %>% html_table()
 
     names(draft_tbl) <- gsub("[^[:alnum:]]$", "", names(draft_tbl))
 
     yahoo_ids <-  draft_session %>%
-      html_nodes("a[href *= 'nfl/players']:not(a[class *='playernote']), a[href *= 'nfl/teams']:not(a[class *='playernote'])") %>%
-      html_attr("href") %>%
-      basename()
+      html_elements("tbody > tr > td > div > div > span > a") %>%
+      html_attr("data-ys-playerid")
 
     draft_tbl <- draft_tbl %>%
-      rename(!!!draft_col) %>% add_column(yahoo_id = yahoo_ids, .before = 1)
+      rename(!!!draft_col) %>%
+      add_column(yahoo_id = yahoo_ids, .before = 1)
 
-    if(any(names(draft_tbl) == "aav"))
-      draft_tbl <- draft_tbl %>% mutate(aav = as.numeric(gsub("^\\$", "", aav)))
+    if(any(names(draft_tbl) == "aav")) {
+      draft_tbl <- draft_tbl %>%
+        mutate(aav = as.numeric(gsub("^\\$", "", aav)))
+    }
 
     yahoo_adp <- bind_rows(yahoo_adp, draft_tbl) %>%
       mutate(yahoo_id = recode(yahoo_id, !!!recode_vals))
@@ -136,11 +144,14 @@ yahoo_draft <- function(aav = FALSE){
       html_node("a:contains('Next')") %>%
       html_attr("href")
 
-    if(is.na(next_url))
+    Sys.sleep(.5)
+
+    if(aav && nrow(yahoo_adp) > 200)
       break
 
     draft_session <- next_url %>% jump_to(x=draft_session, url =.)
-  })
+  }
+
   yahoo_adp <- yahoo_adp %>%
     extract(., Name, c("Note", "Player", "Team", "Pos", "Status/Game/Opp"),
             "\\s*(.+Note[s]*)\\s+(.+)\\s([[:alpha:]]{2,3})\\s\\-\\s([[:alpha:]]{1,3},*[[:alpha:]]*)\\s{2,}(.+)") %>%
@@ -151,89 +162,38 @@ yahoo_draft <- function(aav = FALSE){
 }
 
 
-p_url <- function(p, season = 2018, weekNo = 0){
-  nfl_base <- "http://api.fantasy.nfl.com/v1/players/researchinfo"
-  nfl_query <- list(season = season, week = weekNo, count = 1000, format = "json", position = p)
-  u <- parse_url(nfl_base)
-  u$query <- nfl_query
-  build_url(u)
-}
-
-url_data <- function(u){
-  p <- 0
-  out_tbl <- tibble()
-  repeat{
-    uq <- parse_url(u)$query
-    uq$offset <- p
-    u <- modify_url(u, query = uq)
-
-    u_data <- content(GET(u))
-    if(length(u_data$players) == 0)
-      break
-    else {
-      p_data <- u_data$players %>%
-        map(`[`, c("id", "esbid")) %>%
-        modify_depth(2, ~ if_else(is.null(.x), as.character(NA), .x )) %>%
-        map(as_tibble) %>%
-        bind_rows() %>%
-        rename(nfl_id = id)
-      out_tbl <- bind_rows(out_tbl, p_data)
-    }
-    p <- p + 1000
-  }
-  out_tbl
-}
-
 #' Get ADP/AAV data from NFL
 #'
 #' This function scrapes ADP or AAV data from NFL
 #' @return A \link{data.frame} with the results. Contains both ADP and AAV data
 #' @export
-nfl_draft <- function(){
+nfl_draft = function() {
+year = format(Sys.Date(), format = "%Y")
 
-  api_url <- "http://api.fantasy.nfl.com/v1/players/userdraftranks?format=json&count=100&offset=0"
-  draft_tbl <- tibble()
+nfl_url = paste0("https://fantasy.nfl.com/draftcenter/breakdown?leagueId=&offset=1&count=200&position=all&season=",
+                 year, "&sort=draftAveragePosition")
 
-  repeat({
-    nfl_tbl <- content(GET(api_url))$players %>%
-      map(`[`, c("esbid", "rank", "aav", "teamAbbr", "position")) %>%
-      modify_depth(2, ~ if_else(is.null(.x), as.character(NA), .x )) %>%
-      map(as_tibble) %>% bind_rows()
+html_page = read_html(nfl_url)
 
-    if(nrow(nfl_tbl) == 0)
-      break
+nfl_table = html_page %>%
+  html_elements("tbody") %>%
+  html_table() %>%
+  `[[`(1) %>%
+  extract(X1, c("player", "pos", "team"), "(.*?)\\s+([A-Z]{2,3}).*?([A-Z]{2,3}).*") %>%
+  rename(adp = X2, avg_round = X3, average_salary = X4)
 
-    draft_tbl <- bind_rows(draft_tbl, nfl_tbl)
-    api_url <- parse_url(api_url)
+nfl_ids = html_page %>%
+  html_elements("tbody > tr > td > div > a") %>%
+  html_attr("href") %>%
+  unique() %>%
+  sub(".*playerId=", "", .)
 
-    api_qry <- api_url$query
-    api_qry$offset <- as.integer(api_qry$offset) + 100
-
-    api_url <- modify_url(api_url, query = api_qry)
-
-  })
+nfl_table %>%
+  mutate(id = player_ids$id[match(nfl_ids, player_ids$nfl_id)],
+         nfl_id = nfl_ids)
 
 
-  if(nrow(draft_tbl) > 0){
-
-    draft_pos <- unique(draft_tbl$position)
-
-    p_esbid <- draft_pos %>% map(p_url) %>% map(url_data) %>% bind_rows()
-
-    draft_tbl <- draft_tbl %>% rename(adp = rank, team = teamAbbr) %>%
-      add_column(nfl_id = p_esbid$nfl_id[match(draft_tbl$esbid, p_esbid$esbid)], .before = 1)
-
-    draft_tbl <- draft_tbl %>% rowwise() %>%
-      mutate(nfl_id = ifelse(position == "DEF", nflTeam.id[which(nflTeam.abb == team)], nfl_id)) %>%
-      ungroup()
-
-    draft_tbl <- draft_tbl %>%
-      add_column(id = id_col(draft_tbl$nfl_id, "nfl_id"), .before = 1) %>%
-      mutate(adp = as.numeric(adp), aav = as.numeric(aav))
-  }
-  return(draft_tbl)
 }
-
 
 
 
@@ -258,9 +218,9 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
   draft_type <- tolower(type)
 
   if("CBS" %in% sources & type == "AAV")
-    sources <- setdiff(sources, "CBS")
+    sources <- setdiff(sources, c("CBS"))
   if("FFC" %in% sources & type == "AAV")
-    sources <- setdiff(sources, "FFC")
+    sources <- setdiff(sources, c("FFC", "ESPN", "FFC", "NFL", "CBS"))
 
   draft_funs <- list(rts = rts_draft, cbs = cbs_draft, espn = espn_draft,
                      yahoo = yahoo_draft, nfl = nfl_draft, ffc = ffc_draft)
@@ -328,9 +288,9 @@ get_adp <- function(sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC"),
 #' @return A \link{data.frame} with the results.
 #' @export
 ffc_draft <- function(format=c("standard", "ppr", "2qb", "dynasty", "rookie"),
-                      pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
-                              season=2019){
+                      pos = c("all", "qb", "rb", "wr", "te", "def", "pk")){
 
+  season = format(Sys.Date(), format = "%Y")
   ffc_url <- paste0("https://fantasyfootballcalculator.com/adp?format=standard&year=", season, "&teams=12&view=graph&pos=all")
   format <- match.arg(format)
   pos <- match.arg(pos)
