@@ -95,102 +95,91 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   base_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape[1],
                      "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
                      "&statType=seasonProjectedStats")
+
   site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
     pos_scrape = nfl_pos_idx[pos]
+
+    n_records = case_when(
+      pos == "QB" ~ 40,
+      pos == "RB" ~ 90,
+      pos == "WR" ~ 150,
+      pos == "TE" ~ 50,
+      pos == "K" ~ 32,
+      pos == "DST" ~ 32
+    )
+
     if(week == 0) {
       scrape_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+                           "&count=", n_records,
                            "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
                            "&statType=seasonProjectedStats")
     } else {
-      scrape_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape,
+      scrape_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape[1],
+                           "&count=", n_records,
                            "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
-                           "weekProjectedStats&statWeek=", week)
+                           "&statType=weekProjectedStats&statWeek=", week)
     }
 
     cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
 
-    # Setting up hitting each page
-    i = 0L
-    page_link = scrape_link
-    out_dfs = list()
+    html_page = site_session %>%
+      session_jump_to(scrape_link) %>%
+      read_html()
 
-    # Going through pages of NFL.com until a player has zero possible fantasy points
-    # (sorted by site_pts by default). With the exception of DST where it exits the loop
-    # after the second page
-    while(i == 0L || min(out_dfs[[i]]$site_pts) != 0) {
-      i = i + 1L
+    # Get PID
+    site_id = html_page %>%
+      html_elements("table td:first-child a.playerName") %>%
+      html_attr("href") %>%
+      sub(".*=", "",  .)
 
-      if(i == 3L && pos == "DST") {
-        break
-      }
+    # Getting column names
+    col_names = html_page %>%
+      html_element("table > thead") %>%
+      html_table(header = FALSE)
 
-      Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
+    col_names = trimws(paste(col_names[1, ], col_names[2, ]))
+    col_names = nfl_columns[col_names]
 
-      html_page = site_session %>%
-        session_jump_to(page_link) %>%
-        read_html()
+    # Creating and cleaning table
+    out_df = html_page %>%
+      html_element("table > tbody") %>%
+      html_table(header = FALSE) %>%
+      `names<-`(col_names)
 
-      # Get PID
-      site_id = html_page %>%
-        html_elements("table td:first-child a.playerName") %>%
-        html_attr("href") %>%
-        sub(".*=", "",  .)
-
-      # Getting column names
-      col_names = html_page %>%
-        html_element("table > thead") %>%
-        html_table(header = FALSE)
-
-      col_names = trimws(paste(col_names[1, ], col_names[2, ]))
-      col_names = nfl_columns[col_names]
-
-      # Creating and cleaning table
-      temp_df = html_page %>%
-        html_element("table > tbody") %>%
-        html_table(header = FALSE) %>%
-        `names<-`(col_names)
-
-      # Breaking out first column / cleaning (for DST)
-      if(pos != "DST") {
-        temp_df = temp_df %>%
-          extract(player, c("player", "pos", "team"),
-                  "(.*?)\\s+\\b(QB|RB|WR|TE|K)\\b.*?([A-Z]{2,3})")
-      } else {
-        temp_df$team = sub("\\s+DEF$", "", temp_df$team)
-      }
-
-      if(pos %in% c("RB", "WR", "TE") && "pass_int" %in% names(temp_df)) {
-        temp_df$pass_int = NULL
-      }
-
-      # Misc column cleanup before done
-      temp_df$data_src = "NFL"
-      temp_df$src_id = as.character(site_id)
-      temp_df$opp = NULL
-
-      # Type cleanup
-      temp_df[temp_df == "-"] = NA
-      idx = names(temp_df) %in% c("id", "src_id")
-      temp_df[!idx] = type.convert(temp_df[!idx], as.is = TRUE)
-
-      # Adding it to a list of DF's from the pages
-      out_dfs[[i]] = temp_df
-
-      # Getting the next link
-      page_link = html_page %>%
-        html_element("li.next a") %>%
-        html_attr("href")
-
+    # Breaking out first column / cleaning (for DST)
+    if(pos != "DST") {
+      out_df = out_df %>%
+        extract(player, c("player", "pos", "team"),
+                "(.*?)\\s+\\b(QB|RB|WR|TE|K)\\b.*?([A-Z]{2,3})")
+    } else {
+      out_df$team = sub("\\s+DEF$", "", out_df$team)
     }
 
+    if(pos %in% c("RB", "WR", "TE") && "pass_int" %in% names(out_df)) {
+      out_df$pass_int = NULL
+    }
+
+    # Misc column cleanup before done
+    out_df$data_src = "NFL"
+    out_df$src_id = as.character(site_id)
+    out_df$opp = NULL
+
+    # Type cleanup
+    out_df[out_df == "-"] = NA
+    idx = names(out_df) %in% c("id", "src_id")
+    out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
+
     # Combining df's, removing NA's, filtering out rows with
-    out = bind_rows(out_dfs)
-    out = out[out$site_pts > 0, ]
+    out_df = out_df[out_df$site_pts > 0 & !is.na(out_df$site_pts), ]
     # Adding IDs
-    out$id = ffanalytics:::player_ids$id[match(out$src_id, ffanalytics:::player_ids$nfl_id)]
-    out
+    out_df$id = ffanalytics:::player_ids$id[match(out_df$src_id, ffanalytics:::player_ids$nfl_id)]
+
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
+
+    # Removing all NA columns
+    Filter(function(x) any(!is.na(x)), out_df)
 
   })
 

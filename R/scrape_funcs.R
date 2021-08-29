@@ -37,8 +37,7 @@ scrape_data <- function(
                    c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
                      "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
                      "RTSports","Walterfootball"))
-  src_selfcont = match.arg(src, several.ok = TRUE,
-                           c("NFL", "CBS", "FantasySharks", "NumberFire", "Walterfootball"))
+  src_selfcont = intersect(src, c("NFL", "CBS", "FantasySharks", "NumberFire", "Walterfootball"))
   src = setdiff(src, src_selfcont)
   pos <- match.arg(pos, several.ok = TRUE,
                    c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"))
@@ -121,9 +120,8 @@ scrape_data <- function(
     }
   }
 
-  l_out
-
   l_out <- l_out[setdiff(pos, c("IDP", "CB", "S", "DT", "DE"))]
+  l_out = Filter(Negate(is.null), l_out)
   attr(l_out, "season") <- season
   attr(l_out, "week") <- week
 
