@@ -93,7 +93,6 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   pos_scrape = nfl_pos_idx[pos]
 
   base_link = paste0("https://fantasy.nfl.com/research/projections?position=", pos_scrape[1],
-                     "&count=", n_records,
                      "&sort=projectedPts&statCategory=projectedStats&statSeason=", season,
                      "&statType=seasonProjectedStats")
 

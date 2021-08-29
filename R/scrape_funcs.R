@@ -120,9 +120,8 @@ scrape_data <- function(
     }
   }
 
-  l_out
-
   l_out <- l_out[setdiff(pos, c("IDP", "CB", "S", "DT", "DE"))]
+  l_out = Filter(Negate(is.null), l_out)
   attr(l_out, "season") <- season
   attr(l_out, "week") <- week
 
