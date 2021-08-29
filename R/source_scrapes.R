@@ -201,7 +201,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
                     season == 2017 ~ 586)
 
   segment <- case_when(week == 0 ~ year,
-                       week > 0 ~ year + week)
+                       week > 0 ~ year + week + 8)
 
 
   l_pos <- lapply(pos, function(pos){
@@ -227,14 +227,15 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
 
 
     # Rename duplicated column names
-    data <- if (pos %in% "RB") {
+    data <- if (pos %in% "RB" & week == 0) {
 
       # suppress the "new names" message generated from .name_repair = "unique"
       suppressMessages(
         scrape %>%
           html_nodes(xpath = '//*[@id="toolData"]') %>%
           html_table() %>%
-          `[[`(1) %>%
+          # `[[`(1) %>%
+          pluck(1L) %>%
           as_tibble(.name_repair = "unique") %>%
           filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
           rename(">= 50 yd rush" = ">= 50 yd...13",
@@ -244,12 +245,29 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
           select(-`#`)
       )
 
-    } else if (pos %in% c("WR", "TE")) {
+    } else if (pos %in% "RB" & week > 0) {
+
+      # suppress the "new names" message generated from .name_repair = "unique"
+      suppressMessages(
+       scrape %>%
+         html_nodes(xpath = '//*[@id="toolData"]') %>%
+         html_table() %>%
+         pluck(1L) %>%
+         as_tibble(.name_repair = "unique") %>%
+         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
+         rename("opp" = "Opp...4",
+                 ">= 50 yd rec" = ">= 50 yd",
+                 ">= 100 yd rec" = ">= 100 yd",
+                 "opp_num" = "Opp...23") %>%
+          select(-`#`)
+      )
+
+    } else if (pos %in% c("WR", "TE") & week == 0) {
 
       scrape %>%
         html_nodes(xpath = '//*[@id="toolData"]') %>%
         html_table() %>%
-        `[[`(1) %>%
+        pluck(1L) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename(">= 50 yd rec" = ">= 50 yd",
                ">= 100 yd rec" = ">= 100 yd",
@@ -257,12 +275,27 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
                ">= 200 yd rec" = ">= 200 yd") %>%
         select(-`#`)
 
+    } else if (pos %in% c("WR", "TE") & week > 0) {
+
+      # suppress the "new names" message generated from .name_repair = "unique"
+      suppressMessages(
+        scrape %>%
+          html_nodes(xpath = '//*[@id="toolData"]') %>%
+          html_table() %>%
+          pluck(1L) %>%
+          as_tibble(.name_repair = "unique") %>%
+          filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
+          rename("opp" = "Opp...4",
+                 "opp_num" = "Opp...20") %>%
+          select(-`#`)
+      )
+
     } else if (pos %in% "DST") {
 
       scrape %>%
         html_nodes(xpath = '//*[@id="toolData"]') %>%
         html_table() %>%
-        `[[`(1) %>%
+        pluck(1L) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename("dst_int" = "Int",
                "dst_fum_rec" = "Fum") %>%
@@ -273,7 +306,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
       scrape %>%
         html_nodes(xpath = '//*[@id="toolData"]') %>%
         html_table() %>%
-        `[[`(1)  %>%
+        pluck(1L) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         rename("idp_sack" = "Scks",
                "idp_int" = "Int",
@@ -281,14 +314,30 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
                "idp_tds" = "DefTD") %>%
         select(-`#`)
 
+    } else if (pos %in% "QB" & week > 0) {
+
+      # suppress the "new names" message generated from .name_repair = "unique"
+      suppressMessages(
+        scrape %>%
+          html_nodes(xpath = '//*[@id="toolData"]') %>%
+          html_table() %>%
+          pluck(1L) %>%
+          as_tibble(.name_repair = "unique") %>%
+          filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
+          rename("opp" = "Opp...4",
+                 "opp_num" = "Opp...21") %>%
+          select(-`#`)
+      )
+
     } else {
 
       scrape %>%
         html_nodes(xpath = '//*[@id="toolData"]') %>%
         html_table() %>%
-        `[[`(1) %>%
+        pluck(1L) %>%
         filter(!str_detect(`#`, paste(c("Tier", "#", "Points Awarded"), collapse = '|'))) %>%
         select(-`#`)
+
     }
 
     # Player ID's
