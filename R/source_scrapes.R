@@ -6,7 +6,7 @@ library(tidyr)
 
 # Note: experimental. Not to be used yet.
 scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
-                      draft = TRUE, weekly = TRUE) {
+                      draft = TRUE, weekly = FALSE) { # no weekly data as of 2021-08-30
 
   if(week == 0) {
     scrape_week = "season"
@@ -361,7 +361,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
     names(pos_df) = fantasysharks_columns[names(pos_df)]
 
     pos_df[-1] = type.convert(pos_df[-1], as.is = TRUE)
-    pos_df
+    pos_df[pos_df$site_pts > 0, ]
 
   })
 
@@ -374,14 +374,21 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
 
 }
 
-scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", "DB"), season = 2021, week = 0,
+scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", "DB", "DL"), season = 2021, week = 0,
                               draft = TRUE, weekly = TRUE) {
 
   base_link <- paste0("https://www.numberfire.com/nfl/fantasy/fantasy-football-projections")
   site_session <- session(base_link)
 
+  # That IDP scrapes grabs everyone, this only hits website once grabs the positions later
+  if(any(pos %in% c("LB", "DB", "DL"))) {
+    site_pos <- c(setdiff(pos, c("LB", "DB", "DL")), "LB")
+  } else {
+    site_pos <- pos
+  }
 
-  l_pos <- lapply(pos, function(pos){
+
+  l_pos <- lapply(site_pos, function(pos){
 
     position <- case_when(pos %in% "QB" ~ "qb",
                           pos %in% "RB" ~ "rb",
@@ -389,7 +396,7 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
                           pos %in% "TE" ~ "te",
                           pos %in% "K" ~ "k",
                           pos %in% "DST" ~ "d",
-                          pos %in% c("LB", "DB") ~ "idp")
+                          pos %in% "LB" ~ "idp")
 
     scrape_link <- case_when(week == 0 ~ paste0("https://www.numberfire.com/nfl/fantasy/remaining-projections/", position),
                              week > 0 ~ paste0("https://www.numberfire.com/nfl/fantasy/fantasy-football-projections/", position))
@@ -470,7 +477,7 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
     # New column names
     # subset by the columns in pos_df
     # replicated names between DST and IDP positions
-    if (pos %in% c("DB", "LB")) {
+    if (pos %in% c("DB", "LB", "DL")) {
       names(pos_df) <- numberfire_idp_columns[names(pos_df)]
     } else {
       names(pos_df) <- numberfire_columns[names(pos_df)]
@@ -478,7 +485,7 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
 
     # Changing types before merging
-    id_idx = !names(pos_df) %in% "id"
+    id_idx <- !names(pos_df) %in% "id"
     pos_df[id_idx] <- type.convert(pos_df[id_idx], as.is = TRUE)
 
     if("site_pts" %in% names(pos_df)) {
@@ -489,11 +496,27 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
   })
 
-  # list elements named by position
-  names(l_pos) = pos
+  # Fixing idp scrapes (all come in with 'idp')
+  if(any(pos %in% c("LB", "DB", "DL"))) {
+    idp_idx <- match("LB", site_pos)
+    df_idp <- l_pos[[idp_idx]]
+    l_pos[[idp_idx]] <- NULL
+    l_idp <- split(df_idp, df_idp$pos)
+    l_idp <- l_idp[intersect(pos, names(l_idp))]
+
+    names(l_pos) <- setdiff(pos, c("LB", "DB", "DL"))
+    l_pos <- c(l_pos, l_idp)
+
+  } else {
+    # list elements named by position
+    names(l_pos) = pos
+
+  }
+
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
   l_pos
+
 
 }
 

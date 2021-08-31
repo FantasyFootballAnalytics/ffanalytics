@@ -229,7 +229,75 @@ final_rt = bind_rows(rt_l) %>%
             player = name,
             rts_new_id = player_id)
 
-####  ----
+#### Fleaflicker ----
+
+html_page = read_html("https://www.fleaflicker.com/nfl/cheat-sheet")
+
+flfl_name_id = html_page %>%
+  html_elements("table > tr > td:nth-child(2) > div > div > a") %>%
+  html_attr("href") %>%
+  basename() %>%
+  sub("(.*)\\-([0-9]+)$", "\\1_\\2", .)
+
+flfl_pos = html_page %>%
+  html_elements("table > tr > td:nth-child(1)") %>%
+  html_text2() %>%
+  grep("^[A-Z0-9/]+$", ., value = TRUE) %>%
+  gsub("\\d+|/", "", .)
+
+final_flfl = data.frame(flfl_name_id = flfl_name_id,
+                        pos = flfl_pos)
+
+final_flfl = final_flfl %>%
+  extract(flfl_name_id, c("first_name", "last_name", "fleaflicker_id"), "(.*?)\\-(.*?)_(.*)")
+
+#### Yahoo ----
+
+html_session = session("https://football.fantasysports.yahoo.com/f1/draftanalysis?tab=AD&pos=ALL&sort=DA_AP")
+
+l_yahoo = list()
+i = 0
+
+while(length(l_yahoo) < 12) {
+
+  next_page = paste0(html_session$url, "&count=", length(l_yahoo) * 50)
+
+  html_page = html_session %>%
+    session_jump_to(next_page) %>%
+    read_html()
+
+  i = i + 1
+
+  yahoo_id = html_page %>%
+    html_elements("table > tbody > tr > td > div > div > span > a") %>%
+    html_attr("data-ys-playerid")
+
+  yahoo_name_pos = html_page %>%
+    html_elements("table > tbody > tr > td > div > div > div") %>%
+    html_text2() %>%
+    grep(":", ., fixed = TRUE, invert = TRUE, value = TRUE) %>%
+    data.table::tstrsplit("\\s+[A-Za-z]+\\s+\\-\\s+")
+
+  temp_df = data.frame(stats_id = yahoo_id)
+  temp_df[c("player", "pos")] = yahoo_name_pos
+
+  l_yahoo[[i]] = temp_df
+
+  print(paste0("Read ", i, "/12 pages"))
+  Sys.sleep(5)
+  print("Sleeping for 5 seconds")
+
+}
+
+final_yahoo = bind_rows(l_yahoo)
+
+
+
+
+
+
+
+
 
 
 
