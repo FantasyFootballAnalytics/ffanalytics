@@ -33,6 +33,17 @@ scrape_data <- function(
     week <- 0
   }
 
+  # Temp fix for fantasy pros until we make scrape self-contained
+  projection_sources$FantasyPros$get_path = function(season, week, position) {
+    if(week %in% 1:17) {
+      paste0(tolower(position), ".php?week=", week)
+    } else {
+      paste0(tolower(position), ".php")
+    }
+  }
+
+
+
   src <- match.arg(src, several.ok = TRUE,
                    c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
                      "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
@@ -95,10 +106,12 @@ scrape_data <- function(
     fun_formals = formals(scrape_fun)
 
     if(week == 0 && !fun_formals$draft) {
-      stop(paste0("Draft data not available for ", self_src))
+      message(paste0("Draft data not available for ", self_src))
+      return(NULL)
     }
     if(week > 0 && !fun_formals$weekly) {
-      stop(paste0("Weekly data not available for ", self_src))
+      message(paste0("Weekly data not available for ", self_src))
+      return(NULL)
     }
 
     scrape = scrape_fun(pos = intersect(pos, as.character(fun_formals$pos)[-1]),
