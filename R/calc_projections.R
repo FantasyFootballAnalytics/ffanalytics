@@ -5,9 +5,13 @@
 #' @param w The weights associated with each observation.
 #' @param na.rm If \code{TRUE}, then NA values will be removed.
 weighted.sd <- function(x, w, na.rm = FALSE){
-  len_x = length(x)
 
-  if(len_x == 1 || len_x != length(w) || all(is.na(w))) {
+  w_zero = !(w <= 0 | is.na(w))
+  x_non_na = !is.na(x)
+  x = x[w_zero & x_non_na]
+  w = w[w_zero & x_non_na]
+
+  if (length(x) <= 1L) {
     return(NA)
   }
 
