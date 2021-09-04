@@ -899,7 +899,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
 
       }
 
-      df[intersect(c("id", "player"), names(df))] %>%
+      df["id"] %>%
         filter(!duplicated(id)) %>%
         left_join(bind_rows(l_avg_types, .id = "avg_type"), "id")
 
