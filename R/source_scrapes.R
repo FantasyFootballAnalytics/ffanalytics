@@ -600,3 +600,201 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
 }
 
 
+
+
+
+# FleaFlicker
+scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
+                               season = 2021, week = 1, draft = FALSE, weekly = TRUE) {
+
+  # IDP positions
+  if("DL" %in% pos) {
+    pos <- c(pos, "DE", "DT")
+    pos <- pos[! pos %in% "DL"]
+  }
+  if ("DB" %in% pos) {
+    pos <- c(pos, "CB", "S")
+    pos <- pos[! pos %in% "DB"]
+  }
+
+
+  base_link <- paste0("https://www.fleaflicker.com/nfl/leaders")
+  site_session <- session(base_link)
+
+
+  l_pos <- lapply(pos, function(pos){
+
+    position <- case_when(pos %in% "QB" ~ 4,
+                          pos %in% "RB" ~ 1,
+                          pos %in% "WR" ~ 2,
+                          pos %in% "TE" ~ 8,
+                          pos %in% "K" ~ 16,
+                          pos %in% "DST" ~ 256,
+                          pos %in% "DE" ~ 2048,
+                          # 16384,
+                          pos %in% "DT" ~ 64,
+                          # 4096,
+                          pos %in% "LB" ~ 128,
+                          pos %in% "CB" ~ 512,
+                          pos %in% "S" ~ 1024)
+
+
+    # Setting up hitting each page
+    i = 1L
+    offset = 0L
+    out_dfs = list()
+
+
+    scrape_link <- paste0("https://www.fleaflicker.com/nfl/leaders?week=", week, "&statType=7&sortMode=7&position=",
+                          position, "&tableOffset=", offset)
+
+    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n ")
+
+
+    # The number of pages to scrape by position
+    pos_pages <- case_when(pos %in% c("K", "DST") ~ 2L,
+                           pos %in% c("QB") ~ 3L,
+                           pos %in% c("DT") ~ 5L,
+                           pos %in% c("TE") ~ 6L,
+                           pos %in% c("DE", "LB", "S") ~ 7L,
+                           pos %in% c("RB") ~ 8L,
+                           pos %in% c("CB") ~ 9L,
+                           pos %in% c("WR") ~ 12L)
+
+    # Going through pages of fleaflicker.com until a player has projected fantasy points of 0 or less
+    # while(i == 0L || min(temp_df$site_pts > 1)) {
+    while (i <= pos_pages) {
+
+
+
+      page_link = paste0("https://www.fleaflicker.com/nfl/leaders?week=", week, "&statType=7&sortMode=7&position=",
+                         position, "&tableOffset=", offset)
+
+
+      Sys.sleep(1L)
+
+
+      # 20 rows of player data by position
+      html_page <- site_session %>%
+        session_jump_to(page_link) %>%
+        read_html()
+
+      # FleaFlicker player ID's
+      site_id <- html_page %>%
+        html_elements(css = "a.player-text") %>%
+        html_attr("href") %>%
+        basename() %>%
+        as_tibble() %>%
+        rename(fleaflicker_id = value)
+
+      # scrape contains list of player names and a list of data
+      scrape <- html_page %>%
+        html_elements(css = '#body-center-main table') %>%
+        html_table()
+
+
+      # Column names
+      col_names <- paste(names(scrape[[1]]), scrape[[1]][1, ])
+
+      # col_names = fleaflicker_columns[col_names]
+
+      names(scrape[[1]]) <- col_names
+
+
+      # Creating and cleaning table
+      ## Suppress "New names:" message from .name_repair = "unique"
+      suppressMessages(
+        if (pos %in% "DST") {
+          temp_df <- scrape %>%
+            pluck(1L) %>%
+            as_tibble(.name_repair = "unique") %>%
+            select(-contains("...")) %>%
+            slice(2L:(n() - 1)) %>%
+            # separate(`Player Name`, into = c("first_name", "last_name", "pos", "tm", "bye"), sep = "\\s") %>%
+            mutate(pos = "D/ST",
+                   tm = str_extract(`Player Name`, "(?<=D/ST )\\w{2,3}"),
+                   bye = str_extract(`Player Name`, "(\\d+)"),
+                   `Player Name` = str_extract(`Player Name`, ".+(?= D/ST)")) %>%
+            select(`Player Name`, pos, tm, bye, everything()) %>%
+            mutate(data_src = "FleaFlicker") %>%
+            # add player id
+            bind_cols(site_id) %>%
+            # rename for now so while loop works
+            rename(site_pts = `Fantasy FPts`)
+        } else {
+          temp_df <- scrape %>%
+            pluck(1L) %>%
+            as_tibble(.name_repair = "unique") %>%
+            select(-contains("...")) %>%
+            slice(2L:(n() - 1)) %>%
+            # slice(if(pos %in% "DT") -1L else 2L:(n() - 1)) %>%
+            # Remove "Q" at beginning of Player Name if followed by another uppercase letter
+            mutate(`Player Name` = str_remove(`Player Name`, "^Q(?=[:upper:])")) %>%
+            separate(`Player Name`, into = c("first_name", "last_name", "pos_temp", "tm", "bye"), sep = "\\s") %>%
+            unite("player", first_name:last_name, sep = " ") %>%
+            mutate(bye = str_extract(bye, pattern = "\\d+")) %>%
+            mutate(data_src = "FleaFlicker") %>%
+            # add player id
+            bind_cols(site_id) %>%
+            # rename for now so while loop works
+            rename(site_pts = `Fantasy FPts`) %>%
+            mutate(pos_temp = pos) %>%
+            rename(pos = pos_temp)
+        }
+      )
+
+      # Adding it to a list of DF's from the pages
+      out_dfs[[i]] = temp_df
+
+
+      # Add 1 to i for page number counter
+      # Add 20 to offset for next page's URL
+      i = i + 1L
+      offset = offset + 20L
+
+    }
+
+
+    # combine df's from each page
+    out = bind_rows(out_dfs)
+    out
+
+
+  })
+
+
+
+  # list elements named by position
+  names(l_pos) = pos
+  attr(l_pos, "season") = season
+  attr(l_pos, "week") = week
+
+  ## Combine defensive dataframes
+  # combine DE and DT into DL
+  if (exists("DE", where = l_pos) && exists("DT", where = l_pos)) {
+    l_pos$DL <- bind_rows(l_pos$DE, l_pos$DT) %>%
+      mutate(pos = "DL") %>%
+      distinct(fleaflicker_id, .keep_all = TRUE)
+
+    l_pos$DE <- NULL
+    l_pos$DT <- NULL
+  }
+
+  # combine CB and S into DB
+  if (exists("CB", where = l_pos) && exists("S", where = l_pos)) {
+    l_pos$DB <- bind_rows(l_pos$CB, l_pos$S) %>%
+      mutate(pos = "DB") %>%
+      distinct(fleaflicker_id, .keep_all = TRUE)
+
+    l_pos$CB <- NULL
+    l_pos$S <- NULL
+  }
+
+
+  l_pos
+
+}
+
+
+
+
