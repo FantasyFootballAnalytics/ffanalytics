@@ -179,6 +179,7 @@ repeat{
     html_attr("href")
   if(is.na(next_link))
     break()
+  Sys.sleep(1)
   next_link <- str_replace(next_link, "statSeason=2020", "statSeason=2021")
   next_link <- str_replace(next_link, "statWeek=17", "statWeek=1")
   nfl_session <- nfl_session %>% jump_to(paste0(nfl_url, next_link))
@@ -202,6 +203,12 @@ nf_ids = html_page %>%
 final_nf = data.frame(numberfire_id = nf_ids,
                       player = sub("(.+?)\\s+\\(.*", "\\1", nf_player_pos),
                       pos = sub(".+?\\s+\\(([A-Z]+),.+", "\\1", nf_player_pos))
+
+final_nf = final_nf %>%
+  transmute(numberfire_id,
+            merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
+            merge_id = paste0(merge_id, "_", tolower(pos)))
+
 
 rm(list = ls(pattern = "^nf_|html_page"))
 
@@ -249,7 +256,11 @@ final_flfl = data.frame(flfl_name_id = flfl_name_id,
                         pos = flfl_pos)
 
 final_flfl = final_flfl %>%
-  extract(flfl_name_id, c("first_name", "last_name", "fleaflicker_id"), "(.*?)\\-(.*?)_(.*)")
+  extract(flfl_name_id, c("first_name", "last_name", "fleaflicker_id"), "(.*?)\\-(.*?)_(.*)") %>%
+  transmute(merge_id = paste0(first_name, last_name),
+            merge_id = gsub("[[:punct:]]", "", tolower(merge_id)),
+            merge_id = paste0(gsub("\\s+", "", merge_id), "_", tolower(pos)),
+            merge_id, fleaflicker_id)
 
 #### Yahoo ----
 
@@ -284,19 +295,133 @@ while(length(l_yahoo) < 12) {
   l_yahoo[[i]] = temp_df
 
   print(paste0("Read ", i, "/12 pages"))
-  Sys.sleep(5)
-  print("Sleeping for 5 seconds")
+  print("Sleeping for 2 seconds")
+  Sys.sleep(2)
 
 }
 
 final_yahoo = bind_rows(l_yahoo)
 
+final_yahoo = final_yahoo %>%
+  transmute(merge_id = gsub("[[:punct:]]", "", tolower(player)),
+            merge_id = paste0(gsub("\\s+", "", merge_id), "_", tolower(pos)),
+            merge_id, stats_id)
 
 
 
+# Cleaning up above scrapes
+
+rm(list = grep("^(?!final).+", ls(), value = TRUE, perl = TRUE))
+gc()
 
 
 
+# updating player_ids table by name & pos
+
+curr_ids = ffanalytics:::player_ids
+
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2021/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+  httr::content() %>%
+  `[[`("players") %>%
+  `[[`("player") %>%
+  purrr::map(tibble::as_tibble) %>%
+  dplyr::bind_rows() %>%
+  mutate(nfl_id = basename(nfl_id)) %>% # prob unnecessary in future
+  tidyr::extract(name, c("last_name", "first_name"), "(.+),\\s(.+)") %>%
+  mutate(across(everything(), ~gsub("(?![.-])[[:punct:]]", "", ., perl = TRUE))) %>%
+  dplyr::mutate(name = paste0(first_name," ",last_name))
+
+updated_ids = my_fl_ids %>%
+  select(first_name, last_name, position, id, team, ends_with("_id")) %>%
+  filter(if_any(ends_with("_id"), ~ . != 0 & !is.na(.))) %>%
+  mutate(merge_id = paste0(first_name, last_name),
+         merge_id = gsub("[[:punct:]]|\\s+", "", tolower(merge_id)),
+         merge_id = paste0(merge_id, "_", tolower(position)))
+
+new_ids = mget(ls(pattern = "^final"))
+new_ids = Reduce(function(x, y) full_join(x, y, "merge_id"), new_ids) %>%
+  filter(!grepl("_(dst|def)$", merge_id)) %>%
+  distinct()
+
+# Updating the common columns in the myfantasyleague data
+# common_cols = setdiff(intersect(names(new_ids), grep("_id$", names(updated_ids), value = TRUE)), "merge_id")
+curr_cols = setdiff(grep("_id$", names(curr_ids), value = TRUE), "id")
+
+sum(!is.na(curr_ids$stats_id))
+sum(!is.na(curr_ids$fleaflicker_id))
+sum(!is.na(curr_ids$numfire_id))
+
+for(j in curr_cols) {
+
+  if(j %in% names(updated_ids) && j %in% names(new_ids)) {
+
+    df_updated = updated_ids[c("id", "merge_id", j)]
+    updated_name = paste0(j, "_updated")
+    names(df_updated)[3] = updated_name
+
+    df_new = new_ids[c("merge_id", j)]
+    new_name = paste0(j, "_new")
+    names(df_new)[2] = new_name
+
+    curr_ids = curr_ids %>%
+      left_join(df_updated, "id") %>%
+      left_join(df_new, "merge_id")
+
+    curr_ids[[j]] = coalesce(curr_ids[[j]], curr_ids[[updated_name]], curr_ids[[new_name]])
+    curr_ids[c(updated_name, new_name, "merge_id")] = NULL
+
+  } else if(j %in% names(updated_ids)) {
+
+    df_updated = updated_ids[c("id", j)]
+    updated_name = paste0(j, "_updated")
+    names(df_updated)[2] = updated_name
+
+    curr_ids = curr_ids %>%
+      left_join(df_updated, "id")
+
+    curr_ids[[j]] = coalesce(curr_ids[[j]], curr_ids[[updated_name]])
+    curr_ids[[updated_name]] = NULL
+
+  } else if(j %in% names(new_ids)) {
+
+    df_updated = updated_ids[c("id", "merge_id")]
+
+    df_new = new_ids[c("merge_id", j)]
+    new_name = paste0(j, "_new")
+    names(df_new)[2] = new_name
+
+    curr_ids = curr_ids %>%
+      left_join(df_updated, "id") %>%
+      left_join(df_new, "merge_id")
+
+
+    curr_ids[[j]] = coalesce(curr_ids[[j]], curr_ids[[new_name]])
+    curr_ids[c(new_name, "merge_id")] = NULL
+
+  }
+}
+
+sum(!is.na(curr_ids$stats_id))
+sum(!is.na(curr_ids$fleaflicker_id))
+sum(!is.na(curr_ids$numfire_id))
+
+# Run necessary QA. Looks at the data. Etc..
+
+dim(ffanalytics:::player_ids)
+dim(curr_ids)
+
+colSums(!is.na(ffanalytics:::player_ids))
+colSums(!is.na(curr_ids))
+
+# New - old
+colSums(!is.na(curr_ids)) - colSums(!is.na(ffanalytics:::player_ids))
+
+
+saveRDS(curr_ids, "/Users/Andrew/Desktop/player_ids.rds")
+
+# After running necessary QA, restart R, run the below lines
+player_ids = readRDS("/Users/Andrew/Desktop/player_ids.rds")
+usethis::use_data(player_ids, overwrite = TRUE, internal = TRUE)
 
 
 
