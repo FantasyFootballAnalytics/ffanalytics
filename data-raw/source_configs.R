@@ -169,7 +169,14 @@ html_sites <- list(
   #### FantasyPros ####
   FantasyPros = list(
     base = "https://www.fantasypros.com/nfl/projections/",
-    get_path = function(season, week, position)paste0(tolower(position), ".php"),
+    get_path = function(season, week, position) {
+      if(week %in% 1:17) {
+        paste0(tolower(position), ".php?week=", week)
+      } else {
+        paste0(tolower(position), ".php")
+      }
+
+    },
     get_query = function(season, week, pos_id, ...){
       if(week == 0)
         return(list(week = "draft"))

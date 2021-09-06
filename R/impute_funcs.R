@@ -391,7 +391,12 @@ derive_from_rate = function(need, ref) {
   if(all(idx)) {
     return(NA)
   }
-  replace(need, idx, (sum(need / ref, na.rm = TRUE) / sum(!idx)) * ref[idx])
+  if(any(ref[!idx] == 0, na.rm = TRUE)) {
+    derive_from_mean(need)
+  } else {
+    replace(need, idx, (sum(need / ref, na.rm = TRUE) / sum(!idx)) * ref[idx])
+  }
+
 }
 derive_from_mean = function(need) {
   idx = is.na(need)

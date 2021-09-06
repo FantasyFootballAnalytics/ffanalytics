@@ -4,11 +4,11 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
                                     "DL", "LB", "DB"),
                        rank_type = c("Std", "PPR", "Half")) {
 
-  if (rank_period == "weekly" & position == "Overall") {
+  if (rank_period == "weekly" & any(position == "Overall")) {
     stop("Overall weekly ranks are not provided", call. = FALSE)
   }
 
-  if (rank_period == "ros" & position == "IDP") {
+  if (rank_period == "ros" & any(position == "IDP")){
     stop("Combined IDP ROS ranks are not provided", call. = FALSE)
   }
 
