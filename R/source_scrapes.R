@@ -482,9 +482,12 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
     } else {
       names(pos_df) <- numberfire_columns[names(pos_df)]
     }
+    names(pos_df)[!names(pos_df) %in% names(numberfire_columns)]
 
 
     # Changing types before merging
+    pos_df[] = lapply(pos_df, function(x) gsub("N/A|\\$", "", x))
+
     id_idx <- !names(pos_df) %in% "id"
     pos_df[id_idx] <- type.convert(pos_df[id_idx], as.is = TRUE)
 
