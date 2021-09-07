@@ -153,7 +153,10 @@ fantasysharks_columns = c(
 
 numberfire_idp_columns = c(id = "id",  numfire_id = "src_id", Player = "player", position = "pos", team = "team", data_src = "data_src",
                        `Defense Tackles` = "idp_solo", `Defense Sacks` = "idp_sack", `Defense INTs` = "idp_int",
-                       `Defense TDs` = "idp_tds", `Defense Passes Defended` = "idp_pd", `Defense Fum Rec` = "idp_fum_rec")
+                       `Defense TDs` = "idp_tds", `Defense Passes Defended` = "idp_pd", `Defense Fum Rec` = "idp_fum_rec",
+                       `Fandual FP` = "fandual_site_points", `FanDuel Salary` = "fanduel_salary", `FanDuel Value` = "fanduel_value",
+                       `DraftKings FP` = "draftkings_site_points", `DraftKings Salary` = "draftkings_salary", `DraftKings Value` = "draftkings_value",
+                       `Yahoo FP` = "yahoo_site_points", `Yahoo Salary` = "yahoo_salary", `Yahoo Value` = "yahoo_value")
 
 numberfire_columns = c(id = "id", numfire_id = "src_id", Player = "player", position = "pos", team = "team", data_src = "data_src",
                        `numberFire FP` = "site_pts", Lower = "site_ci_low", Upper = "site_ci_high", `Ranks Ovr.` = "ranks_ovr", `Ranks Pos.` = "ranks_pos",
@@ -165,7 +168,11 @@ numberfire_columns = c(id = "id", numfire_id = "src_id", Player = "player", posi
                        `FG Made By Distance 30-39` = "fg_3039", `FG Made By Distance 40-49` = "fg_4049",
                        `FG Made By Distance 50+` = "fg_50", `Defense Points Allowed` = "dst_pts_allowed",
                        `Defense Yards Allowed` = "dst_yds_allowed", `Defense Sacks` = "dst_sacks",
-                       `Defense INTs` = "dst_int", `Defense Fumbles` = "dst_fum_rec", `Defense TDs` = "dst_td")
+                       `Defense INTs` = "dst_int", `Defense Fumbles` = "dst_fum_rec", `Defense TDs` = "dst_td",
+                       `Opp Team` = "opp_team", `Opp Rank` = "opp_team_rank", `Fandual FP` = "fandual_site_points",
+                       `FanDuel Salary` = "fanduel_salary", `FanDuel Value` = "fanduel_value",
+                       `DraftKings FP` = "draftkings_site_points", `DraftKings Salary` = "draftkings_salary", `DraftKings Value` = "draftkings_value",
+                       `Yahoo FP` = "yahoo_site_points", `Yahoo Salary` = "yahoo_salary", `Yahoo Value` = "yahoo_value")
 
 walterfootball_columns = c(id = "id", Player = "player", Team = "tm", Bye = "bye", position = "pos", data_src = "data_src",
                            `PASS YDS` = "pass_yds", `PASS TD` = "pass_tds", INT = "pass_int",

@@ -9,12 +9,12 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
                       draft = TRUE, weekly = FALSE) { # no weekly data as of 2021-08-30
 
   if(week == 0) {
-    scrape_week = "season"
+    scrape_week = "restofseason"
   } else {
     scrape_week = week
   }
 
-  base_link = paste0("https://www.cbssports.com/fantasy/football/stats/QB/2021/season/projections/nonppr/")
+  base_link = paste0("https://www.cbssports.com/fantasy/football/")
   site_session = session(base_link)
 
   l_pos = lapply(pos, function(pos) {
@@ -482,9 +482,12 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
     } else {
       names(pos_df) <- numberfire_columns[names(pos_df)]
     }
+    names(pos_df)[!names(pos_df) %in% names(numberfire_columns)]
 
 
     # Changing types before merging
+    pos_df[] = lapply(pos_df, function(x) gsub("N/A|\\$", "", x))
+
     id_idx <- !names(pos_df) %in% "id"
     pos_df[id_idx] <- type.convert(pos_df[id_idx], as.is = TRUE)
 
