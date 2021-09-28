@@ -179,11 +179,19 @@ repeat{
     html_attr("href")
   if(is.na(next_link))
     break()
-  Sys.sleep(1)
+  Sys.sleep(3)
   next_link <- str_replace(next_link, "statSeason=2020", "statSeason=2021")
   next_link <- str_replace(next_link, "statWeek=17", "statWeek=1")
   nfl_session <- nfl_session %>% jump_to(paste0(nfl_url, next_link))
 }
+
+final_nfl = nfl_table %>%
+  mutate(player = replace(player, player == "Eli Mitchell", "Elijah Mitchell")) %>%
+  transmute(nfl_id,
+            merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
+            merge_id = paste0(merge_id, "_", tolower(pos)))
+
+rm(list = c("nfl_session", "nfl_table"))
 
 
 #### NUmber fire #### ----
@@ -200,12 +208,13 @@ nf_ids = html_page %>%
   html_attr("href") %>%
   basename()
 
-final_nf = data.frame(numberfire_id = nf_ids,
+final_nf = data.frame(numfire_id = nf_ids,
                       player = sub("(.+?)\\s+\\(.*", "\\1", nf_player_pos),
                       pos = sub(".+?\\s+\\(([A-Z]+),.+", "\\1", nf_player_pos))
 
+
 final_nf = final_nf %>%
-  transmute(numberfire_id,
+  transmute(numfire_id,
             merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
             merge_id = paste0(merge_id, "_", tolower(pos)))
 
@@ -347,9 +356,11 @@ new_ids = Reduce(function(x, y) full_join(x, y, "merge_id"), new_ids) %>%
 # common_cols = setdiff(intersect(names(new_ids), grep("_id$", names(updated_ids), value = TRUE)), "merge_id")
 curr_cols = setdiff(grep("_id$", names(curr_ids), value = TRUE), "id")
 
-sum(!is.na(curr_ids$stats_id))
-sum(!is.na(curr_ids$fleaflicker_id))
+sum(!is.na(curr_ids$nfl_id))
 sum(!is.na(curr_ids$numfire_id))
+
+
+
 
 for(j in curr_cols) {
 
@@ -401,8 +412,7 @@ for(j in curr_cols) {
   }
 }
 
-sum(!is.na(curr_ids$stats_id))
-sum(!is.na(curr_ids$fleaflicker_id))
+sum(!is.na(curr_ids$nfl_id))
 sum(!is.na(curr_ids$numfire_id))
 
 # Run necessary QA. Looks at the data. Etc..
