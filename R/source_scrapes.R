@@ -6,7 +6,8 @@ library(tidyr)
 
 # Note: experimental. Not to be used yet.
 scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
-                      draft = TRUE, weekly = FALSE) { # no weekly data as of 2021-08-30
+                      draft = TRUE, weekly = TRUE) {
+
 
   if(week %in% c(0, "ros")) {
     scrape_week = "restofseason"
