@@ -10,6 +10,10 @@ names(schedule_data) <- paste0("week_", seq_len(length(schedule_data)))
 
 schedule_data <- purrr::map(schedule_data, ~ `names<-`(.x$matchup, paste0("match_", seq_along(.x$matchup))))
 
+schedule_data$week_22$match_1$kickoff = schedule_data$week_22$match_1
+schedule_data$week_22$match_2 = NULL
+schedule_data$week_22$match_3 = NULL
+
 # The nesting structure does not work well with the superbowl, manually added below as "last" game
 first_last_games <- purrr::modify_depth(schedule_data, 2, `[[`, "kickoff") %>%
   purrr::map(unlist, use.name = FALSE) %>%
