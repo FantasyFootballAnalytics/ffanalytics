@@ -151,12 +151,14 @@ fantasysharks_columns = c(
   Pts = "site_pts", pos = "pos", data_src = "data_src"
 )
 
+# Numberfire columns ----
 numberfire_idp_columns = c(id = "id",  numfire_id = "src_id", Player = "player", position = "pos", team = "team", data_src = "data_src",
                        `Defense Tackles` = "idp_solo", `Defense Sacks` = "idp_sack", `Defense INTs` = "idp_int",
                        `Defense TDs` = "idp_tds", `Defense Passes Defended` = "idp_pd", `Defense Fum Rec` = "idp_fum_rec",
                        `Fandual FP` = "fandual_site_points", `FanDuel Salary` = "fanduel_salary", `FanDuel Value` = "fanduel_value",
                        `DraftKings FP` = "draftkings_site_points", `DraftKings Salary` = "draftkings_salary", `DraftKings Value` = "draftkings_value",
-                       `Yahoo FP` = "yahoo_site_points", `Yahoo Salary` = "yahoo_salary", `Yahoo Value` = "yahoo_value")
+                       `Yahoo FP` = "yahoo_site_points", `Yahoo Salary` = "yahoo_salary", `Yahoo Value` = "yahoo_value",
+                       `Opp Team` = "opp", `Opp Rank` = "opp_rank")
 
 numberfire_columns = c(id = "id", numfire_id = "src_id", Player = "player", position = "pos", team = "team", data_src = "data_src",
                        `numberFire FP` = "site_pts", Lower = "site_ci_low", Upper = "site_ci_high", `Ranks Ovr.` = "ranks_ovr", `Ranks Pos.` = "ranks_pos",
@@ -169,16 +171,103 @@ numberfire_columns = c(id = "id", numfire_id = "src_id", Player = "player", posi
                        `FG Made By Distance 50+` = "fg_50", `Defense Points Allowed` = "dst_pts_allowed",
                        `Defense Yards Allowed` = "dst_yds_allowed", `Defense Sacks` = "dst_sacks",
                        `Defense INTs` = "dst_int", `Defense Fumbles` = "dst_fum_rec", `Defense TDs` = "dst_td",
-                       `Opp Team` = "opp_team", `Opp Rank` = "opp_team_rank", `Fandual FP` = "fandual_site_points",
+                       `Opp Team` = "opp", `Opp Rank` = "opp_rank", `Fandual FP` = "fandual_site_points",
                        `FanDuel Salary` = "fanduel_salary", `FanDuel Value` = "fanduel_value",
                        `DraftKings FP` = "draftkings_site_points", `DraftKings Salary` = "draftkings_salary", `DraftKings Value` = "draftkings_value",
                        `Yahoo FP` = "yahoo_site_points", `Yahoo Salary` = "yahoo_salary", `Yahoo Value` = "yahoo_value")
 
+# Walkertfootball columns ----
 walterfootball_columns = c(id = "id", Player = "player", Team = "tm", Bye = "bye", position = "pos", data_src = "data_src",
                            `PASS YDS` = "pass_yds", `PASS TD` = "pass_tds", INT = "pass_int",
                            `RUSH YDS` = "rush_yds", CATCH = "rec", `REC YDS` = "rec_yds", `REG TD` = "reg_tds",
                            `FG 1-39` = "fg_0039", `FG 40-49` = "fg_4049", `FG 50+` = "fg_50", XP = "xp",
                            `Points (ESPN Scoring)` = "site_pts")
+
+# FFToday columns ----
+fftoday_columns = c(
+  "Passing Comp" = "pass_comp", "Passing Att" = "pass_att", "Passing Yard" = "pass_yds",
+  "Passing TD" = "pass_tds", "Passing INT" = "pass_int", "Rushing Att" = "rush_att",
+  "Rushing Yard"  = "rush_yds", "Rushing TD" = "rush_tds", "Receiving Rec" = "rec",
+  "Receiving Yard" = "rec_yds", "Receiving TD" = "rec_tds", "FGM" = "fg", "FGA" = "fg_att",
+  "FG" = "fg_pct", "EPM" = "xp", "EPA" = "xp_att", "FG Made" = "fg", "FG Miss" = "fg_miss",
+  "XP Made" = "xp", "XP Miss" = "xp_miss", "Sack" = "dst_sacks", "FR" = "dst_fum_rec",
+  "INT" = "dst_int", "DefTD" = "dst_td", "PA" = "dst_pts_allowed", "PaYd/G" = "dst_pass_yds_g",
+  "RuYd/G" = "dst_rush_yds_g", "Safety" = "dst_safety", "KickTD" = "dst_ret_tds",
+  "Tackle" = "idp_solo", "Assist" = "idp_asst", "Sack" = "idp_sack", "PD" = "idp_pd",
+  "INT" = "idp_int", "FF" = "idp_fum_force", "FR" = "idp_fum_rec", "Fantasy FFPts" = "site_pts",
+  "Fantasy FPts" = "site_pts", "Player" = "player", "Team" = "team", "Opp" = "opp", "Chg" = "chg")
+
+# Fantasypros columns ----
+fantasypros_columns = c("PASSING ATT" = "pass_att", "PASSING CMP" = "pass_comp", "PASSING YDS" = "pass_yds",
+                       "PASSING TDS" = "pass_tds", "PASSING INTS" = "pass_int", "RUSHING ATT" = "rush_att",
+                       "RUSHING YDS" = "rush_yds", "RUSHING TDS" = "rush_tds", "RECEIVING REC" = "rec",
+                       "RECEIVING YDS" = "rec_yds", "RECEIVING TDS" = "rec_tds", "FGA" = "fg_att", "XPT" = "xp",
+                       "MISC FL" = "fumbles_lost", "SACK" = "dst_sacks", "INT" = "dst_int", "FR" = "dst_fum_rec",
+                       "FF" = "dst_fum_force", "TD" = "dst_td", "SAFETY" = "dst_safety", "PA" = "dst_pts_allowed",
+                       "YDS AGN" = "dst_yds_allowed", "FPTS" = "site_pts", "MISC FPTS" = "site_pts",
+                       "Player" = "player", "FG" = "fg")
+
+# Fleaflicker columns ----
+
+fleaflicker_columns = c(
+  "Player Name" = "player",
+  "Opp" = "opp",
+  "FPts" = "curr_site_pts",
+  "Rank Draft" = "draft_rank",
+  "Rank PPR" = "ppr_rank",
+  "Passing %" = "pass_comp_pct",
+  "Passing Cmp" = "pass_comp",
+  "Passing Att" = "pass_att",
+  "Passing"= "pass_comp_pct",
+  "Passing Yd" = "pass_yds",
+  "Passing TD" = "pass_tds",
+  "Passing INT" = "pass_int",
+  "Passing Rat" = "pass_rate",
+  "Rushing Att" = "rush_att",
+  "Rushing Yd" = "rush_yds",
+  "Rushing TD" = "rush_tds",
+  "Receiving Rec" = "rec",
+  "Receiving Tar" = "rec_tgt",
+  "Receiving Yd" = "rec_yds",
+  "Receiving TD" = "rec_tds",
+  "Misc Fum" = "fumbles_lost",
+  "Misc TD" = "misc_tds",
+  "Misc Yd" = "misc_yds",
+  "Kicking FG" = "fg",
+  "fg_att" = "fg_att",
+  "fg_pct" = "fg_pct",
+  "Kicking XP" = "xp",
+  "xp_att" = "xp_att",
+  "xp_pct" = "xp_pct",
+  "Defense INT" = "dst_int",
+  "Defense Sack" = "dst_sacks",
+  "Defense FF" = "dst_fum_force",
+  "Defense FR" = "dst_fum_rec",
+  "Defense TD" = "dst_td",
+  "Defense Pts" = "dst_pts_allowed",
+  "Defense Yd" = "dst_yds_allowed",
+  "Team Defense Pts" = "dst_pts_allowed",
+  "Team Defense Yd" = "dst_yds_allowed",
+  "Defense Ast" = "idp_asst",
+  "Defense Solo" = "idp_solo",
+  "Defense INT" = "idp_int",
+  "Defense Sack" = "idp_sack",
+  "Defense FF" = "idp_fum_force",
+  "Defense FR" = "idp_fum_rec",
+  "Defense TD" = "idp_td",
+  "Fantasy FPts" = "site_pts",
+  "Availability % Own" = "pct_owned"
+)
+
+
+
+
+
+
+
+
+
+
 
 
 

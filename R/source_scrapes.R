@@ -1,10 +1,6 @@
 
 
-library(rvest)
-library(dplyr)
-library(tidyr)
-
-# Note: experimental. Not to be used yet.
+# CBS ----
 scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
                       draft = TRUE, weekly = TRUE) {
 
@@ -88,6 +84,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   l_pos
 }
 
+# NFL ----
 scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
                       draft = TRUE, weekly = TRUE) {
 
@@ -190,6 +187,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
   l_pos
 }
 
+# Fantasysharks ----
 scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"), season = 2021, week = 0,
                                  draft = TRUE, weekly = TRUE) {
 
@@ -203,7 +201,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   # segment for url from user week input
   if (week == 0) {
     segment <- year
-  } else if (week %in% c(1:18)) {
+  } else if (week %in% c(1:22)) {
     segment <- year + week + 8
   } else if (week %in% "ros") {
     segment <- 717
@@ -252,7 +250,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
           select(-`#`)
       )
 
-    } else if (pos %in% "RB" & week %in% c(1:18)) {
+    } else if (pos %in% "RB" & week %in% c(1:22)) {
 
       # suppress the "new names" message generated from .name_repair = "unique"
       suppressMessages(
@@ -282,7 +280,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
                ">= 200 yd rec" = ">= 200 yd") %>%
         select(-`#`)
 
-    } else if (pos %in% c("WR", "TE") & week %in% c(1:18)) {
+    } else if (pos %in% c("WR", "TE") & week %in% c(1:22)) {
 
       # suppress the "new names" message generated from .name_repair = "unique"
       suppressMessages(
@@ -321,7 +319,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
                "idp_tds" = "DefTD") %>%
         select(-`#`)
 
-    } else if (pos %in% "QB" & week %in% c(1:18)) {
+    } else if (pos %in% "QB" & week %in% c(1:22)) {
 
       # suppress the "new names" message generated from .name_repair = "unique"
       suppressMessages(
@@ -366,7 +364,9 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
       bind_cols(p_id, .)
 
     # Rename columns with new names
-    names(pos_df) = fantasysharks_columns[names(pos_df)]
+    # names(pos_df) = fantasysharks_columns[names(pos_df)]
+    names(pos_df) = rename_vec(names(pos_df), fantasysharks_columns)
+
 
     pos_df[-1] = type.convert(pos_df[-1], as.is = TRUE)
     pos_df[pos_df$site_pts > 0, ]
@@ -382,6 +382,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
 
 }
 
+# Numberfire ----
 scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", "DB", "DL"), season = 2021, week = 0,
                               draft = TRUE, weekly = TRUE) {
 
@@ -486,11 +487,12 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
     # subset by the columns in pos_df
     # replicated names between DST and IDP positions
     if (pos %in% c("DB", "LB", "DL")) {
-      names(pos_df) <- numberfire_idp_columns[names(pos_df)]
+      # numberfire_idp_columns[names(pos_df)]
+      names(pos_df) <- rename_vec(names(pos_df), numberfire_idp_columns)
     } else {
-      names(pos_df) <- numberfire_columns[names(pos_df)]
+      # names(pos_df) <- numberfire_columns[names(pos_df)]
+      names(pos_df) <- rename_vec(names(pos_df), numberfire_columns)
     }
-    names(pos_df)[!names(pos_df) %in% names(numberfire_columns)]
 
 
     # Changing types before merging
@@ -531,6 +533,7 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
 }
 
+# Walterfootball ----
 scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season = 2021, week = 0,
                                   draft = TRUE, weekly = FALSE, impute_reg = TRUE) {
 
@@ -626,14 +629,14 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
 
 
 
-# FleaFlicker
+# FleaFlicker ----
 scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
                                season = 2021, week = 1, draft = FALSE, weekly = TRUE) {
 
   # IDP positions
   if("DL" %in% pos) {
     pos <- c(pos, "DE", "DT")
-    pos <- pos[! pos %in% "DL"]
+    pos <- pos[!pos %in% "DL"]
   }
   if ("DB" %in% pos) {
     pos <- c(pos, "CB", "S")
@@ -663,10 +666,8 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
 
 
     # Setting up hitting each page
-    i = 1L
     offset = 0L
     out_dfs = list()
-
 
     scrape_link <- paste0("https://www.fleaflicker.com/nfl/leaders?week=", week, "&statType=7&sortMode=7&position=",
                           position, "&tableOffset=", offset)
@@ -676,19 +677,18 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
 
     # The number of pages to scrape by position
     pos_pages <- case_when(pos %in% c("K", "DST") ~ 2L,
-                           pos %in% c("QB") ~ 3L,
-                           pos %in% c("DT") ~ 5L,
-                           pos %in% c("TE") ~ 6L,
-                           pos %in% c("DE", "LB", "S") ~ 7L,
-                           pos %in% c("RB") ~ 8L,
-                           pos %in% c("CB") ~ 9L,
-                           pos %in% c("WR") ~ 12L)
+                           pos %in% c("QB") ~ 2L,
+                           pos %in% c("DT") ~ 4L,
+                           pos %in% c("TE") ~ 5L,
+                           pos %in% c("DE", "LB", "S") ~ 6L,
+                           pos %in% c("RB") ~ 6L,
+                           pos %in% c("CB") ~ 6L,
+                           pos %in% c("WR") ~ 6L)
+
 
     # Going through pages of fleaflicker.com until a player has projected fantasy points of 0 or less
     # while(i == 0L || min(temp_df$site_pts > 1)) {
-    while (i <= pos_pages) {
-
-
+    for (i in seq_len(pos_pages)) {
 
       page_link = paste0("https://www.fleaflicker.com/nfl/leaders?week=", week, "&statType=7&sortMode=7&position=",
                          position, "&tableOffset=", offset)
@@ -706,22 +706,32 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
       site_id <- html_page %>%
         html_elements(css = "a.player-text") %>%
         html_attr("href") %>%
-        basename() %>%
-        as_tibble() %>%
-        rename(fleaflicker_id = value)
+        sub(".*\\-(\\d+)$", "\\1", .)
 
       # scrape contains list of player names and a list of data
       scrape <- html_page %>%
         html_elements(css = '#body-center-main table') %>%
-        html_table()
-
+        html_table() %>%
+        pluck(1L)
 
       # Column names
-      col_names <- paste(names(scrape[[1]]), scrape[[1]][1, ])
+      col_names <- paste(names(scrape), scrape[1, ])
+      col_names <- gsub("Week\\s+\\d+|Projected", "", col_names)
+      col_names <- trimws(gsub("\\s+", " ", col_names))
 
-      # col_names = fleaflicker_columns[col_names]
+      if(pos == "K") {
+        col_names[c(10, 11, 13, 14)] = c("fg_att", "fg_pct", "xp_att", "xp_pct")
+      }
 
-      names(scrape[[1]]) <- col_names
+
+      col_names = fleaflicker_columns[col_names]
+      col_names[is.na(col_names)] = paste0("...", seq_len(sum(is.na(col_names))))
+      names(scrape) <- col_names
+
+      # Filtering out empty columns
+      scrape = type.convert(scrape[2:(nrow(scrape)), ],
+                            as.is = TRUE, na.strings = c("—", "NA", ""))
+      scrape = Filter(function(x) any(!is.na(x)), scrape)
 
 
       # Creating and cleaning table
@@ -729,39 +739,26 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
       suppressMessages(
         if (pos %in% "DST") {
           temp_df <- scrape %>%
-            pluck(1L) %>%
-            as_tibble(.name_repair = "unique") %>%
-            select(-contains("...")) %>%
-            slice(2L:(n() - 1)) %>%
-            # separate(`Player Name`, into = c("first_name", "last_name", "pos", "tm", "bye"), sep = "\\s") %>%
-            mutate(pos = "D/ST",
-                   tm = str_extract(`Player Name`, "(?<=D/ST )\\w{2,3}"),
-                   bye = str_extract(`Player Name`, "(\\d+)"),
-                   `Player Name` = str_extract(`Player Name`, ".+(?= D/ST)")) %>%
-            select(`Player Name`, pos, tm, bye, everything()) %>%
-            mutate(data_src = "FleaFlicker") %>%
-            # add player id
-            bind_cols(site_id) %>%
-            # rename for now so while loop works
-            rename(site_pts = `Fantasy FPts`)
+            mutate(pos = "DST",
+                   team = str_extract(player, "(?<=D/ST )\\w{2,3}"),
+                   bye = str_extract(player, "(\\d+)"),
+                   player = str_extract(player, ".+(?= D/ST)"),
+                   data_src = "FleaFlicker",
+                   scr_id = site_id) %>%
+            select(player, pos, team, bye, everything())
         } else {
           temp_df <- scrape %>%
-            pluck(1L) %>%
             as_tibble(.name_repair = "unique") %>%
-            select(-contains("...")) %>%
-            slice(2L:(n() - 1)) %>%
-            # slice(if(pos %in% "DT") -1L else 2L:(n() - 1)) %>%
             # Remove "Q" at beginning of Player Name if followed by another uppercase letter
-            mutate(`Player Name` = str_remove(`Player Name`, "^Q(?=[:upper:])")) %>%
-            separate(`Player Name`, into = c("first_name", "last_name", "pos_temp", "tm", "bye"), sep = "\\s") %>%
+            mutate(player = str_remove(player, "^Q(?=[:upper:])")) %>%
+            extract(player, into = c("first_name", "last_name", "pos_temp", "team", "bye"),
+                    regex = "(.*?)\\s+(.*?)\\s+(.*?)\\s+(.*?)\\s+.*(\\d+)\\)$", convert = TRUE) %>%
             unite("player", first_name:last_name, sep = " ") %>%
-            mutate(bye = str_extract(bye, pattern = "\\d+")) %>%
+            mutate(bye = as.integer(str_extract(bye, pattern = "\\d+"))) %>%
             mutate(data_src = "FleaFlicker") %>%
-            # add player id
-            bind_cols(site_id) %>%
             # rename for now so while loop works
-            rename(site_pts = `Fantasy FPts`) %>%
-            mutate(pos_temp = pos) %>%
+            mutate(src_id = site_id,
+                   pos_temp = pos) %>%
             rename(pos = pos_temp)
         }
       )
@@ -769,10 +766,12 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
       # Adding it to a list of DF's from the pages
       out_dfs[[i]] = temp_df
 
+      if(min(temp_df$site_pts) <= 1 || nrow(temp_df) < 20) {
+        break
+      }
 
       # Add 1 to i for page number counter
       # Add 20 to offset for next page's URL
-      i = i + 1L
       offset = offset + 20L
 
     }
@@ -780,6 +779,11 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
 
     # combine df's from each page
     out = bind_rows(out_dfs)
+
+    # Converting types of columns
+    idx = names(out) %in% c("id", "src_id")
+    out[!idx] = type.convert(out[!idx], as.is = TRUE)
+
     out
 
 
@@ -797,7 +801,7 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
   if (exists("DE", where = l_pos) && exists("DT", where = l_pos)) {
     l_pos$DL <- bind_rows(l_pos$DE, l_pos$DT) %>%
       mutate(pos = "DL") %>%
-      distinct(fleaflicker_id, .keep_all = TRUE)
+      distinct(src_id, .keep_all = TRUE)
 
     l_pos$DE <- NULL
     l_pos$DT <- NULL
@@ -807,7 +811,7 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
   if (exists("CB", where = l_pos) && exists("S", where = l_pos)) {
     l_pos$DB <- bind_rows(l_pos$CB, l_pos$S) %>%
       mutate(pos = "DB") %>%
-      distinct(fleaflicker_id, .keep_all = TRUE)
+      distinct(src_id, .keep_all = TRUE)
 
     l_pos$CB <- NULL
     l_pos$S <- NULL
@@ -819,14 +823,16 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
 }
 
 
-
-
-# FFToday
+# FFToday ----
 scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
                            season = 2021, week = 0, draft = FALSE, weekly = TRUE) {
 
   base_link <- paste0("https://www.fftoday.com/rankings/index.html")
   site_session <- session(base_link)
+
+  if(week > 18) {
+    week = week + 2L
+  }
 
 
   l_pos <- lapply(pos, function(pos){
@@ -853,24 +859,16 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
 
     # The number of pages to scrape by position
     pos_pages <- case_when(pos %in% c("QB", "TE", "K") ~ 1L,
-                           pos %in% c("RB") ~ 2L,
-                           pos %in% c("WR") ~ 3L)
+                           pos %in% c("RB", "WR") ~ 2L)
 
-    # Going through pages of fleaflicker.com until a player has projected fantasy points of 0 or less
-    # while(i == 0L || min(temp_df$site_pts > 1)) {
+    # Going through n pages (depending on position) pages
     while (i <= pos_pages) {
 
-
-
+      Sys.sleep(1L)
       page_link = paste0("https://www.fftoday.com/rankings/playerwkproj.php?Season=", season,
                          "&GameWeek=", week, "&PosID=", position, "&LeagueID=1",
                          "&order_by=FFPts&sort_order=DESC&cur_page=", cur_page)
 
-
-      Sys.sleep(1L)
-
-
-      # 20 rows of player data by position
       html_page <- site_session %>%
         session_jump_to(page_link) %>%
         read_html()
@@ -886,28 +884,26 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
       # scrape contains list of player names and a list of data
       scrape <- html_page %>%
         html_elements(css = "table table table") %>%
-        html_table()
-
+        html_table() %>%
+        `[[`(1)
 
       # Column names
-      col_names <- paste(scrape[[1]][1, ], scrape[[1]][2, ])
+      scrape[2, ] = as.list(sub("^(.*?)\\n.*", "\\1", scrape[2, ]))
+      col_names <- trimws(paste(scrape[1, ], scrape[2, ]))
+      col_names = fftoday_columns[col_names]
 
-      # col_names = fleaflicker_columns[col_names]
+      # Dataframe
+      temp_df = type.convert(scrape[-c(1:2), ], as.is = TRUE)
+      names(temp_df) = col_names
 
-      names(scrape[[1]]) <- col_names
 
-
-      # Creating and cleaning table
-      temp_df <- scrape %>%
-        pluck(1L) %>%
-        slice(-1L, -2L) %>%
-        select(-` Chg`) %>%
-        rename(player = 1, Team = ` Team`, Opp = ` Opp`) %>%
-        mutate(Opp = str_remove(Opp, pattern = "@"),
-               pos = pos,
-               data_src = "FFToday") %>%
-        # add player id
-        bind_cols(site_id)
+      # Create / fix additional columns
+      temp_df$opp = sub("@", "", temp_df$opp, fixed = TRUE)
+      temp_df$pos = pos
+      temp_df$data_src = "FFToday"
+      temp_df$src_id = site_id$fftoday_id
+      temp_df$id = player_ids$id[match(temp_df$src_id, player_ids$fftoday_id)]
+      temp_df$chg = NULL
 
 
       # Adding it to a list of DF's from the pages
@@ -915,16 +911,13 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
 
 
       # Add 1 to i for page number counter
-      # Add 20 to go to the next page's URL
       i = i + 1L
       cur_page = cur_page + 1L
 
     }
 
-
     # combine df's from each page
-    out = bind_rows(out_dfs)
-    out
+    bind_rows(out_dfs[sapply(out_dfs, nrow) > 0]) # temp fix for zero row dfs
 
 
   })
@@ -936,3 +929,101 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
   l_pos
 
 }
+
+
+# Fantasypros ----
+scrape_fantasypros = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,
+                      draft = TRUE, weekly = TRUE) {
+
+
+  if(week %in% 1:17) {
+    scrape_week = paste0(".php?week=", week)
+  } else {
+    scrape_week = ".php"
+  }
+
+  base_link = paste0("https://www.fantasypros.com/nfl/projections")
+  site_session = session(base_link)
+
+  l_pos = lapply(pos, function(pos) {
+    scrape_link = paste0("https://www.fantasypros.com/nfl/projections/",
+                         tolower(pos), scrape_week)
+
+    Sys.sleep(1L) # temporary, until I get an argument for honoring the crawl delay
+    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+
+    html_page = site_session %>%
+      session_jump_to(scrape_link) %>%
+      read_html()
+
+
+    # Getting column names
+    if(pos %in% c("K", "DST")) {
+      col_names = html_page %>%
+        html_element("table > thead") %>%
+        html_text2() %>%
+        strsplit("\\t") %>%
+        `[[`(1)
+
+      col_names = fantasypros_columns[col_names]
+
+    } else {
+      col_names = html_page %>%
+        html_element("table > thead") %>%
+        html_table()
+
+      col_names = trimws(paste(col_names[1, ], col_names[2, ]))
+      col_names = fantasypros_columns[col_names]
+    }
+
+    # Get PID
+    site_id = html_page %>%
+      html_elements("table > tbody > tr > td.player-label > a:nth-child(2)") %>%
+      html_attr("class") %>%
+      sub(".+\\-", "", .) %>%
+      as.numeric()
+
+    # Creating and cleaning table
+    out_df = html_page %>%
+      html_element("table > tbody") %>%
+      html_table()
+
+    names(out_df) = col_names
+
+    # Adding a few columns
+    if(pos == "DST") {
+      out_df$src_id = site_id
+      out_df$data_src = "CBS"
+      out_df$pos = pos
+      out_df$id = player_ids$id[match(out_df$src_id, player_ids$fantasypro_num_id)]
+    } else {
+      out_df = out_df %>%
+        extract(player, c("player", "team"), "(.*)\\s+([A-Z]{2,3})") %>%
+        mutate(src_id = site_id,
+               data_src = "CBS",
+               pos = pos,
+               id = player_ids$id[match(src_id, player_ids$fantasypro_num_id)])
+    }
+
+    # Misc cleanup before done
+    idx = names(out_df) == "id"
+    out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
+    out_df[out_df$site_pts > 0,]
+  })
+  names(l_pos) = pos
+  attr(l_pos, "season") = season
+  attr(l_pos, "week") = week
+  l_pos
+}
+
+
+
+
+
+
+
+
+
+
+
+
