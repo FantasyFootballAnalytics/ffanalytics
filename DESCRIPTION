@@ -3,9 +3,10 @@ Type: Package
 Title: Scrape Data For Fantasy Football
 Version: 2.0.10.0001
 Authors@R: c(person("Dennis", "Andersen", email = "andersen.dennis@outlook.com",
-                  role = c("aut", "cre")))
+                  role = c("aut", "cre")),
+             person("Andrew", "Tungate", role = "cre"))
 Author: Dennis Andersen
-Maintainer: Dennis Andersen <andersen.dennis@outlook.com>
+Maintainer: Andrew Tungate <atungate@gmail.com>
 Description: Scrapes data from multiple public sources of data and compiles into one dataset.
 License: GPL
 Encoding: UTF-8
@@ -16,7 +17,8 @@ Imports:
     data.table,
     glue,
     readxl,
-    lubridate
+    lubridate,
+    httr2
 Depends: 
     dplyr, 
     tibble, 
@@ -27,7 +29,7 @@ Depends:
     rvest, 
     xml2,
     R (>= 2.10)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Collate:
     'adp_functions.R'
     'calc_projections.R'
