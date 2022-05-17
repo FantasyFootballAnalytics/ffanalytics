@@ -10,7 +10,8 @@ projections_table2(
   src_weights = NULL,
   vor_baseline = NULL,
   tier_thresholds = NULL,
-  avg_type = c("average", "robust", "weighted")
+  avg_type = c("average", "robust", "weighted"),
+  return_raw_stats = FALSE
 )
 }
 \description{

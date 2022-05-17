@@ -10,8 +10,8 @@ add_ecr(projection_table)
 \item{projection_table}{An output from the \link{projections_table} function.}
 }
 \description{
-This function will add the ECR values to the projetions table generated from
+This function will add the ECR values to the projections table generated from
 the \link{projections_table} function. It will add the positional ECR, the
 standard deviation for the positional ECR, and if seasonal data also the
-overal ECR value
+overall ECR value
 }

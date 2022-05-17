@@ -6,8 +6,7 @@
 \usage{
 ffc_draft(
   format = c("standard", "ppr", "2qb", "dynasty", "rookie"),
-  pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
-  season = 2019
+  pos = c("all", "qb", "rb", "wr", "te", "def", "pk")
 )
 }
 \arguments{

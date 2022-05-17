@@ -10,7 +10,8 @@ scrape_data(
     "Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
   season = 2021,
-  week = 0
+  week = 0,
+  ...
 )
 }
 \arguments{
