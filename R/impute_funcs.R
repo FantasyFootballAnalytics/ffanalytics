@@ -268,10 +268,10 @@ calc_touch_from_avg <- function(yds, avg, touch){
 rate_stat <- function(x, y)ifelse(y != 0, x / y, 0)
 
 #' @export
-from_rate <- function(var1, var2, rate)ifelse(is.na(var1) & rate > 0, var2 * rate, var1)
+from_rate <- function(var1, var2, rate) ifelse(is.na(var1) & rate > 0, var2 * rate, var1)
 
 #' @export
-nan_zero <- function(x)ifelse(is.nan(x) | is.infinite(x), 0, x)
+nan_zero <- function(x) ifelse(is.nan(x) | is.infinite(x), 0, x)
 
 #' @export
 val_from_rate <- function(tbl, var_1, var_2){
@@ -285,7 +285,8 @@ val_from_rate <- function(tbl, var_1, var_2){
   if(nrow(miss_var) > 0){
     tvars <- names(var_tbl)[2:3]
     miss_tbl <- var_tbl[complete.cases(var_tbl),] %>%
-      transmute(id, rt = rate_stat(!!v1, !!v2)) %>% group_by(id) %>%
+      transmute(id, rt = rate_stat(!!v1, !!v2)) %>%
+      group_by(id) %>%
       summarise(rate_var = mean(rt, na.rm = TRUE)) %>%
       inner_join(x=miss_var, by = "id") %>%
       mutate(!!tvars[1] := nan_zero(from_rate(!!v1, !!v2, rate_var)),
@@ -315,7 +316,8 @@ val_from_calc <- function(calc_tbl, stat_tbl, var_1, var_2){
   if(nrow(stat_tbl[!complete.cases(stat_tbl),]) > 0){
     var_tbl <- calc_tbl %>%
       inner_join(stat_tbl, by = c("id", "data_src")) %>%
-      val_from_rate(!!v1, !!v2) %>% select(-matches(calc_vars)) %>%
+      val_from_rate(!!v1, !!v2) %>%
+      select(-matches(calc_vars)) %>%
       right_join(calc_tbl, by = c("id", "data_src"))
   } else {
     var_tbl <- stat_tbl %>% inner_join(calc_tbl, by = c("id", "data_src"))

@@ -48,19 +48,23 @@ scrape_data <- function(
                    c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
                      "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
                      "RTSports","Walterfootball"))
-  src_selfcont = intersect(src, c("NFL", "CBS", "FantasySharks", "NumberFire", "Walterfootball"))
+  src_selfcont = intersect(src, c("NFL", "CBS", "FantasySharks", "NumberFire", "Walterfootball",
+                                  "FleaFlicker", "FFToday"))
   src = setdiff(src, src_selfcont)
   pos <- match.arg(pos, several.ok = TRUE,
                    c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"))
 
-  if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos))
+  if(any(src == "NumberFire") & any(c("DL", "LB", "DB") %in% pos)) {
     # pos <- c(pos, "IDP") # temporary, until I redo scrapes
+  }
 
-  if(any(src == "FleaFlicker") & "DL" %in% pos)
+  if(any(src == "FleaFlicker") & "DL" %in% pos) {
     pos <- c(pos, "DE", "DT")
+  }
 
-  if(any(src == "FleaFlicker") & "DB" %in% pos)
+  if(any(src == "FleaFlicker") & "DB" %in% pos) {
     pos <- c(pos, "CB", "S")
+  }
 
   names(pos) <- pos
   src_data <- map(pos, ~ map(projection_sources[src], ~ .x)) %>% purrr::transpose() %>%
