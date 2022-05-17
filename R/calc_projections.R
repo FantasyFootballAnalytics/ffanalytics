@@ -17,7 +17,7 @@ weighted.sd <- function(x, w, na.rm = FALSE){
 
   sum.w <- sum(w, na.rm = na.rm)
   sum.w2 <- sum(w^2, na.rm = na.rm)
-  mean.w <- sum(x * w,na.rm = na.rm) / sum.w
+  mean.w <- sum(x * w, na.rm = na.rm) / sum.w
   sqrt((sum.w / (sum.w^2 - sum.w2)) * sum(w * (x - mean.w)^2))
 }
 
@@ -99,25 +99,27 @@ wilcox.loc <- function(vec, na.rm = FALSE, w = NULL){
 #'
 #' Function to calculate Cohen's D value when testing effect size
 cohens_d <- function(x, y, na.rm = TRUE) {
-  if(na.rm){
+  if(na.rm && (anyNA(x) || anyNA(y))) {
     x <- x[!is.na(x)]
     y <- y[!is.na(y)]
   }
-  n.x <- length(x)- 1
-  n.y <- length(y)- 1
-  mean.diff  <- abs(mean(x) - mean(y))
-  if(n.x == 0 & n.y > 0) {
-    common.sd <- sqrt(n.y * var(y)/n.y)
-  } else if (n.x > 0 & n.y == 0){
-    common.sd <- sqrt(n.x * var(x)/n.x)
-  } else if (n.x > 0 & n.y  > 0) {
-    common.sd <- sqrt((n.x * var(x) + n.y * var(y))/(n.x + n.y))
+  n_x <- length(x) - 1
+  n_y <- length(y) - 1
+  mean_diff  <- abs(mean(x) - mean(y))
+  if(n_x == 0 & n_y > 0) {
+    common_sd <- sqrt(n_y * var(y) / n_y)
+  } else if (n_x > 0 & n_y == 0){
+    common_sd <- sqrt(n_x * var(x) / n_x)
+  } else if (n_x > 0 & n_y  > 0) {
+    common_sd <- sqrt((n_x * var(x) + n_y * var(y)) / (n_x + n_y))
   } else {
-    common.sd <- sd(c(x, y)) / 2
+    common_sd <- sd(c(x, y)) / 2L
   }
 
-  return(mean.diff/common.sd)
+  mean_diff / common_sd
 }
+
+
 
 #' Default Weights for Projection Sources
 #'
@@ -142,11 +144,12 @@ quant_funcs <- list(average = quantile,
 quant_args <- list(list(probs = c(0.05, 0.95)),  list(probs = c(0.05, 0.95)),
                    list(probs = c(0.05, 0.95)))
 
-get_quant <- function(pts, wt)invoke_map(quant_funcs, quant_args, x = pts, na.rm = TRUE, w = wt)
+get_quant <- function(pts, wt) invoke_map(quant_funcs, quant_args, x = pts, na.rm = TRUE, w = wt)
 
-sd_funcs <- list(average = function(x, w, na.rm)sd(x, na.rm = na.rm),
-                 robust = function(x, w, na.rm)mad(x, na.rm = na.rm),
+sd_funcs <- list(average = function(x, w, na.rm) sd(x, na.rm = na.rm),
+                 robust = function(x, w, na.rm) mad(x, na.rm = na.rm),
                  weighted = weighted.sd)
+
 get_sd <- function(pts, wt) {
   length_pts = length(pts[!is.na(pts)])
 
@@ -165,6 +168,7 @@ get_sd <- function(pts, wt) {
 #' @param data_result An output from the \link{scrape_data} function.
 #' @param scoring_rules The scoring rules to be used.
 source_points <- function(data_result, scoring_rules){
+
   scoring_tbl <- make_scoring_tbl(scoring_rules)
 
   long_result <- data_result %>%
@@ -266,8 +270,9 @@ confidence_interval <- function(src_pts, weights = NULL){
 #' @param src_weights A named vector with the weights from each source.
 #' See \link{default_weights}
 #' @export
-aggregate_stats <- function(data_result, src_weights = NULL){
+aggregate_stats <- function(data_result, src_weights = NULL) {
 
+  .Deprecated(msg = "`aggregate_stats()` is depreciated\naggregation is now done in the `projections_table()` function")
   if(is.null(src_weights)){
     data_src <- data_result %>% map(`[[`, "data_src") %>% reduce(union)
     src_weights <- default_weights[data_src]
@@ -294,7 +299,7 @@ aggregate_stats <- function(data_result, src_weights = NULL){
 #' each player.
 #' @param agg_stats An output from the \link{aggregate_stats} function
 #' @param scoring_rules The scoring rules to be used.
-projected_points <- function(agg_stats, scoring_rules){
+projected_points <- function(agg_stats, scoring_rules) {
   scoring_tbl <- make_scoring_tbl(scoring_rules)
 
   dst_pt_allow <- NULL
@@ -349,7 +354,7 @@ default_baseline <- c(QB = 13, RB = 35, WR = 36, TE = 13, K = 8, DST = 3, DL = 1
 #' @param vor_var One of \code{c("points", "floor", "ceiling")} indicating which
 #' basis is used for the vor calculation
 set_vor <- function(points_table, vor_baseline = NULL, vor_var = c("points", "floor", "ceiling")){
-  if(is.null(vor_baseline))
+    if(is.null(vor_baseline))
     vor_baseline <- default_baseline
 
   vor_var <- match.arg(vor_var)
@@ -512,33 +517,54 @@ projections_table <- function(data_result, scoring_rules = NULL, src_weights = N
 
 #' Add ECR to the Projection Table
 #'
-#' This function will add the ECR values to the projetions table generated from
+#' This function will add the ECR values to the projections table generated from
 #' the \link{projections_table} function. It will add the positional ECR, the
 #' standard deviation for the positional ECR, and if seasonal data also the
-#' overal ECR value
+#' overall ECR value
 #' @param projection_table An output from the \link{projections_table} function.
 #' @export
 add_ecr <- function(projection_table){
   lg_type <- attr(projection_table, "lg_type")
   season <- attr(projection_table, "season")
   week <- attr(projection_table, "week")
-  ecr_pos <- lg_type %>%
-    imap(~ scrape_ecr(rank_period = ifelse(week == 0, "draft", "week"),
-                      position = .y, rank_type = .x)) %>%
-    map(select, id, pos_ecr = avg, sd_ecr = std_dev) %>%
-    bind_rows()
 
-  projection_table <- left_join(projection_table, ecr_pos, by = "id")
-  if(week == 0){
-    lg_ov <- ifelse(any(lg_type == "PPR"), "PPR", ifelse(any(lg_type == "Half"), "Half", "Std"))
-    ecr_overall <- scrape_ecr(rank_period = "draft", rank_type = lg_ov, position = "Overall") %>%
-      select(id, ecr = avg)
-    projection_table <- left_join(projection_table, ecr_overall, by = "id")
+  if(week == 0) {
+    rank_per = "draft"
+  } else {
+    rank_per = "week"
   }
-  projection_table  %>%
-    `attr<-`(which = "season", season) %>%
-    `attr<-`(which = "week", week) %>%
-    `attr<-`(which = "lg_type", lg_type)
+
+  if(week == 0) {
+    if(any(lg_type == "PPR")) {
+      lg_ov = "PPR"
+    } else if(any(lg_type == "Half")) {
+      lg_ov = "Half"
+    } else {
+      lg_ov = "Std"
+    }
+
+    ecr_overall = scrape_ecr(rank_period = "draft", rank_type = lg_ov, position = "Overall") %>%
+      dplyr::select(id, overall_ecr = avg)
+    projection_table = dplyr::left_join(projection_table, ecr_overall, by = "id")
+  }
+
+  scraped_ecr = vector("list", length(lg_type))
+  for(i in seq_along(lg_type)) {
+    scraped_ecr[[i]] = scrape_ecr(rank_period = rank_per,
+                                  position = names(lg_type)[i],
+                                  rank_type = lg_type[i])
+    Sys.sleep(1)
+  }
+  pos_ecr = dplyr::bind_rows(scraped_ecr) %>%
+    dplyr::select(id, pos_ecr = avg, sd_ecr = std_dev)
+
+  projection_table = dplyr::left_join(projection_table, pos_ecr, by = "id")
+
+  attr(projection_table, "lg_type") = lg_type
+  attr(projection_table, "season") = season
+  attr(projection_table, "week") = week
+
+  projection_table
 }
 
 #' Add ADP to the Projections Table
@@ -650,6 +676,57 @@ add_risk <- function(projection_table){
 }
 
 
+#' Uncertainty calculation
+#'
+#' Calculation of uncertainty returns a value from 1 to 99 where higher values
+#' indicate more uncertainty (i.e., more variability).
+calculate_uncertainty <- function(..., percentage = TRUE) {
+
+  vars_list = list(...)
+  vars_m = do.call(cbind, vars_list)
+
+  mean_risk <- scale(rowMeans(scale(vars_m), na.rm = TRUE))[, 1]
+
+  if(percentage) {
+    out = round(percent_rank(mean_risk), 2)
+    out[out <= .01] = .01
+    out[out >= .99] = .99
+    out
+  } else {
+    mean_risk[is.na(mean_risk)] <- NA
+    mean_risk
+  }
+
+}
+
+#' Add uncertantity to the table
+#'
+#' Calculation of uncertainty is done by scaling the standard deviation
+#' variables, averaging them, and then creating a within-position percentile
+#' rank ranging from 1 to 99. A score of 1 indicates there is very little
+#' uncertainty (low standard deviation) and a score of 99 indicates there is
+#' a large degree of uncertainty
+#'
+#' A low score means there is general agreement among experts and projections.
+#' A high score indicates there is a lot of variablility in rankings and/or
+#' projections.
+#' @export
+add_uncertainty <- function(projection_table){
+
+  attr_season = attr(projection_table, "season")
+  attr_week = attr(projection_table, "week")
+  attr_lg_type = attr(projection_table, "lg_type")
+
+  projection_table %>%
+    dplyr::group_by(pos) %>%
+    dplyr::mutate(uncertainty = calculate_uncertainty(sd_pts, sd_ecr)) %>%
+    dplyr::ungroup() %>%
+    `attr<-`("season", attr_season) %>%
+    `attr<-`("week", attr_week) %>%
+    `attr<-`("lg_type", attr_lg_type)
+}
+
+
 #' Add player information to the table
 #'
 #' Adds player information to the projections table
@@ -659,8 +736,10 @@ add_player_info <- function(projection_table){
   season <- attr(projection_table, "season")
   week <- attr(projection_table, "week")
 
-  select(player_table, id, first_name, last_name, team, position, age, exp) %>%
-    inner_join(projection_table, by = "id") %>%
+  players = select(player_table,id, first_name, last_name, team, position, age, exp)
+
+  projection_table %>%
+    left_join(players, by = "id") %>%
     `attr<-`(which = "season", season) %>%
     `attr<-`(which = "week", week) %>%
     `attr<-`(which = "lg_type", lg_type)
@@ -692,6 +771,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   season = attr(data_result, "season")
   week = attr(data_result, "week")
 
+  # Computing league type
   if(scoring_rules$rec$all_pos){
     lg_type = rep(scoring_rules$rec$rec, length(data_result))
     lg_type = case_when(lg_type > .5 ~ "PPR",
@@ -706,7 +786,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   }
 
 
-  # Setting up the scoring table
+  # Setting up the scoring table ----
   scoring_l = vector("list", length(data_result))
   names(scoring_l) = names(data_result)
   all_pos_idx = unlist(lapply(scoring_rules, `[[`, "all_pos"))
@@ -761,7 +841,7 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
     data_result$QB$rec_tds = NULL
   }
 
-  # Imputing values
+  # Imputing values ----
   data_result = sapply(names(data_result), function(pos) {
     df = data_result[[pos]]
     df = df[!is.na(df$id), ]
@@ -822,7 +902,6 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
 
     }
 
-    # Commented out for now to match old projections_table() function results
     if(pos == "DST") {
       if(week == 0) {
         set.seed(1L)
@@ -953,13 +1032,13 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
         filter(points > 0 & is.finite(points)) %>%
         arrange(points)
 
-      pts_sd = median(df$sd_pts, na.rm = TRUE)
+      pts_sd = median.default(df$sd_pts, na.rm = TRUE)
       tier_thresh = tier_thresholds[pos]
 
 
       df %>%
         mutate(pos_rank = dense_rank(-points),
-               dropoff = c(NA_real_, diff(points))) %>%
+               dropoff = c(0, diff(points))) %>%
         arrange(desc(points)) %>%
         mutate(tier = 1 + trunc((cumsum(dropoff) - dropoff[1]) / (pts_sd * tier_thresh)),
                tier = dense_rank(tier))
