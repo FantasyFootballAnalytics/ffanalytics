@@ -1,49 +1,7 @@
-make_df_colnames <- function(tbl){
-  rm_txt <- c("DEFENSIVE PLAYERS ", "PLAYERS ", "KICKERS ", "[[:cntrl:]]",
-              "Sort", "First:", "Last:", "^Projected ", "\\sWeek [0-9]+",
-              "\\sWild Card", "\\sDivisional", "\\sConference",  "\\sSuper Bowl",
-              "[^[:alnum:]]$")
-  rm_pattern <- paste(rm_txt, collapse = "|")
-  cnames <- str_trim(paste(names(tbl), tbl[1,]))
-  cnames <- str_trim(gsub(rm_pattern, "", cnames))
-  cnames[which(nchar(cnames) == 0)] <- "Z"
-  return(make.unique(cnames, sep = ""))
-}
 
-num_header_rows <- function(html_pg, tbl_css){
-  header_rows <- html_pg %>% html_node(tbl_css) %>%
-    html_node("thead") %>% html_children() %>% length()
-
-  return(header_rows)
-}
-
-check_2rth <- function(tbl){
-  nm <- names(tbl)
-
-  if(any(nchar(nm) == 0)){
-    names(tbl) <- make_df_colnames(tbl)
-    tbl <- tbl %>% slice(-1)
-  } else {
-    num_cols <- ncol(tbl)
-    if(length(unique(nm)) < num_cols){
-      names(tbl) <- make_df_colnames(tbl)
-      tbl <- tbl %>% slice(-1)
-    }
-  }
-  return(tbl)
-}
 
 id_col <- function(x, match_col){
   player_ids$id[match(x, player_ids[[match_col]])]
-}
-
-
-clean_format <- function(df){
-  formatted_num <- intersect(names(df), c("pass_yds", "rush_yds", "rec_yds", "xp_pct", "fg_pct"))
-  remove_format <- function(x)gsub("\\,|%", "", x)
-  if(length(formatted_num) > 0)
-    df <- df %>% mutate_at(formatted_num, remove_format)
-  return(df)
 }
 
 match_by_col <- function(x, y, match_col, id_vars){
@@ -100,21 +58,25 @@ match_players <- function(x){
 }
 
 
-available_sources <- function(period = c("season", "week")){
-  pos_group <- paste0(period, "_pos")
-  projection_sources %>% map_lgl(~ length(.x[[pos_group]]) > 0) %>%
-    which(.) %>% names()
+rename_vec = function(x, new_names, old_names = NULL) {
+  if(is.null(old_names)) {
+    old_names = names(new_names)
+    if(is.null(names(new_names))) {
+
+      message = paste0("Must supply old_names argument, or "
+                       , deparse(substitute(new_names))
+                       , " needs to be a named vector with the "
+                       , "old names  as the named portion")
+      stop(message)
+    }
+  }
+
+  idx = match(x, old_names)
+  x[!is.na(idx)] = new_names[omit_NA(idx)]
+  x
 }
 
-available_position <- function(period = c("season", "week"), src = NULL){
-  pos_group <- paste0(period, "_pos")
-  if(is.null(src))
-    src <- available_sources(period)
-  else
-    src <- intersect(available_sources(period), src)
-
-  projection_sources[src] %>% map(`[[`, pos_group) %>% reduce(union)
-
+omit_NA = function(x) {
+  x[!is.na(x)]
 }
-
 
