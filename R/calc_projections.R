@@ -183,7 +183,7 @@ source_points <- function(data_result, scoring_rules){
 
   dst_bracket <- is.null(dst_pt_allow) & !is.null(scoring_rules$pts_bracket)
 
-  dst_src <- long_result %>% slice(0) %>% add_column(points = 0)
+  dst_src <- long_result %>% slice(0) %>% mutate(points = 0)
   if(dst_bracket){
     dst_src <- long_result %>%  filter(data_col == "dst_pts_allowed") %>%
       mutate(points = ffanalytics:::dst_points(stat_value, scoring$pts_bracket))
@@ -309,7 +309,7 @@ projected_points <- function(agg_stats, scoring_rules) {
 
   dst_bracket <- is.null(dst_pt_allow) & !is.null(scoring_rules$pts_bracket)
 
-  dst_src <- agg_stats %>% slice(0) %>% add_column(points = 0)
+  dst_src <- agg_stats %>% slice(0) %>% mutate(points = 0)
   if(dst_bracket){
     dst_src <- agg_stats %>%  filter(data_col == "dst_pts_allowed") %>%
       mutate(points = ffanalytics:::dst_points(stat_value, scoring_rules$pts_bracket))

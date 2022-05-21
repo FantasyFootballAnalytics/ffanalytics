@@ -4,7 +4,8 @@ Title: Scrape Data For Fantasy Football
 Version: 2.0.10.0001
 Authors@R: c(person("Dennis", "Andersen", email = "andersen.dennis@outlook.com",
                   role = c("aut", "cre")),
-             person("Andrew", "Tungate", role = "cre"))
+             person("Andrew", "Tungate", role = "cre"),
+             person("Graham", "Seacat", role = "cre"))
 Author: Dennis Andersen
 Maintainer: Andrew Tungate <atungate@gmail.com>
 Description: Scrapes data from multiple public sources of data and compiles into one dataset.
@@ -12,22 +13,15 @@ License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    R6,
-    janitor,
     data.table,
-    glue,
     readxl,
-    lubridate,
-    httr2
-Depends: 
-    dplyr, 
-    tibble, 
-    tidyr, 
-    purrr, 
-    stringr, 
-    httr, 
+    httr2,
     rvest, 
-    xml2,
+    stringr, 
+    purrr, 
+    tidyr,
+    dplyr
+Depends: 
     R (>= 2.10)
 RoxygenNote: 7.1.2
 Collate:
@@ -43,7 +37,6 @@ Collate:
     'scoring_rules.R'
     'scrape_ecr.R'
     'scrape_funcs.R'
-    'source_classes.R'
     'source_objects.R'
     'source_scrapes.R'
     'stats_aggregation.R'

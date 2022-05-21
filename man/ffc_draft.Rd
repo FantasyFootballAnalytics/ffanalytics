@@ -5,8 +5,9 @@
 \title{Get ADP data from Fantasy Football Calculator}
 \usage{
 ffc_draft(
-  format = c("standard", "ppr", "2qb", "dynasty", "rookie"),
-  pos = c("all", "qb", "rb", "wr", "te", "def", "pk")
+  format = c("standard", "ppr", "half-ppr", "2qb", "dynasty", "rookie"),
+  pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
+  n_teams = c("12", "8", "10", "14")
 )
 }
 \arguments{

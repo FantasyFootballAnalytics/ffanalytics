@@ -4,11 +4,11 @@
 \alias{yahoo_draft}
 \title{Get ADP/AAV data from Yahoo}
 \usage{
-yahoo_draft(aav = FALSE)
+yahoo_draft(metric = c("adp", "aav"))
 }
 \arguments{
-\item{aav}{Indicates whether AAV data is scraped. If set to \code{FALSE} (Default),
-ADP data is scraped. Set it to \code{TRUE} to scrape AAV data.}
+\item{metric}{Indicates whether ADP or AAV data is scraped. By default, ADP
+data is scraped. Set it to \code{"aav"} to scrape AAV data.}
 }
 \value{
 A \link{data.frame} with the results.

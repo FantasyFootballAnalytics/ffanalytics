@@ -52,14 +52,14 @@ pos_corrections = list(Def = "DST", D = "DST", DEF = "DST", "D/ST" = "DST", PK =
 team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "LAR",
                          LA = "LAR", SDC = "SD", ARZ = "ARI", NOR = "NO", GBP = "GB",
                          JAX = "JAC", WSH = "WAS", HST = "HOU", CLV = "CLE", BLT = "BAL",
-                         NWE = "NE", NOS = "NO")
+                         NWE = "NE", NOS = "NO", LVR = "LV")
 
 
 
 nflTeam.abb <- c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
                  "DAL", "DEN", "DET", "GB",  "HOU", "IND", "JAX", "KC",
                  "MIA", "MIN", "NO",  "NE",  "NYG", "NYJ", "PHI", "PIT",
-                 "LA",  "SF",  "LAC", "TB",  "TEN", "WAS", "SEA", "OAK")
+                 "LA",  "SF",  "LAC", "TB",  "TEN", "WAS", "SEA", "LV")
 
 mflTeam.abb <- gsub("JAX", "JAC", nflTeam.abb)
 
@@ -72,7 +72,7 @@ nflTeam.id <- c("100026", "100001", "100002", "100003", "100004", "100005", "100
 nflTeam.city <- c("Arizona",   "Atlanta",       "Baltimore",   "Buffalo",     "Carolina",  "Chicago",      "Cincinnati",   "Cleveland",
                   "Dallas",    "Denver",        "Detroit",     "Green Bay",   "Houston",   "Indianapolis", "Jacksonville", "Kansas City",
                   "Miami",     "Minnesota",     "New Orleans", "New England", "New York",  "New York",     "Philadelphia", "Pittsburgh",
-                  "Los Angeles", "San Francisco", "Los Angeles",    "Tampa Bay",  "Tennessee", "Washington",   "Seattle",      "Oakland")
+                  "Los Angeles", "San Francisco", "Los Angeles",    "Tampa Bay",  "Tennessee", "Washington",   "Seattle", "Las Vegas")
 
 
 nflTeam.name <- c("Cardinals", "Falcons", "Ravens", "Bills",      "Panthers", "Bears",    "Bengals",  "Browns",

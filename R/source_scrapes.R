@@ -25,9 +25,6 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
       session_jump_to(scrape_link) %>%
       read_html()
 
-    # Removing element(s)
-    xml_remove(html_elements(html_page, "span.CellPlayerName--short"))
-
     # Get column names
     col_names = html_page %>%
       html_element("#TableBase > div > div > table > thead > tr.TableBase-headTr") %>%
@@ -45,7 +42,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021
         sub(".*?([A-Z]{2,3}).*", "\\1",  .)
     } else {
       site_id = html_page %>%
-        html_elements("table.TableBase-table a[href *= 'players']") %>%
+        html_elements("table > tbody > tr > td:nth-child(1) > span.CellPlayerName--long > span > a") %>%
         html_attr("href") %>%
         sub(".*?([0-9]+).*", "\\1", .)
     }
