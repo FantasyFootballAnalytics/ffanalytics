@@ -249,6 +249,13 @@ ffc_draft <- function(format= c("standard", "ppr", "half-ppr", "2qb", "dynasty",
 
 }
 
+
+
+
+
+
+
+
 #' Get ADP/AAV data from multple sources
 #'
 #' This function scrapes ADP or AAV data from multiple sources
@@ -265,9 +272,9 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
                     metric = c("adp", "aav")) {
   metric <- match.arg(tolower(metric), c("adp", "aav"))
   sources <- match.arg(sources, c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"), several.ok = TRUE)
+  is_aav = (metric == "aav")
 
-
-  if(metric == "aav") {
+  if(is_aav) {
     sources = setdiff(sources, c("CBS", "FFC"))
   }
 
@@ -283,7 +290,7 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
     out = Reduce(function(x, y) dplyr::full_join(x, y, "id"), draft_l)
     out[[paste0(metric, "_avg")]] = rowMeans(out[-1], na.rm = TRUE)
 
-    if(metric == "aav") {
+    if(is_aav) {
       out = out[order(out[[paste0(metric, "_avg")]], decreasing = TRUE), ]
     } else {
       out = out[order(out[[paste0(metric, "_avg")]]), ]

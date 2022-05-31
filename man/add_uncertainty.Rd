@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_projections.R
 \name{add_uncertainty}
 \alias{add_uncertainty}
-\title{Add uncertantity to the table}
+\title{Add uncertainty to the table}
 \usage{
 add_uncertainty(projection_table)
 }
@@ -15,6 +15,6 @@ a large degree of uncertainty
 }
 \details{
 A low score means there is general agreement among experts and projections.
-A high score indicates there is a lot of variablility in rankings and/or
+A high score indicates there is a lot of variability in rankings and/or
 projections.
 }

@@ -6,14 +6,14 @@
 \usage{
 add_adp(
   projection_table,
-  sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC")
+  sources = c("RTS", "CBS", "MFL", "Yahoo", "NFL", "FFC")
 )
 }
 \arguments{
 \item{projection_table}{An output from the \link{projections_table} function}
 
 \item{sources}{Which ADP sources should be added. should be one or more of
-\code{c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC")}}
+\code{c("RTS", "CBS", "MFL", "Yahoo", "NFL", "FFC")}}
 }
 \description{
 This function will add the ADP data to the projections table from the

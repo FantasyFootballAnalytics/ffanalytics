@@ -376,21 +376,6 @@ set_vor <- function(points_table, vor_baseline = NULL, vor_var = c("points", "fl
   return(vor_tbl)
 }
 
-#' Calculate VOR for Points, Ceiling and Floor
-#'
-#' This function calculates VOR for projected points as well as the floor and
-#' ceiling values.
-#' @param tbl The output from the \link{projected_points} function that has
-#' been merged with the output from  he \link{confidence_interval} function
-#' @param vor_baseline The VOR baseline values to be used. If omitted then the
-#' \link{default_baseline} will be used
-add_vor <- function(tbl, vor_baseline = NULL){
-  accumulate(c("points", "floor", "ceiling"),
-             ~ inner_join(.x, set_vor(.x, vor_baseline, vor_var = .y),
-                          by = c("id", "pos")),
-             .init = tbl)[[4]]
-}
-
 #' Default Threshold Values for Tiers
 #'
 #' These are the default threshold values used when applying Cohen's D values
@@ -398,51 +383,6 @@ add_vor <- function(tbl, vor_baseline = NULL){
 #' \code{c(QB = 1, RB = 1, WR = 1, TE = 1, K = 1, DST = 0.1, DL = 1, DB = 1, LB = 1)}
 default_threshold <-  c(QB = 1, RB = 1, WR = 1, TE = 1, K = 1, DST = 0.1, DL = 1, DB = 1, LB = 1)
 
-#' Determine Tiers by Position
-#'
-#' This function determines tiers for each position by applying Cohen's D effect
-#' size
-#' @param data_tbl An output from the \link{projected_points} function
-#' @param d_threshold THe thresholds to use when applying Cohens'd D function to
-#' determine the tiers. If omitted then the \link{default_threshold} will be used.
-#' @param src_points An output from the \link{source_points} function
-set_tiers <- function(data_tbl, d_threshold = NULL, src_points){
-  if(is.null(d_threshold)) {
-    d_threshold <- default_threshold
-  }
-
-  tier_tbl <- data_tbl %>%
-    filter(pos %in% names(d_threshold)) %>%
-    mutate(dthres = d_threshold[pos],
-           tier = ifelse(pos_rank == 1L, 1L, NA))
-
-  repeat{
-    before_na <- sum(is.na(tier_tbl$tier))
-    tier_tbl <-
-      tier_tbl %>%
-      filter(tier == tier[which.max(tier)]) %>%
-      group_by(pos) %>%
-      summarise(tier_id = first(id, order_by = -points),
-                cur_tier = as.integer(max(tier, na.rm = TRUE)),
-                dthres= max(dthres, na.rm = TRUE)) %>%
-      inner_join(tier_tbl %>% group_by(pos) %>% filter(is.na(tier)) %>%
-                   summarise(max_id = first(id, order_by = -points)), by = "pos") %>%
-      group_by(pos) %>%
-      mutate(d_val = cohens_d(src_points[src_points$id == tier_id,]$points,
-                              src_points[src_points$id == max_id,]$points),
-             tier = ifelse(d_val > dthres, cur_tier + 1L, cur_tier)) %>%
-      select(pos, id = max_id, new_tier = tier) %>%
-      right_join(tier_tbl, by = c("pos", "id")) %>%
-      mutate(tier = ifelse(is.na(tier) & !is.na(new_tier), new_tier, tier)) %>%
-      select(-new_tier)
-
-    after_na <- sum(is.na(tier_tbl$tier))
-    if(before_na == after_na | after_na == 0)
-      break
-  }
-
-  tier_tbl %>% select(-dthres) %>% ungroup()
-}
 
 #' Create a Projections Table
 #'
@@ -461,294 +401,7 @@ set_tiers <- function(data_tbl, d_threshold = NULL, src_points){
 #' @param tier_thresholds The threshold values to be used when determining tiers.
 #' If omitted then the \link{default_threshold} will be used.
 #' @export
-projections_table <- function(data_result, scoring_rules = NULL, src_weights = NULL,
-                              vor_baseline = NULL, tier_thresholds = NULL){
-
-    season <- attr(data_result, "season")
-    week <- attr(data_result, "week")
-
-    data_result <- purrr:::keep(data_result, ~ nrow(.) > 0) %>%
-      `attr<-`(which = "season", season) %>%
-      `attr<-`(which = "week", week)
-
-    if(is.null(scoring_rules)) {
-      scoring_rules <- scoring
-    }
-
-
-  if(scoring_rules$rec$all_pos){
-    lg_type <- scoring_rules$rec$rec %>% rep(length(data_result)) %>%
-      `names<-`(names(data_result)) %>%
-      map_chr(~ case_when(.x > 0.5 ~ "PPR", .x > 0  ~ "Half", TRUE ~ "Std"))
-  } else {
-    lg_type <- map(scoring_rules$rec[-which(names(scoring_rules$rec) == "all_pos")], `[[`, "rec") %>%
-      purrr:::keep(~ !is.null(.x)) %>%
-      map_chr(~ case_when(.x > 0.5 ~ "PPR", .x > 0  ~ "Half", TRUE ~ "Std"))
-
-    lg_type[setdiff(names(data_result), names(lg_type))] < "Std"
-  }
-
-  data_list <- invoke_map(list(src_pts = source_points, agg_stats = aggregate_stats),
-                          list(list(data_result = data_result, scoring_rules = scoring_rules),
-                               list(data_result = data_result, src_weights = src_weights)))
-
-  pts_uncertainty <- invoke_map(list(points_sd, confidence_interval),
-                                src_pts = data_list$src_pts, weights = src_weights) %>%
-    reduce(inner_join, by = c("pos", "id","avg_type"))
-
-  out_df<- data_list$agg_stats %>%
-    projected_points(scoring_rules) %>%
-    inner_join(pts_uncertainty, by = c("pos", "id","avg_type")) %>%
-    group_by(avg_type) %>%
-    set_tiers(tier_thresholds, data_list$src_pts ) %>%
-    ungroup()
-
-  if(attr(data_result, "week") == 0){
-    out_df <- out_df %>% split(.$avg_type) %>%
-      map(add_vor, vor_baseline = vor_baseline) %>% bind_rows() %>%
-      rename(rank = points_rank)
-  }
-
-  out_df %>%
-    `attr<-`(which = "season", attr(data_result, "season")) %>%
-    `attr<-`(which = "week", attr(data_result, "week")) %>%
-    `attr<-`(which = "lg_type", lg_type)
-}
-
-#' Add ECR to the Projection Table
-#'
-#' This function will add the ECR values to the projections table generated from
-#' the \link{projections_table} function. It will add the positional ECR, the
-#' standard deviation for the positional ECR, and if seasonal data also the
-#' overall ECR value
-#' @param projection_table An output from the \link{projections_table} function.
-#' @export
-add_ecr <- function(projection_table){
-  lg_type <- attr(projection_table, "lg_type")
-  season <- attr(projection_table, "season")
-  week <- attr(projection_table, "week")
-
-  if(week == 0) {
-    rank_per = "draft"
-  } else {
-    rank_per = "week"
-  }
-
-  if(week == 0) {
-    if(any(lg_type == "PPR")) {
-      lg_ov = "PPR"
-    } else if(any(lg_type == "Half")) {
-      lg_ov = "Half"
-    } else {
-      lg_ov = "Std"
-    }
-
-    ecr_overall = scrape_ecr(rank_period = "draft", rank_type = lg_ov, position = "Overall") %>%
-      dplyr::select(id, overall_ecr = avg)
-    projection_table = dplyr::left_join(projection_table, ecr_overall, by = "id")
-  }
-
-  scraped_ecr = vector("list", length(lg_type))
-  for(i in seq_along(lg_type)) {
-    scraped_ecr[[i]] = scrape_ecr(rank_period = rank_per,
-                                  position = names(lg_type)[i],
-                                  rank_type = lg_type[i])
-    Sys.sleep(1)
-  }
-  pos_ecr = dplyr::bind_rows(scraped_ecr) %>%
-    dplyr::select(id, pos_ecr = avg, sd_ecr = std_dev)
-
-  projection_table = dplyr::left_join(projection_table, pos_ecr, by = "id")
-
-  attr(projection_table, "lg_type") = lg_type
-  attr(projection_table, "season") = season
-  attr(projection_table, "week") = week
-
-  projection_table
-}
-
-#' Add ADP to the Projections Table
-#'
-#' This function will add the ADP data to the projections table from the
-#' \link{projections_table} function. It will add the average ADP from the sources
-#' specfied, and the difference between the overall rank and ADP
-#' @param projection_table An output from the \link{projections_table} function
-#' @param sources Which ADP sources should be added. should be one or more of
-#' \code{c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC")}
-#' @export
-add_adp <- function(projection_table,
-                    sources = c("RTS", "CBS", "ESPN", "Yahoo", "NFL", "FFC")){
-
-  sources <- match.arg(sources, several.ok = TRUE)
-
-  lg_type <- attr(projection_table, "lg_type")
-  season <- attr(projection_table, "season")
-  week <- attr(projection_table, "week")
-
-  if (week != 0){
-    warning("ADP data is not available for weekly data", call. = FALSE)
-    return(projection_table)
-  }
-  adp_tbl <- get_adp(sources, type = "ADP") %>% select(1, length(.)) %>%
-    rename_at(length(.), function(x){return("adp")})
-
-  projection_table <- left_join(projection_table, adp_tbl, by = "id") %>%
-    mutate(adp_diff = rank - adp)
-
-  projection_table  %>%
-    `attr<-`(which = "season", season) %>%
-    `attr<-`(which = "week", week) %>%
-    `attr<-`(which = "lg_type", lg_type)
-}
-
-#' Add AAV to the Projections Table
-#'
-#' This function will add the AAV data to the projections table from the
-#' \link{projections_table} function.
-#' @param projection_table An output from the \link{projections_table} function
-#' @param sources Which AAV sources should be added. should be one or more of
-#' \code{c("RTS", "ESPN", "Yahoo", "NFL")}
-#' @export
-add_aav <- function(projection_table,
-                    sources = c("RTS", "ESPN", "Yahoo", "NFL")){
-
-  sources = match.arg(sources, several.ok = TRUE)
-
-  lg_type <- attr(projection_table, "lg_type")
-  season <- attr(projection_table, "season")
-  week <- attr(projection_table, "week")
-
-  if (week != 0){
-    warning("AAV data is not available for weekly data", call. = FALSE)
-    return(projection_table)
-  }
-  adp_tbl <- get_adp(sources, type = "AAV") %>% select(1, length(.)) %>%
-    rename_at(length(.), function(x){return("aav")})
-
-  projection_table <- left_join(projection_table, adp_tbl, by = "id")
-
-  projection_table  %>%
-    `attr<-`(which = "season", season) %>%
-    `attr<-`(which = "week", week) %>%
-    `attr<-`(which = "lg_type", lg_type)
-}
-
-#' Risk calculation based on two variables
-#'
-#' Calculation of risk is done by scaling the standard deviation variables
-#' passed and averaging them before returning a measure with mean 5 and standard
-#' deviation of 2
-calculate_risk <- function(var1, var2){
-  var1 <- as.numeric(var1)
-  var2 <- as.numeric(var2)
-  Z_var1 <- scale(var1)
-  Z_var2 <- scale(var2)
-
-  Z_var1[is.na(Z_var1)] <- Z_var2[is.na(Z_var1)]
-  Z_var2[is.na(Z_var2)] <- Z_var1[is.na(Z_var2)]
-
-  risk_value <- 2 * scale(rowMeans(data.frame(Z_var1, Z_var2), na.rm=TRUE)) + 5
-
-  c(risk_value)
-
-}
-
-#' Add calculated risk to the table
-#'
-#' Calculation of risk is done by scaling the standard deviation variables
-#' passed and averaging them before returning a measure with mean 5 and standard
-#' deviation of 2
-#' @export
-add_risk <- function(projection_table){
-
-  lg_type <- attr(projection_table, "lg_type")
-  season <- attr(projection_table, "season")
-  week <- attr(projection_table, "week")
-
-  projection_table %>%
-    group_by(pos) %>%
-    # Calculate Risk values
-    mutate(risk = calculate_risk(sd_pts, sd_ecr)) %>%
-    ungroup() %>%
-    `attr<-`(which = "season", season) %>%
-    `attr<-`(which = "week", week) %>%
-    `attr<-`(which = "lg_type", lg_type)
-}
-
-
-#' Uncertainty calculation
-#'
-#' Calculation of uncertainty returns a value from 1 to 99 where higher values
-#' indicate more uncertainty (i.e., more variability).
-calculate_uncertainty <- function(..., percentage = TRUE) {
-
-  vars_list = list(...)
-  vars_m = do.call(cbind, vars_list)
-
-  mean_risk <- scale(rowMeans(scale(vars_m), na.rm = TRUE))[, 1]
-
-  if(percentage) {
-    out = round(percent_rank(mean_risk), 2)
-    out[out <= .01] = .01
-    out[out >= .99] = .99
-    out
-  } else {
-    mean_risk[is.na(mean_risk)] <- NA
-    mean_risk
-  }
-
-}
-
-#' Add uncertantity to the table
-#'
-#' Calculation of uncertainty is done by scaling the standard deviation
-#' variables, averaging them, and then creating a within-position percentile
-#' rank ranging from 1 to 99. A score of 1 indicates there is very little
-#' uncertainty (low standard deviation) and a score of 99 indicates there is
-#' a large degree of uncertainty
-#'
-#' A low score means there is general agreement among experts and projections.
-#' A high score indicates there is a lot of variablility in rankings and/or
-#' projections.
-#' @export
-add_uncertainty <- function(projection_table){
-
-  attr_season = attr(projection_table, "season")
-  attr_week = attr(projection_table, "week")
-  attr_lg_type = attr(projection_table, "lg_type")
-
-  projection_table %>%
-    dplyr::group_by(pos) %>%
-    dplyr::mutate(uncertainty = calculate_uncertainty(sd_pts, sd_ecr)) %>%
-    dplyr::ungroup() %>%
-    `attr<-`("season", attr_season) %>%
-    `attr<-`("week", attr_week) %>%
-    `attr<-`("lg_type", attr_lg_type)
-}
-
-
-#' Add player information to the table
-#'
-#' Adds player information to the projections table
-#' @export
-add_player_info <- function(projection_table){
-  lg_type <- attr(projection_table, "lg_type")
-  season <- attr(projection_table, "season")
-  week <- attr(projection_table, "week")
-
-  players = select(player_table,id, first_name, last_name, team, position, age, exp)
-
-  projection_table %>%
-    left_join(players, by = "id") %>%
-    `attr<-`(which = "season", season) %>%
-    `attr<-`(which = "week", week) %>%
-    `attr<-`(which = "lg_type", lg_type)
-}
-
-#' New, lighter, projections_table function
-#'
-#' Testing & improving now TO replace the current function in the next major app update
-projections_table2 = function(data_result, scoring_rules = NULL, src_weights = NULL,
+projections_table = function(data_result, scoring_rules = NULL, src_weights = NULL,
                               vor_baseline = NULL, tier_thresholds = NULL,
                               avg_type = c("average", "robust", "weighted"),
                               return_raw_stats = FALSE) {
@@ -1077,8 +730,199 @@ projections_table2 = function(data_result, scoring_rules = NULL, src_weights = N
   out
 }
 
+#' Add ECR to the Projection Table
+#'
+#' This function will add the ECR values to the projections table generated from
+#' the \link{projections_table} function. It will add the positional ECR, the
+#' standard deviation for the positional ECR, and if seasonal data also the
+#' overall ECR value
+#' @param projection_table An output from the \link{projections_table} function.
+#' @export
+add_ecr <- function(projection_table){
+  lg_type <- attr(projection_table, "lg_type")
+  season <- attr(projection_table, "season")
+  week <- attr(projection_table, "week")
+
+  if(week == 0) {
+    rank_per = "draft"
+  } else {
+    rank_per = "week"
+  }
+
+  if(week == 0) {
+    if(any(lg_type == "PPR")) {
+      lg_ov = "PPR"
+    } else if(any(lg_type == "Half")) {
+      lg_ov = "Half"
+    } else {
+      lg_ov = "Std"
+    }
+
+    ecr_overall = scrape_ecr(rank_period = "draft", rank_type = lg_ov, position = "Overall") %>%
+      dplyr::select(id, overall_ecr = avg)
+    projection_table = dplyr::left_join(projection_table, ecr_overall, by = "id")
+  }
+
+  scraped_ecr = vector("list", length(lg_type))
+  for(i in seq_along(lg_type)) {
+    scraped_ecr[[i]] = scrape_ecr(rank_period = rank_per,
+                                  position = names(lg_type)[i],
+                                  rank_type = lg_type[i])
+    Sys.sleep(1)
+  }
+  pos_ecr = dplyr::bind_rows(scraped_ecr) %>%
+    dplyr::select(id, pos_ecr = avg, sd_ecr = std_dev)
+
+  projection_table = dplyr::left_join(projection_table, pos_ecr, by = "id")
+
+  attr(projection_table, "lg_type") = lg_type
+  attr(projection_table, "season") = season
+  attr(projection_table, "week") = week
+
+  projection_table
+}
+
+#' Add ADP to the Projections Table
+#'
+#' This function will add the ADP data to the projections table from the
+#' \link{projections_table} function. It will add the average ADP from the sources
+#' specfied, and the difference between the overall rank and ADP
+#' @param projection_table An output from the \link{projections_table} function
+#' @param sources Which ADP sources should be added. should be one or more of
+#' \code{c("RTS", "CBS", "MFL", "Yahoo", "NFL", "FFC")}
+#' @export
+add_adp <- function(projection_table,
+                    sources = c("RTS", "CBS", "MFL", "Yahoo", "NFL", "FFC")){
+
+  sources <- match.arg(sources, several.ok = TRUE)
+
+  lg_type <- attr(projection_table, "lg_type")
+  season <- attr(projection_table, "season")
+  week <- attr(projection_table, "week")
+
+  if(week != 0) {
+    warning("ADP data is not available for weekly data", call. = FALSE)
+    return(projection_table)
+  }
+  adp_tbl <- get_adp(sources, type = "ADP") %>%
+    select(1, length(.)) %>%
+    rename_at(length(.), function(x){return("adp")})
+
+  projection_table <- left_join(projection_table, adp_tbl, by = "id") %>%
+    mutate(adp_diff = rank - adp)
+
+  projection_table  %>%
+    `attr<-`(which = "season", season) %>%
+    `attr<-`(which = "week", week) %>%
+    `attr<-`(which = "lg_type", lg_type)
+}
+
+#' Add AAV to the Projections Table
+#'
+#' This function will add the AAV data to the projections table from the
+#' \link{projections_table} function.
+#' @param projection_table An output from the \link{projections_table} function
+#' @param sources Which AAV sources should be added. should be one or more of
+#' \code{c("RTS", "ESPN", "Yahoo", "NFL")}
+#' @export
+add_aav <- function(projection_table,
+                    sources = c("RTS", "ESPN", "Yahoo", "NFL")){
+
+  sources = match.arg(sources, several.ok = TRUE)
+
+  lg_type <- attr(projection_table, "lg_type")
+  season <- attr(projection_table, "season")
+  week <- attr(projection_table, "week")
+
+  if (week != 0){
+    warning("AAV data is not available for weekly data", call. = FALSE)
+    return(projection_table)
+  }
+  adp_tbl <- get_adp(sources, type = "AAV") %>% select(1, length(.)) %>%
+    rename_at(length(.), function(x){return("aav")})
+
+  projection_table <- left_join(projection_table, adp_tbl, by = "id")
+
+  projection_table  %>%
+    `attr<-`(which = "season", season) %>%
+    `attr<-`(which = "week", week) %>%
+    `attr<-`(which = "lg_type", lg_type)
+}
 
 
+#' Uncertainty calculation
+#'
+#' Calculation of uncertainty returns a value from 1 to 99 where higher values
+#' indicate more uncertainty (i.e., more variability).
+calculate_uncertainty <- function(..., percentage = TRUE) {
+
+  vars_list = list(...)
+  vars_m = do.call(cbind, vars_list)
+
+  mean_risk <- scale(rowMeans(scale(vars_m), na.rm = TRUE))[, 1]
+
+  if(percentage) {
+    out = round(percent_rank(mean_risk), 2)
+    out[out <= .01] = .01
+    out[out >= .99] = .99
+    out
+  } else {
+    mean_risk[is.na(mean_risk)] <- NA
+    mean_risk
+  }
+
+}
+
+#' Add uncertainty to the table
+#'
+#' Calculation of uncertainty is done by scaling the standard deviation
+#' variables, averaging them, and then creating a within-position percentile
+#' rank ranging from 1 to 99. A score of 1 indicates there is very little
+#' uncertainty (low standard deviation) and a score of 99 indicates there is
+#' a large degree of uncertainty
+#'
+#' A low score means there is general agreement among experts and projections.
+#' A high score indicates there is a lot of variability in rankings and/or
+#' projections.
+#' @export
+add_uncertainty <- function(projection_table){
+
+  attr_season = attr(projection_table, "season")
+  attr_week = attr(projection_table, "week")
+  attr_lg_type = attr(projection_table, "lg_type")
+
+  projection_table %>%
+    dplyr::group_by(pos) %>%
+    dplyr::mutate(uncertainty = calculate_uncertainty(sd_pts, sd_ecr)) %>%
+    dplyr::ungroup() %>%
+    `attr<-`("season", attr_season) %>%
+    `attr<-`("week", attr_week) %>%
+    `attr<-`("lg_type", attr_lg_type)
+}
+
+
+#' Add player information to the table
+#'
+#' Adds player information to the projections table
+#' @export
+add_player_info <- function(projection_table){
+  lg_type <- attr(projection_table, "lg_type")
+  season <- attr(projection_table, "season")
+  week <- attr(projection_table, "week")
+
+  players = select(player_table,id, first_name, last_name, team, position, age, exp)
+
+  projection_table %>%
+    left_join(players, by = "id") %>%
+    `attr<-`(which = "season", season) %>%
+    `attr<-`(which = "week", week) %>%
+    `attr<-`(which = "lg_type", lg_type)
+}
+
+#' New, lighter, projections_table function
+#'
+#' Testing & improving now TO replace the current function in the next major app update
+projections_table2 = projections_table
 
 
 

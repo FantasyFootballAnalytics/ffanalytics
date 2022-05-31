@@ -1,38 +1,3 @@
-rules <- function(rule_list){
-
-  var_pattern <- list(pass = "^pass", rush = "^rush", rec = "^rec",
-                      ret = "^ret", kick = "^fg|^xp", dst = "^dst", idp = "^idp")
-
-  scoring_cols <- map(projection_sources, `[[`, "stat_cols") %>%
-    map(names) %>% reduce(union) %>% str_replace("rxx", "rec") %>%
-    c(., "rush_50_yds", "rush_100_yds", "rush_150_yds", "rush_200_yds")
-
-  rule_list <- rule_list[intersect(names(rule_list), scoring_cols)]
-
-  pos_sr <- map(var_pattern, ~ rule_list[str_subset(names(rule_list), .x)]) %>%
-    discard(~length(.) == 0)
-
-  pn <- map(pos_sr, names) %>% reduce(union)
-
-
-  pos_sr$misc <- rule_list[setdiff(names(rule_list), pn)]
-
-  return(pos_sr %>% discard(~ length(.) == 0))
-}
-
-pos_scor <- function(pname, rule_list){
-  pos <- pname %>% str_split("[:punct:]|[:space:]|\\|") %>% simplify() %>% str_subset(".+")
-  names(pos) <- pos
-
-  map(pos, ~ rules(rule_list)) %>% transpose()
-}
-
-grp_rule <- function(x, p){
-  sp <- ffanalytics:::scoring_positions[[p]]
-
-  map(x, ~ .x[intersect(names(.x), sp)]) %>% reduce(~ list_merge(.x,!!!.y)) %>%
-    modify_depth(2, sum)
-}
 
 #' Create Custom Scoring
 #'
@@ -60,43 +25,43 @@ grp_rule <- function(x, p){
 #' # Settings for a PPR league with TE premium
 #' custom_scoring(pass_yds = 0.04, pass_tds = 4,
 #'                rush_yds = 0.1, rush_tds = 6,
-#'                "RB, WR, TE" = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
-#'                "TE" = list(rec = 0.5))
+#'                RB = list(rec = 0, rec_yds = 0.1, rec_tds = 6),
+#'                WR = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
+#'                TE = list(rec = 1, rec_yds = 0.1, rec_tds = 6))
 #' @export
-custom_scoring <- function(...){
-  sr <- list(pass = list(), rush = list(all_pos = TRUE), rec = list(all_pos = TRUE),
-             misc = list(all_pos = TRUE), ret = list(all_pos = TRUE),
-             kick = list(), dst = list(), idp = list(all_pos = TRUE))
+custom_scoring = function(...) {
+  l = list(...)
+  l_values = unlist(l, use.names = TRUE)
 
-  scoring_args <- as.list(match.call())[-1]
+  name_l = strsplit(names(l_values), ".", fixed = TRUE)
+  name_l = lapply(name_l, function(x) {
+    c(scoring_type_for_cols[x[length(x)]], x)
+  })
 
-  scoring_cols <- map(projection_sources, `[[`, "stat_cols") %>%
-    map(names) %>% reduce(union) %>% str_replace("rxx", "rec") %>%
-    c(., "rush_50_yds", "rush_100_yds", "rush_150_yds", "rush_200_yds")
-
-  all_pos_scoring <- scoring_args[scoring_cols] %>% discard(is.null)
-  grp_sr <- list()
-
-  if(length(all_pos_scoring) > 0){
-    grp_sr <- rules(all_pos_scoring)
-    sr <- list_modify(sr, !!! grp_sr)
+  for(i in seq_along(name_l)) {
+    scoring_empty[[name_l[[i]]]] = unname(l_values)[i]
   }
 
-  pos_scoring <- scoring_args[setdiff(names(scoring_args), names(all_pos_scoring))] %>%
-    map(eval)
-  pos_sr <- list()
+  custom_scoring_obj = rrapply::rrapply(
+    scoring_empty,
+    function(x) !is.null(x) & x != 0,
+    how = "prune"
+  )
 
-  if(length(pos_scoring) > 0){
-    pos_sr <- imap(pos_scoring, ~ pos_scor(.y, .x)) %>%
-      transpose() %>%
-      imap( ~grp_rule(.x, .y ))
-    sr <- list_modify(sr, !!! pos_sr)
+  needs_all_pos = intersect(names(custom_scoring_obj), c("pass", "rush", "rec", "misc", "ret", "idp"))
+  all_pos_vec = sapply(custom_scoring_obj[needs_all_pos], function(x) {
+    !any(names(x) %in% c("QB", "RB", "WR", "TE", "DL", "LB", "DB"))
+  })
+
+  for(i in names(all_pos_vec)) {
+    custom_scoring_obj[[i]][["all_pos"]] = unname(all_pos_vec[i])
+    all_pos_pos = which(names(custom_scoring_obj[[i]]) == "all_pos")
+    pos_order = c(all_pos_pos, setdiff(seq_along(custom_scoring_obj[[i]]), all_pos_pos))
+    custom_scoring_obj[[i]] = custom_scoring_obj[[i]][pos_order]
   }
+  custom_scoring_obj
 
-  sr <- sr %>% discard(~ all(names(.) == "all_pos"))
-
-  ap <- sr[intersect(names(sr), c("rec", "rush", "misc", "ret", "idp"))]%>%
-    imap(~ list(all_pos = !any(ffanalytics:::scoring_positions[[.y]] %in% names(.x))))
-
-  sr %>% list_modify(!!! ap)
 }
+
+
+

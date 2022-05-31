@@ -9,7 +9,9 @@ projections_table(
   scoring_rules = NULL,
   src_weights = NULL,
   vor_baseline = NULL,
-  tier_thresholds = NULL
+  tier_thresholds = NULL,
+  avg_type = c("average", "robust", "weighted"),
+  return_raw_stats = FALSE
 )
 }
 \arguments{

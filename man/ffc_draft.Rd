@@ -7,7 +7,8 @@
 ffc_draft(
   format = c("standard", "ppr", "half-ppr", "2qb", "dynasty", "rookie"),
   pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
-  n_teams = c("12", "8", "10", "14")
+  n_teams = c("12", "8", "10", "14"),
+  metric = "adp"
 )
 }
 \arguments{

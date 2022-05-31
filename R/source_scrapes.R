@@ -556,8 +556,8 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
     data <- if (pos %in% c("QB", "WR")) {
       # Supress "New names:..." message
       suppressMessages(
-        read_xlsx(xlsx_file, sheet = position) %>%
-          unite(col = Player, `First Name`, `Last Name`, sep = " ", remove = FALSE) %>%
+        readxl::read_xlsx(xlsx_file, sheet = position) %>%
+          tidyr::unite(col = Player, `First Name`, `Last Name`, sep = " ", remove = FALSE) %>%
           select_if(~ any(!is.na(.x))) %>%
           select(matches("^Pass|^Rush|^Catch|^Rec|^Reg TD$|^Int|^FG|^XP|name$|^player|^Team$|^Pos|^Bye")) %>%
           rename(last_name = `Last Name`, first_name = `First Name`, position = Pos)
@@ -621,10 +621,6 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"), season =
   l_pos
 
 }
-
-
-
-
 
 # FleaFlicker ----
 scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
@@ -819,7 +815,6 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
 
 }
 
-
 # FFToday ----
 scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
                            season = 2021, week = 0, draft = FALSE, weekly = TRUE) {
@@ -926,7 +921,6 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K"),
   l_pos
 
 }
-
 
 # Fantasypros ----
 scrape_fantasypros = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = 2021, week = 0,

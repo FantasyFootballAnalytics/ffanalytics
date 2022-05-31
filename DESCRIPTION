@@ -2,10 +2,14 @@ Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
 Version: 2.0.10.0001
-Authors@R: c(person("Dennis", "Andersen", email = "andersen.dennis@outlook.com",
-                  role = c("aut", "cre")),
-             person("Andrew", "Tungate", role = "cre"),
-             person("Graham", "Seacat", role = "cre"))
+Authors@R: c(person("Dennis", "Andersen", 
+                    email = "andersen.dennis@outlook.com",
+                    role = c("aut")),
+             person("Andrew", "Tungate", 
+                    role = "cre", 
+                    email = "atungate@gmail.com"),
+             person("Graham", "Seacat", 
+                    role = "ctb"))
 Author: Dennis Andersen
 Maintainer: Andrew Tungate <atungate@gmail.com>
 Description: Scrapes data from multiple public sources of data and compiles into one dataset.
@@ -16,11 +20,12 @@ Imports:
     data.table,
     readxl,
     httr2,
-    rvest, 
-    stringr, 
-    purrr, 
+    rvest,
+    stringr,
+    purrr,
     tidyr,
-    dplyr
+    dplyr,
+    rrapply
 Depends: 
     R (>= 2.10)
 RoxygenNote: 7.1.2
@@ -40,6 +45,7 @@ Collate:
     'source_objects.R'
     'source_scrapes.R'
     'stats_aggregation.R'
+    'to_be_deprecated.R'
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

@@ -32,6 +32,7 @@ custom_scoring(pass_yds = 0.04, pass_tds = 4,
 # Settings for a PPR league with TE premium
 custom_scoring(pass_yds = 0.04, pass_tds = 4,
                rush_yds = 0.1, rush_tds = 6,
-               "RB, WR, TE" = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
-               "TE" = list(rec = 0.5))
+               RB = list(rec = 0, rec_yds = 0.1, rec_tds = 6),
+               WR = list(rec = 1, rec_yds = 0.1, rec_tds = 6),
+               TE = list(rec = 1, rec_yds = 0.1, rec_tds = 6))
 }
