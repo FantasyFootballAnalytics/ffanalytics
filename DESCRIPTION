@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 2.0.10.0001
+Version: 2.9.0.0001
 Authors@R: c(person("Dennis", "Andersen", 
                     email = "andersen.dennis@outlook.com",
                     role = c("aut")),
@@ -36,7 +36,6 @@ Collate:
     'ffanalytics.R'
     'helper_funcs.R'
     'impute_funcs.R'
-    'make_scoring.R'
     'recode_vars.R'
     'schedule_data.R'
     'scoring_rules.R'
@@ -44,7 +43,6 @@ Collate:
     'scrape_funcs.R'
     'source_objects.R'
     'source_scrapes.R'
-    'stats_aggregation.R'
     'to_be_deprecated.R'
 Suggests: knitr,
     rmarkdown

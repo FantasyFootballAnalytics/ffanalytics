@@ -7,7 +7,6 @@
 # This command needs to be executed from the package root folder.
 
 #### CBS Players #### ----
-
 cbs_links = paste0("https://www.cbssports.com/fantasy/football/depth-chart/",
                    c("QB", "RB", "WR", "TE", "K"))
 cbs_session = rvest::session("https://www.cbssports.com/fantasy/football")
@@ -32,12 +31,13 @@ cbs_data = lapply(cbs_links, function(page) {
 
   data.frame(player_names = basename(cols),
              player_id = basename(dirname(cols)),
-             pos = basename(page))
+             position = basename(page))
 })
 
 final_cbs = dplyr::bind_rows(cbs_data) %>%
   dplyr::transmute(cbs_id = player_id,
-            merge_id = paste0(sub("\\-", "", player_names), "_", tolower(pos)))
+                   id = get_mfl_id(player_name = player_names, pos = position),
+                   merge_id = paste0(sub("\\-", "", player_names), "_", tolower(position)))
 
 
 #### FFToday Players #### ----
@@ -550,7 +550,7 @@ saveRDS(curr_ids, temp_file)
 
 # After running necessary QA, replace data
 player_ids = readRDS(temp_file)
-usethis::use_data(player_ids, overwrite = TRUE, internal = TRUE)
+usethis::use_data(player_ids, pts_bracket_coefs, overwrite = TRUE, internal = TRUE)
 
 
 

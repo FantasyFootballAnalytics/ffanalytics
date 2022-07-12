@@ -4,6 +4,12 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
                                     "DL", "LB", "DB"),
                        rank_type = c("Std", "PPR", "Half")) {
 
+  rank_period = match.arg(rank_period, c("draft", "weekly", "ros", "dynasty", "rookies"))
+  position = match.arg(position, c("Overall", "QB", "RB", "WR", "TE", "K", "FLEX", "DST", "IDP",
+                                   "DL", "LB", "DB"))
+  rank_type = match.arg(rank_type, c("Std", "PPR", "Half"))
+
+
   if (rank_period == "weekly" & any(position == "Overall")) {
     stop("Overall weekly ranks are not provided", call. = FALSE)
   }
@@ -45,11 +51,11 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
     rk_php <- "rookies.php"
   }
 
-  rank_page <- read_html(paste0(ranks_url, rk_php))
+  rank_page <- rvest::read_html(paste0(ranks_url, rk_php))
 
   rank_tab = rank_page %>%
-    html_element("body") %>%
-    html_elements("script:contains('var ecrData')") %>%
+    rvest::html_element("body") %>%
+    rvest::html_elements("script:contains('var ecrData')") %>%
     html_text2()
 
   rank_tab = sub(".*?var ecrData = (.+?;).*", "\\1", rank_tab)

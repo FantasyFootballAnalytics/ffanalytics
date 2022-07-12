@@ -12,11 +12,13 @@ team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "
 
 
 nflTeam.abb <- c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
-                 "DAL", "DEN", "DET", "GB",  "HOU", "IND", "JAX", "KC",
+                 "DAL", "DEN", "DET", "GB",  "HOU", "IND", "JAC", "KC",
                  "MIA", "MIN", "NO",  "NE",  "NYG", "NYJ", "PHI", "PIT",
                  "LA",  "SF",  "LAC", "TB",  "TEN", "WAS", "SEA", "LV")
 
-mflTeam.abb <- gsub("JAX", "JAC", nflTeam.abb)
+mflTeam.abb <- replace(nflTeam.abb, nflTeam.abb == "JAX", "JAC")
+mflTeam.abb <- replace(mflTeam.abb, nflTeam.abb == "LA", "LAR")
+
 
 nflTeam.id <- c("100026", "100001", "100002", "100003", "100004", "100005", "100006", "100007",
                 "100008", "100009", "100010", "100011", "100013", "100014", "100015", "100016",

@@ -6,7 +6,7 @@
 \usage{
 add_adp(
   projection_table,
-  sources = c("RTS", "CBS", "MFL", "Yahoo", "NFL", "FFC")
+  sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL")
 )
 }
 \arguments{

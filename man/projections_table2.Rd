@@ -15,5 +15,5 @@ projections_table2(
 )
 }
 \description{
-Testing & improving now TO replace the current function in the next major app update
+Keeping until we transition in the app
 }

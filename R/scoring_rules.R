@@ -119,22 +119,23 @@ scoring_empty = list(pass = list(pass_att = NULL, pass_comp = NULL, pass_inc = N
 
 
 
-scoring_type_for_cols = c(pass_att = "pass", pass_comp = "pass", pass_inc = "pass", pass_yds = "pass",
-                          pass_tds = "pass", pass_int = "pass", pass_40_yds = "pass", pass_300_yds = "pass",
-                          pass_350_yds = "pass", pass_400_yds = "pass", all_pos = "rush",
-                          rush_yds = "rush", rush_att = "rush", rush_40_yds = "rush", rush_tds = "rush",
-                          rush_100_yds = "rush", rush_150_yds = "rush", rush_200_yds = "rush",
-                          all_pos = "rec", rec = "rec", rec_yds = "rec", rec_tds = "rec",
-                          rec_40_yds = "rec", rec_100_yds = "rec", rec_150_yds = "rec",
-                          rec_200_yds = "rec", all_pos = "misc", fumbles_lost = "misc",
-                          fumbles_total = "misc", sacks = "misc", two_pts = "misc", xp = "kick",
-                          fg_0019 = "kick", fg_2029 = "kick", fg_3039 = "kick", fg_4049 = "kick",
-                          fg_50 = "kick", fg_miss = "kick", all_pos = "ret", return_tds = "ret",
-                          return_yds = "ret", all_pos = "idp", idp_solo = "idp", idp_asst = "idp",
-                          idp_sack = "idp", idp_int = "idp", idp_fum_force = "idp", idp_fum_rec = "idp",
-                          idp_pd = "idp", idp_td = "idp", idp_safety = "idp", dst_fum_rec = "dst",
-                          dst_int = "dst", dst_safety = "dst", dst_sacks = "dst", dst_td = "dst",
-                          dst_blk = "dst", dst_ret_yds = "dst", dst_pts_allowed = "dst"
-)
+scoring_type_for_cols = c(
+  pass_att = "pass", pass_comp = "pass", pass_inc = "pass", pass_yds = "pass",
+  pass_tds = "pass", pass_int = "pass", pass_40_yds = "pass", pass_300_yds = "pass",
+  pass_350_yds = "pass", pass_400_yds = "pass", all_pos = "rush",
+  rush_yds = "rush", rush_att = "rush", rush_40_yds = "rush", rush_tds = "rush",
+  rush_100_yds = "rush", rush_150_yds = "rush", rush_200_yds = "rush",
+  all_pos = "rec", rec = "rec", rec_yds = "rec", rec_tds = "rec",
+  rec_40_yds = "rec", rec_100_yds = "rec", rec_150_yds = "rec",
+  rec_200_yds = "rec", all_pos = "misc", fumbles_lost = "misc",
+  fumbles_total = "misc", sacks = "misc", two_pts = "misc", xp = "kick",
+  fg_0019 = "kick", fg_2029 = "kick", fg_3039 = "kick", fg_4049 = "kick",
+  fg_50 = "kick", fg_miss = "kick", all_pos = "ret", return_tds = "ret",
+  return_yds = "ret", all_pos = "idp", idp_solo = "idp", idp_asst = "idp",
+  idp_sack = "idp", idp_int = "idp", idp_fum_force = "idp", idp_fum_rec = "idp",
+  idp_pd = "idp", idp_td = "idp", idp_safety = "idp", dst_fum_rec = "dst",
+  dst_int = "dst", dst_safety = "dst", dst_sacks = "dst", dst_td = "dst",
+  dst_blk = "dst", dst_ret_yds = "dst", dst_pts_allowed = "dst"
+  )
 
 

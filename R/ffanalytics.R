@@ -1,4 +1,4 @@
-#' @import dplyr tidyr purrr stringr httr2 rvest
+#' @import dplyr tidyr purrr httr2 rvest rrapply
 #' @importFrom data.table fread
 #' @importFrom readxl read_xlsx
 

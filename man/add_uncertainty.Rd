@@ -16,5 +16,6 @@ a large degree of uncertainty
 \details{
 A low score means there is general agreement among experts and projections.
 A high score indicates there is a lot of variability in rankings and/or
-projections.
+projections. By default `add_uncertainty()` uses `sd_pts` and `sd_ecr` to
+compute uncertantity.
 }

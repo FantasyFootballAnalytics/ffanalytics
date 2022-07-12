@@ -18,7 +18,7 @@ Should be one of \code{c("standard", "ppr", "2qb", "dynasty", "rookie")}}
 \item{pos}{indicates the position the data should be returned for. Should be
 one of \code{c("all", "qb", "rb", "wr", "te", "def", "pk")}}
 
-\item{season}{Indicates the season that data should be retuned for.}
+\item{season}{Indicates the season that data should be returned for.}
 }
 \value{
 A \link{data.frame} with the results.

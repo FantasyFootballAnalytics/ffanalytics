@@ -1,18 +1,4 @@
 
-get_scrape_year <- function(date) {
-  if(missing(date)) {
-    date = Sys.Date()
-  }
-  date = as.POSIXlt(date)
-  cal_year = date$year + 1900L
-  cal_month = date$mon + 1L
-
-  if(cal_month %in% 1:3) {
-    cal_year - 1L
-  } else {
-    cal_year
-  }
-}
 
 get_first_last_kickoff <- function(year) {
   if(missing(year)) {
@@ -42,9 +28,11 @@ get_first_last_kickoff <- function(year) {
 
 }
 
+first_last_games = get_first_last_kickoff()
+
 get_scrape_starts = function(first_last_games) {
   if(missing(first_last_games)) {
-    first_last_games = get_first_last_kickoff()
+    first_last_games = ffanalytics:::first_last_games
   }
   first_last_df = dplyr::bind_rows(first_last_games)
   last_vec = first_last_df$last
@@ -54,19 +42,20 @@ get_scrape_starts = function(first_last_games) {
   last_vec[19:22] = last_vec[18] + c(7, 14, 21, 35)
   last_vec
 }
+
+scrape_start_date = get_scrape_starts(first_last_games)
+
 get_scrape_week = function(scrape_start_date) {
   if(missing(scrape_start_date)) {
-    scrape_start_date = get_scrape_starts()
+    scrape_start_date = ffanalytics:::scrape_start_date
   }
   sum(Sys.Date() >= scrape_start_date)
 }
 
-first_last_games = get_first_last_kickoff()
-scrape_start_date = get_scrape_starts(first_last_games)
 
 
-# rrapply::rrapply(req_body,
-#                 function(x, .xname) .xname == "kickoff",
-#                 how = "prune")
+
+
+
 
 

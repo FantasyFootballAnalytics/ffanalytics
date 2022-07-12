@@ -64,4 +64,66 @@ custom_scoring = function(...) {
 }
 
 
+#' Create Scoring Tables when computing projections table
+#'
+#' Creates tables for the DST points brackets and the scoring tables by position
+#' used in the `projections_table()` function.
+make_scoring_tables = function(scoring_rules) {
+
+  # First, the points bracket for DST
+  l_pts_bracket = rapply(scoring_rules$pts_bracket, as.numeric, how = "replace")
+  scoring_rules$pts_bracket = NULL
+
+  # Next the main scoring tables (by position)
+  scoring_l = vector("list", 9L)
+  names(scoring_l) = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")
+  all_pos_idx = unlist(lapply(scoring_rules, `[[`, "all_pos"))
+
+  # if no custom scoring (create several copies of the same table)
+  if(all(all_pos_idx)) {
+    scoring_table = dplyr::tibble(
+      category = rep(names(scoring_rules), times = lengths(scoring_rules)),
+      column = sub(".*?\\.", "", names(unlist(scoring_rules, recursive = FALSE))),
+      val = unlist(scoring_rules)
+    )
+    for(pos in names(scoring_l)) {
+      if(pos %in% "DST") {
+        scoring_table = rbind(scoring_table,
+                              data.frame(category = "dst", column = "pts_bracket", val = 1))
+      }
+      scoring_l[[pos]] = scoring_table
+    }
+  } else { # if there is custom scoring by position (create separate tables)
+    custom_cols = names(all_pos_idx[!all_pos_idx])
+    for(pos in names(scoring_l)) {
+      temp_scoring = scoring_rules
+
+      for(col in custom_cols) { # if one column is custom, use it, else make NULL
+        if(pos %in% names(temp_scoring[[col]])) {
+          temp_scoring[[col]] = temp_scoring[[col]][[pos]]
+        } else {
+          temp_scoring[[col]] = NULL
+        }
+      }
+
+      scoring_table = dplyr::tibble(
+        category = rep(names(temp_scoring), times = lengths(temp_scoring)),
+        column = sub(".*?\\.", "", names(unlist(temp_scoring, recursive = FALSE))),
+        val = unlist(temp_scoring)
+      )
+
+      if(pos %in% "DST") {
+        scoring_table = rbind(scoring_table,
+                              data.frame(category = "dst", column = "pts_bracket", val = 1))
+      }
+      scoring_l[[pos]] = scoring_table
+    }
+  }
+
+  list(pts_bracket = l_pts_bracket,
+       scoring_tables = scoring_l)
+
+}
+
+
 
