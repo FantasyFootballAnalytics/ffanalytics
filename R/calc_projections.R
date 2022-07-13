@@ -539,7 +539,7 @@ add_aav <- function(projection_table,
     warning("AAV data is not available for weekly data", call. = FALSE)
     return(projection_table)
   }
-  adp_tbl <- get_adp(sources, type = "aav") %>%
+  adp_tbl <- get_adp(sources, metric = "aav") %>%
     dplyr::select(id, aav = length(.))
 
   projection_table <- dplyr::left_join(projection_table, adp_tbl, by = "id")
