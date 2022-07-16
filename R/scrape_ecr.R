@@ -1,11 +1,11 @@
 #' @export
 scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "rookies"),
-                       position = c("Overall", "QB", "RB", "WR", "TE", "K", "FLEX", "DST", "IDP",
+                       position = c("Overall", "QB", "RB", "WR", "TE", "K", "SUPERFLEX", "DST", "IDP",
                                     "DL", "LB", "DB"),
                        rank_type = c("Std", "PPR", "Half")) {
 
   rank_period = match.arg(rank_period, c("draft", "weekly", "ros", "dynasty", "rookies"))
-  position = match.arg(position, c("Overall", "QB", "RB", "WR", "TE", "K", "FLEX", "DST", "IDP",
+  position = match.arg(position, c("Overall", "QB", "RB", "WR", "TE", "K", "SUPERFLEX", "DST", "IDP",
                                    "DL", "LB", "DB"))
   rank_type = match.arg(rank_type, c("Std", "PPR", "Half"))
 
@@ -70,12 +70,28 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   rank_tab_names = gsub(":.*", "", rank_tab[[1]])
   rank_tab = lapply(rank_tab, function(x) gsub(".*:", "", x))
   rank_tab = lapply(rank_tab, function(x) `names<-`(x, rank_tab_names))
-  rank_tab = lapply(rank_tab, `[`, c("player_id", "rank_ave", "rank_std"))
+
+  # rank_tab = lapply(rank_tab, `[`, c("player_id", "rank_ave", "rank_std"))
 
   bind_rows(rank_tab) %>%
-    transmute(id = player_ids$id[match(player_id, player_ids$fantasypro_num_id)],
+    mutate(fantasypro_num_id = player_id) %>%
+    transmute(id = get_mfl_id(fantasypro_num_id, player_name = player_name,
+                              team = player_team_id, pos = player_position_id),
               avg = as.numeric(rank_ave),
-              std_dev = as.numeric(rank_std))
+              std_dev = as.numeric(rank_std),
+              ecr_rank = as.integer(rank_ecr),
+              ecr_min = as.integer(rank_min),
+              ecr_max = as.integer(rank_max))
+
+
 }
+
+
+
+
+
+
+
+
 
 
