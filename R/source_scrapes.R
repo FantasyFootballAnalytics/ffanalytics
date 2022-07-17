@@ -847,6 +847,10 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
       col_names <- trimws(paste(scrape[1, ], scrape[2, ]))
       col_names = rename_vec(col_names, fftoday_columns)
 
+      if(pos %in% c("DL", "DB", "LB")) {
+        col_names = sub("(dst|pass)_", "idp_", col_names)
+      }
+
       # Dataframe
       temp_df = type.convert(scrape[-c(1:2), ], as.is = TRUE)
       names(temp_df) = col_names
