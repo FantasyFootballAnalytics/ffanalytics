@@ -848,7 +848,7 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
       col_names = rename_vec(col_names, fftoday_columns)
 
       if(pos %in% c("DL", "DB", "LB")) {
-        col_names = sub("(dst|pass)_", "idp_", col_names)
+        col_names = gsub("(dst|pass)_", "idp_", col_names)
       }
 
       # Dataframe
