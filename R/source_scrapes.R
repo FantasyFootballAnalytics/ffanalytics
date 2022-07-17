@@ -264,7 +264,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
       names(pos_df) = replace(names(pos_df), names(pos_df) == "pass_int", "dst_int")
     }
     if(pos %in% c("DL", "LB", "DB")) {
-      names(pos_df) = gsub("^dst_", "idp_", names(pos_df))
+      names(pos_df) = gsub("^(dst|pass)_", "idp_", names(pos_df))
     }
 
     pos_df$id = as.character(pos_df$id)
