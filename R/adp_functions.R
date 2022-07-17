@@ -330,6 +330,8 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
     } else {
       out = out[order(out[[paste0(metric, "_avg")]]), ]
     }
+  } else {
+    out = draft_l[[1]]
   }
   out
 }
