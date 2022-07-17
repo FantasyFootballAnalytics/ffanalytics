@@ -320,6 +320,10 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
   })
   draft_l = Filter(Negate(is.null), draft_l)
 
+  if(length(draft_l) == 0) {
+    return(NULL)
+  }
+
   if(length(draft_l) > 1) {
     out = Reduce(function(x, y) dplyr::full_join(x, y, "id"), draft_l)
     out[[paste0(metric, "_avg")]] = rowMeans(out[-1], na.rm = TRUE)
