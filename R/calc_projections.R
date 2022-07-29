@@ -434,6 +434,7 @@ add_ecr <- function(projection_table){
   lg_type <- attr(projection_table, "lg_type")
   season <- attr(projection_table, "season")
   week <- attr(projection_table, "week")
+  message("Scraping ECR data")
 
   if(week == 0) {
     rank_per = "draft"
@@ -496,9 +497,16 @@ add_adp <- function(projection_table,
     warning("ADP data is not available for weekly data", call. = FALSE)
     return(projection_table)
   }
+  message("Scraping ADP data")
 
-  adp_tbl <- get_adp(sources, metric = "adp") %>%
-    dplyr::select(id, adp = length(.))
+  adp_tbl <- get_adp(sources, metric = "adp")
+
+  if(ncol(adp_tbl) == 2) {
+    names(adp_tbl)[2] = "adp"
+  } else {
+    adp_tbl = adp_tbl %>%
+      dplyr::select(id, adp = adp_avg, adp_sd)
+  }
 
   projection_table <- left_join(projection_table, adp_tbl, by = "id") %>%
     dplyr::mutate(adp_diff = rank - adp)
@@ -518,9 +526,9 @@ add_adp <- function(projection_table,
 #' \code{c("RTS", "ESPN", "Yahoo", "NFL")}
 #' @export
 add_aav <- function(projection_table,
-                    sources = c("RTS", "ESPN", "Yahoo", "NFL")){
+                    sources = c("RTS", "ESPN", "Yahoo", "NFL", "MFL")) {
 
-  sources = match.arg(sources, c("RTS", "ESPN", "Yahoo", "NFL"), several.ok = TRUE)
+  sources = match.arg(sources, c("RTS", "ESPN", "Yahoo", "NFL", "MFL"), several.ok = TRUE)
 
   lg_type <- attr(projection_table, "lg_type")
   season <- attr(projection_table, "season")
@@ -530,8 +538,15 @@ add_aav <- function(projection_table,
     warning("AAV data is not available for weekly data", call. = FALSE)
     return(projection_table)
   }
-  adp_tbl <- get_adp(sources, metric = "aav") %>%
-    dplyr::select(id, aav = length(.))
+  message("Scraping AAV Data")
+  adp_tbl <- get_adp(sources, metric = "aav")
+
+  if(ncol(adp_tbl) == 2) {
+    names(adp_tbl)[2] = "aav"
+  } else {
+    adp_tbl = adp_tbl %>%
+      dplyr::select(id, aav = aav_avg, aav_sd)
+  }
 
   projection_table <- dplyr::left_join(projection_table, adp_tbl, by = "id")
 

@@ -309,7 +309,7 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
   is_aav = (metric == "aav")
 
   if(is_aav) {
-    sources = setdiff(sources, c("CBS", "FFC"))
+    sources = setdiff(sources, c("CBS", "FFC", "NFL"))
   }
 
   draft_l = lapply(tolower(sources), function(source) {
@@ -340,7 +340,7 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
   out
 }
 
-
+get_adp("RTS")
 
 
 
