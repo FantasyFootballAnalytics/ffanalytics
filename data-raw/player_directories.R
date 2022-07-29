@@ -550,9 +550,9 @@ saveRDS(curr_ids, temp_file)
 
 # After running necessary QA, replace data
 player_ids = readRDS(temp_file)
-usethis::use_data(player_ids, pts_bracket_coefs, overwrite = TRUE, internal = TRUE)
-
-
+usethis::use_data(bonus_col_sets, bonus_col_coefs,
+                  pts_bracket_coefs, player_ids,
+                  overwrite = TRUE, internal = TRUE)
 
 
 

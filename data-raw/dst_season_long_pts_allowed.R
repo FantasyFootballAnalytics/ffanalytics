@@ -1,6 +1,5 @@
 
 
-
 # Imperfect approach but will work for now. Predicts the SD so we can do season
 # long points bracket estimates
 df1 = nflfastR::fast_scraper_schedules(get_scrape_year() - 1) %>%

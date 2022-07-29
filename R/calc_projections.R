@@ -184,8 +184,6 @@ source_points = function(data_result, scoring_rules, return_data_result = FALSE)
       scored_vals = mapply(`*`, data_result[[pos]][cols], scoring_table[match(cols, scoring_table$column), ]$val)
       rowSums(scored_vals, na.rm = TRUE)
     } else {
-      message(paste0("Note: no scoring columns for position ", pos, " in scoring_rules.\n      (",
-                     pos, " will dropped from the final table)"))
       NA
     }
   })
@@ -274,13 +272,6 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
   scoring_l = scoring_objs$scoring_tables
   l_pts_bracket = scoring_objs$pts_bracket
 
-
-  # temp until fix on walterfootball scrape
-  # if("QB" %in% names(data_result) && "rec_tds" %in% names(data_result$QB)) {
-  #   data_result$QB$rush_tds = coalesce(data_result$QB$rush_tds, data_result$QB$rec_tds)
-  #   data_result$QB$rec_tds = NULL
-  # }
-
   # Adding weight and removing empty id's
   data_result[] = lapply(data_result, function(df) {
     df = df[!is.na(df$id), ]
@@ -290,7 +281,7 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
 
   # Imputing values ----
   data_result[] = impute_via_rates_and_mean(data_result, scoring_objs)
-
+  data_result = impute_bonus_cols(data_result, scoring_objs$scoring_tables)
 
   # To return the aggregataed stats instead of the fantasy points
   if(return_raw_stats) {

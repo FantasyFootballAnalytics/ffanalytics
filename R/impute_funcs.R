@@ -159,8 +159,38 @@ impute_via_rates_and_mean = function(data_result, scoring_objs) {
 }
 
 
+impute_bonus_cols = function(data_result, scoring_tables) {
+  for(i in names(data_result)) {
+    scoring_table = scoring_tables[[i]]
+    df = data_result[[i]]
+    bonus_coefs = bonus_col_coefs
+    bonus_coefs = bonus_coefs[sub("_\\d+", "", names(bonus_coefs)) %in% names(df)]
 
+    if(length(bonus_coefs) == 0) {
+      next
+    }
 
+    # Computing the bonus columns
+    for(i in seq_along(bonus_coefs)) {
+      col_coef = bonus_coefs[[i]]
+      col_name = names(bonus_coefs)[i]
+      df[[col_name]] = col_coef[1] + df[[names(col_coef)[2]]] * col_coef[2]
+    }
+
+    # Adding relevant columns
+    sum_cols = intersect(names(bonus_coefs), names(bonus_col_sets))
+
+    if(length(sum_cols) == 0) {
+      next
+    }
+    for(i in sum_cols) {
+      df[[i]] = rowSums(df[bonus_col_sets[[sum_cols[i]]]], na.rm = TRUE)
+    }
+    data_result[[i]] = df
+
+  }
+  data_result
+}
 
 
 

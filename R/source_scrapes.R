@@ -262,6 +262,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
     }
     if(pos == "DST") {
       names(pos_df) = replace(names(pos_df), names(pos_df) == "pass_int", "dst_int")
+      pos_df$id = sprintf("%04d", as.numeric(pos_df$id))
     }
     if(pos %in% c("DL", "LB", "DB")) {
       names(pos_df) = gsub("^(dst|pass)_", "idp_", names(pos_df))
@@ -1036,6 +1037,12 @@ scrape_rtsports = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
       tidyr::pivot_wider(names_from = L4, values_from = value) %>%
       dplyr::select(-c(L1:L3)) %>%
       Filter(f = function(x) any(x[1] != x, na.rm = TRUE))
+
+    if(x %in% c("RB", "WR", "TE") && "pass_yds" %in% names(p_data)) {
+      if(!"pass_atts" %in% names(p_data)) {
+        p_data[["pass_atts"]] = 0L
+      }
+    }
 
     out_df = dplyr::bind_cols(p_info, p_data)
 
