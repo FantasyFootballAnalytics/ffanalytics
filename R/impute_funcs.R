@@ -158,7 +158,7 @@ impute_via_rates_and_mean = function(data_result, scoring_objs) {
 
 }
 
-
+# TODO: keep fantasyshark estimate, add weekly logic.
 impute_bonus_cols = function(data_result, scoring_tables) {
   for(i in names(data_result)) {
     scoring_table = scoring_tables[[i]]
