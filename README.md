@@ -14,10 +14,10 @@ Intallation of the `ffanalytics` package can be done directly from github:
 ## Projection sources
 The following sources are available for scraping:
 
-* For seasonal data: CBS, ESPN, FantasyData, FantasyPros, FantasySharks, FFToday, 
-FleaFlicker, NumberFire, Yahoo, FantasyFootballNerd, NFL, RTSports, Walterfootball
-* For weekly data: CBS, ESPN, FantasyData, FantasyPros, FantasySharks, FFToday, 
-FleaFlicker, NumberFire, Yahoo, FantasyFootballNerd, NFL
+* For seasonal data: CBS, ESPN, FantasyPros, FantasySharks, FFToday, 
+NumberFire, FantasyFootballNerd, NFL, RTSports, Walterfootball
+* For weekly data: CBS, ESPN, FantasyPros, FantasySharks, FFToday, 
+FleaFlicker, NumberFire, FantasyFootballNerd, NFL
 
 While the scrape functions allows the user to specify season and week, scraping
 historical periods will not be successful.
@@ -31,12 +31,12 @@ that script will re-create the `projections_sources` object for the package
 ## Scraping data
 The main function for scraping data is `scrape_data`. This function will pull data
 from the sources specified, for the positions specified in the season and week specificed.
-To pull data for QBs, RBs, WRs, TEs and DSTs from CBS, ESPN and Yahoo for the 2018
+To pull data for QBs, RBs, WRs, TEs and DSTs from CBS, NFL and NumberFire for the 2022
 season the user would run:
 ```
-my_scrape <- scrape_data(src = c("CBS", "ESPN", "Yahoo"), 
+my_scrape <- scrape_data(src = c("CBS", "NFL", "Numberfire"), 
                          pos = c("QB", "RB", "WR", "TE", "DST"),
-                         season = 2018, week = 0)
+                         season = 2022, week = 0)
 ```
 
 `my_scrape` will be a list of tibbles, one for each positon scraped, which contains
@@ -57,10 +57,13 @@ See `?projections_table` for details.
 To add rankings information, risk value and ADP/AAV data use the `add_ecr`, `add_risk`, 
 `add_adp`, and `add_aav` functions:
 ```
-my_projections <- my_projections %>% add_ecr() %>% add_risk() %>%
-  add_adp() %>% add_aav()
+my_projections <- my_projections %>% 
+  add_ecr() %>% 
+  add_adp() %>% 
+  add_aav() %>%
+  add_uncertantity() 
 ```
-Note that `add_ecr` will need to be called before `add_risk` to ensure that the
+Note that `add_ecr` will need to be called before `add_uncertantity` to ensure that the
 ECR data is available for the risk calculation.
 
 The `add_adp` and `add_aav` allows to specify sources for ADP and AAV. See `?add_adp`,
@@ -71,7 +74,8 @@ Player data is pulled from MFL when the package loads and stored in the `player_
 object. To add player data to the projections table use `add_player_info`, which adds
 the player names, teams, positions, age, and experience to the data set.
 ```
-my_projections <- my_projections %>% add_player_info()
+my_projections <- my_projections %>% 
+  add_player_info()
 ```
 
 

@@ -4,11 +4,11 @@
 \alias{rts_draft}
 \title{Get ADP/AAV data from RTSports}
 \usage{
-rts_draft(aav = FALSE)
+rts_draft(metric = c("adp", "aav"))
 }
 \arguments{
-\item{aav}{Indicates whether AAV data is scraped. If set to \code{FALSE} (Default),
-ADP data is scraped. Set it to \code{TRUE} to scrape AAV data.}
+\item{metric}{Indicates whether APD or AAV data is scraped. By default, ADP
+data is scraped. Set it to \code{"aav"} to scrape AAV data.}
 }
 \value{
 A \link{data.frame} with the results.

@@ -1,33 +1,36 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 2.0.10.0001
-Authors@R: c(person("Dennis", "Andersen", email = "andersen.dennis@outlook.com",
-                  role = c("aut", "cre")))
+Version: 2.9.0.0001
+Authors@R: c(person("Dennis", "Andersen", 
+                    email = "andersen.dennis@outlook.com",
+                    role = c("aut")),
+             person("Isaac", "Petersen", 
+                    role = c("aut")),
+             person("Andrew", "Tungate", 
+                    role = "cre", 
+                    email = "atungate@gmail.com"),
+             person("Graham", "Seacat", 
+                    role = "ctb"))
 Author: Dennis Andersen
-Maintainer: Dennis Andersen <andersen.dennis@outlook.com>
+Maintainer: Andrew Tungate <atungate@gmail.com>
 Description: Scrapes data from multiple public sources of data and compiles into one dataset.
 License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports: 
-    R6,
-    janitor,
     data.table,
-    glue,
     readxl,
-    lubridate
+    httr2,
+    rvest,
+    stringr,
+    purrr,
+    tidyr,
+    dplyr,
+    rrapply
 Depends: 
-    dplyr, 
-    tibble, 
-    tidyr, 
-    purrr, 
-    stringr, 
-    httr, 
-    rvest, 
-    xml2,
     R (>= 2.10)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Collate:
     'adp_functions.R'
     'calc_projections.R'
@@ -35,16 +38,14 @@ Collate:
     'ffanalytics.R'
     'helper_funcs.R'
     'impute_funcs.R'
-    'make_scoring.R'
     'recode_vars.R'
     'schedule_data.R'
     'scoring_rules.R'
     'scrape_ecr.R'
     'scrape_funcs.R'
-    'source_classes.R'
     'source_objects.R'
     'source_scrapes.R'
-    'stats_aggregation.R'
+    'to_be_deprecated.R'
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

@@ -4,7 +4,7 @@
 \alias{nfl_draft}
 \title{Get ADP/AAV data from NFL}
 \usage{
-nfl_draft()
+nfl_draft(metric = "adp")
 }
 \value{
 A \link{data.frame} with the results. Contains both ADP and AAV data

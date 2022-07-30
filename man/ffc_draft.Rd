@@ -5,9 +5,10 @@
 \title{Get ADP data from Fantasy Football Calculator}
 \usage{
 ffc_draft(
-  format = c("standard", "ppr", "2qb", "dynasty", "rookie"),
+  format = c("standard", "ppr", "half-ppr", "2qb", "dynasty", "rookie"),
   pos = c("all", "qb", "rb", "wr", "te", "def", "pk"),
-  season = 2019
+  n_teams = c("12", "8", "10", "14"),
+  metric = "adp"
 )
 }
 \arguments{
@@ -17,7 +18,7 @@ Should be one of \code{c("standard", "ppr", "2qb", "dynasty", "rookie")}}
 \item{pos}{indicates the position the data should be returned for. Should be
 one of \code{c("all", "qb", "rb", "wr", "te", "def", "pk")}}
 
-\item{season}{Indicates the season that data should be retuned for.}
+\item{season}{Indicates the season that data should be returned for.}
 }
 \value{
 A \link{data.frame} with the results.

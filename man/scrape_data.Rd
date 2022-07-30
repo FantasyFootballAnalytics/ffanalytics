@@ -5,12 +5,12 @@
 \title{Scrape data from multiple sources and multiple positions}
 \usage{
 scrape_data(
-  src = c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
-    "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL", "RTSports",
-    "Walterfootball"),
+  src = c("CBS", "ESPN", "FantasyPros", "FantasySharks", "FFToday", "FleaFlicker",
+    "NumberFire", "FantasyFootballNerd", "NFL", "RTSports", "Walterfootball"),
   pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-  season = 2021,
-  week = 0
+  season = NULL,
+  week = NULL,
+  ...
 )
 }
 \arguments{

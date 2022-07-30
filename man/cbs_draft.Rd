@@ -4,7 +4,7 @@
 \alias{cbs_draft}
 \title{Get ADP data from CBS}
 \usage{
-cbs_draft()
+cbs_draft(metric = "adp")
 }
 \value{
 A \link{data.frame} with the results.
