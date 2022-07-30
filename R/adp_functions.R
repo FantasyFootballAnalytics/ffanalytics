@@ -340,7 +340,5 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
   out
 }
 
-get_adp("RTS")
-
 
 
