@@ -7,9 +7,34 @@ relies heavily on the vocabulary from the `tidyverse` and users will better be
 able to use the package if they familiarize themselves with the `tidyverse` way 
 of creating code.
 
+**Version 3 of the package**:
+
+Summer of 2022 we incremented to version 3.0 of the package. There are several
+things worth highlighting:
+
+Breaking changes:
+
+* `add_risk()` is no longer exported and is superseded by `add_uncertainty()`
+* Several helper functions are no-longer exported
+* When loading `ffanalytics`, no other packages load with it (i.e., we removed 
+all packages from the "Depends" field). Previously, calling `library(ffanalytics)`
+also loaded `dplyr`, `tidyr`, and several other packages.
+* We no longer use the projection_sources `R6` object internally
+
+Updates:
+
+* Individual scrapes are now self-contained internally (e.g. `ffanalytics:::scrape_cbs()`)
+* Rate limits have been added to all scrapes (typically waiting 2 seconds between pages)
+* The `projections_table` function has a new argument: `avg_type = c("average", "robust", "weighted")`. 
+By default the `projections_table` function will compute all average types, but 
+one or two can be specified. 
+
+
 ## Installation
-Intallation of the `ffanalytics` package can be done directly from github:
-`devtools::install_github("FantasyFootballAnalytics/ffanalytics")`
+Installation of the `ffanalytics` package can be done directly from github:
+```
+devtools::install_github("FantasyFootballAnalytics/ffanalytics")
+```
 
 ## Projection sources
 The following sources are available for scraping:
@@ -19,14 +44,8 @@ NumberFire, FantasyFootballNerd, NFL, RTSports, Walterfootball
 * For weekly data: CBS, ESPN, FantasyPros, FantasySharks, FFToday, 
 FleaFlicker, NumberFire, FantasyFootballNerd, NFL
 
-While the scrape functions allows the user to specify season and week, scraping
+Although the scrape functions allows the user to specify season and week, scraping
 historical periods will not be successful.
-
-Projection sources are defined as `R6` classes and the `projection_sources` object
-is a list containing the projection sources defined in the pacakge. Review the
-`source_classes.R` file to see how these classes are defined and the `source_configs.R`
-file in the `data-raw` directory has all the individual sources defined and running
-that script will re-create the `projections_sources` object for the package
 
 ## Scraping data
 The main function for scraping data is `scrape_data`. This function will pull data
@@ -34,14 +53,14 @@ from the sources specified, for the positions specified in the season and week s
 To pull data for QBs, RBs, WRs, TEs and DSTs from CBS, NFL and NumberFire for the 2022
 season the user would run:
 ```
-my_scrape <- scrape_data(src = c("CBS", "NFL", "Numberfire"), 
+my_scrape <- scrape_data(src = c("CBS", "NFL", "NumberFire"), 
                          pos = c("QB", "RB", "WR", "TE", "DST"),
                          season = 2022, week = 0)
 ```
 
-`my_scrape` will be a list of tibbles, one for each positon scraped, which contains
+`my_scrape` will be a list of tibbles, one for each position scraped, which contains
 the data for each source for that position. In the `tibble` the `data_src` column
-speficies the source of the data.
+specifies the source of the data.
 
 ## Calculating projections
 Once data is scraped the projected points can be calculated. this is done with
@@ -50,21 +69,21 @@ the `projections_table` function:
 my_projections <-  projections_table(my_scrape)
 ```
 This will calculate projections using the default settings. You can provide additional
-parameters for the `projections_table` function to customize the calculations.
+parameters for the `projections_table` function to customize the calculations. 
 See `?projections_table` for details.
 
 ## Adding additional information
-To add rankings information, risk value and ADP/AAV data use the `add_ecr`, `add_risk`, 
-`add_adp`, and `add_aav` functions:
+To add rankings information, risk value and ADP/AAV data use the `add_ecr`, 
+`add_uncertainty` (superseding `add_risk`), `add_adp`, and `add_aav` functions:
 ```
 my_projections <- my_projections %>% 
   add_ecr() %>% 
   add_adp() %>% 
   add_aav() %>%
-  add_uncertantity() 
+  add_uncertainty() 
 ```
-Note that `add_ecr` will need to be called before `add_uncertantity` to ensure that the
-ECR data is available for the risk calculation.
+Note that `add_ecr` will need to be called before `add_uncertainty` to ensure that the
+ECR data is available for the uncertainty calculation.
 
 The `add_adp` and `add_aav` allows to specify sources for ADP and AAV. See `?add_adp`,
 and `?add_aav` for details.
