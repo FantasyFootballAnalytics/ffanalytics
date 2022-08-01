@@ -171,10 +171,17 @@ impute_bonus_cols = function(data_result, scoring_tables) {
     }
 
     # Computing the bonus columns
-    for(i in seq_along(bonus_coefs)) {
-      col_coef = bonus_coefs[[i]]
-      col_name = names(bonus_coefs)[i]
-      df[[col_name]] = col_coef[1] + df[[names(col_coef)[2]]] * col_coef[2]
+    for(idx in seq_along(bonus_coefs)) {
+      col_coef = bonus_coefs[[idx]]
+      col_name = names(bonus_coefs)[idx]
+
+      if(col_name %in% names(df)) {
+        imputed_val = col_coef[1] + df[[names(col_coef)[2]]] * col_coef[2]
+        df[[col_name]] = dplyr::coalesce(df[[col_name]], imputed_val)
+      } else {
+        df[[col_name]] = col_coef[1] + df[[names(col_coef)[2]]] * col_coef[2]
+      }
+      df[[col_name]] = replace(df[[col_name]], df[[col_name]] < 0, 0)
     }
 
     # Adding relevant columns
@@ -183,8 +190,8 @@ impute_bonus_cols = function(data_result, scoring_tables) {
     if(length(sum_cols) == 0) {
       next
     }
-    for(i in sum_cols) {
-      df[[i]] = rowSums(df[bonus_col_sets[[sum_cols[i]]]], na.rm = TRUE)
+    for(j in sum_cols) {
+      df[[j]] = rowSums(df[bonus_col_sets[[j]]], na.rm = TRUE)
     }
     data_result[[i]] = df
 
