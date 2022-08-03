@@ -33,7 +33,8 @@ one or two can be specified.
 ## Installation
 Installation of the `ffanalytics` package can be done directly from github:
 ```
-devtools::install_github("FantasyFootballAnalytics/ffanalytics")
+install.packages("remotes")
+remotes::install_github("FantasyFootballAnalytics/ffanalytics")
 ```
 
 ## Projection sources
@@ -96,5 +97,3 @@ the player names, teams, positions, age, and experience to the data set.
 my_projections <- my_projections %>% 
   add_player_info()
 ```
-
-
