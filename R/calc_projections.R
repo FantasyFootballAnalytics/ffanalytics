@@ -254,6 +254,11 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
 
   # Computing league type
   if(scoring_rules$rec$all_pos){
+    if(is.null(scoring_rules$rec$rec)) {
+      obj_name = deparse(substitute(scoring_rules))
+      scoring_rules$rec$rec = 0L
+      message(paste0("Note: ", obj_name, "$rec$rec not specified. Default value is 0 (i.e., 0 PPR)"))
+    }
     lg_type = rep(scoring_rules$rec$rec, length(data_result))
     lg_type = dplyr::case_when(lg_type > .5 ~ "PPR",
                                lg_type > 0 ~ "Half",

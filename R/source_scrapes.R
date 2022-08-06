@@ -798,7 +798,8 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
     # The number of pages to scrape by position
     pos_pages <- case_when(
       pos %in% c("QB", "TE", "K", "DST") ~ 1L,
-      pos %in% c("RB", "WR", "DL", "DB", "LB") ~ 2L)
+      pos %in% c("RB", "WR", "DL", "DB", "LB") ~ 2L
+      )
 
     # Going through n pages (depending on position) pages
     while (i <= pos_pages) {
@@ -855,6 +856,8 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
       # Dataframe
       temp_df = type.convert(scrape[-c(1:2), ], as.is = TRUE)
       names(temp_df) = col_names
+      temp_df$bye = as.integer(gsub("-", "", temp_df$bye, fixed = TRUE))
+
 
 
       # Create / fix additional columns
@@ -1085,8 +1088,14 @@ scrape_fantasyfootballnerd = function(pos = NULL, season = NULL, week = NULL,
     "\nThe FantasyFootballNerd scrape is not implemeted yet--we are working on it"
     )
 
+}
+
+scrape_fantasyfootballnerd_beta = function(pos = NULL, season = NULL, week = NULL,
+                                      draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
+
 
 }
+
 
 # FantasyData ----
 scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
@@ -1100,7 +1109,7 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
 scrape_yahoo = function(pos = NULL, season = NULL, week = NULL,
                         draft = TRUE, weekly = TRUE) {
   message(
-    "\nThe Yahoo scrape is no longer supported because they now use the FantasyPros projections"
+    "\nThe Yahoo scrape is no longer supported because they now use FantasyPros projections"
     )
 }
 

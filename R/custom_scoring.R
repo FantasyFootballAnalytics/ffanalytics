@@ -44,7 +44,7 @@ custom_scoring = function(...) {
 
   custom_scoring_obj = rrapply::rrapply(
     scoring_empty,
-    function(x) !is.null(x) & x != 0,
+    function(x) !is.null(x),
     how = "prune"
   )
 
