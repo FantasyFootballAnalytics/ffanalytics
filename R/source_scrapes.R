@@ -797,8 +797,9 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
 
     # The number of pages to scrape by position
     pos_pages <- case_when(
-      pos %in% c("QB", "TE", "K", "DST") ~ 1L,
-      pos %in% c("RB", "WR", "DL", "DB", "LB") ~ 2L
+      pos %in% c("K", "DST") ~ 1L,
+      pos %in% c("QB", "RB", "TE") ~ 2L,
+      pos %in% c("WR", "DL", "DB", "LB") ~ 3L
       )
 
     # Going through n pages (depending on position) pages
