@@ -312,7 +312,7 @@ numberfire_columns = c(
   `Yahoo Value` = "yahoo_value"
   )
 
-# Walkertfootball columns ----
+# Walterfootball columns ----
 walterfootball_columns = c(
   Player = "player",
   Team = "team",
@@ -348,7 +348,7 @@ fftoday_columns = c(
   "Receiving TD" = "rec_tds",
   "FGM" = "fg",
   "FGA" = "fg_att",
-  "FG" = "fg_pct",
+  "FG%" = "fg_pct",
   "EPM" = "xp",
   "EPA" = "xp_att",
   "FG Made" = "fg",

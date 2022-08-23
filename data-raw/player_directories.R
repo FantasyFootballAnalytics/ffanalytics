@@ -457,7 +457,8 @@ my_fl_ids = httr::GET("https://api.myfantasyleague.com/2022/export?TYPE=players&
 updated_ids = my_fl_ids %>%
   select(first_name, last_name, position, id, team, ends_with("_id")) %>%
   filter(if_any(ends_with("_id"), ~ . != 0 & !is.na(.))) %>%
-  mutate(merge_id = paste0(first_name, last_name),
+  mutate(position = ifelse(position %in% names(pos_corrections), unlist(pos_corrections)[position], position),
+         merge_id = paste0(first_name, last_name),
          merge_id = gsub("[[:punct:]]|\\s+", "", tolower(merge_id)),
          merge_id = paste0(merge_id, "_", tolower(position)))
 

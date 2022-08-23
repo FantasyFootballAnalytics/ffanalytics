@@ -796,9 +796,10 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
 
 
     # The number of pages to scrape by position
-    pos_pages <- case_when(
+    pos_pages <- dplyr::case_when(
       pos %in% c("QB", "TE", "K", "DST") ~ 1L,
-      pos %in% c("RB", "WR", "DL", "DB", "LB") ~ 2L
+      pos %in% c("RB") ~ 2L,
+      pos %in% c("WR", "DL", "DB", "LB") ~ 3L
       )
 
     # Going through n pages (depending on position) pages
@@ -852,6 +853,9 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
       if(pos %in% c("DL", "DB", "LB")) {
         col_names = gsub("(dst|pass)_", "idp_", col_names)
       }
+
+      scrape[] = rapply(scrape, function(x) gsub("%", "", x, fixed = TRUE), how = "replace")
+
 
       # Dataframe
       temp_df = type.convert(scrape[-c(1:2), ], as.is = TRUE)
