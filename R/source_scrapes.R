@@ -530,7 +530,7 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
 
 # FleaFlicker ----
 scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-                               season = 2022, week = 1, draft = FALSE, weekly = TRUE) {
+                               season = 2022, week = NULL, draft = FALSE, weekly = TRUE) {
 
   # IDP positions
   if("DL" %in% pos) {
@@ -602,7 +602,7 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
         read_html()
 
       # FleaFlicker player ID's
-      site_id <- html_page %>%
+      fleaflicker_id <- html_page %>%
         html_elements(css = "a.player-text") %>%
         html_attr("href") %>%
         sub(".*\\-(\\d+)$", "\\1", .)
@@ -641,13 +641,13 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
       ## Suppress "New names:" message from .name_repair = "unique"
       suppressMessages(
         if (pos %in% "DST") {
-          temp_df <- .
-          scrape %>%
+          temp_df <- scrape %>%
             tidyr::extract(player, c("player", "team", "bye"),
                            "(.*)\\s+D/ST\\s+([A-Z]{2,3}).*?(\\d+).*") %>%
             mutate(pos = "DST",
                    data_src = "FleaFlicker",
-                   scr_id = site_id) %>%
+                   id = get_mfl_id(fleaflicker_id, pos = pos, player_name = team),
+                   src_id = fleaflicker_id) %>%
             select(player, pos, team, bye, everything())
         } else {
           temp_df <- scrape %>%
@@ -659,7 +659,8 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
             unite("player", first_name:last_name, sep = " ") %>%
             mutate(data_src = "FleaFlicker") %>%
             # rename for now so while loop works
-            mutate(src_id = site_id,
+            mutate(src_id = fleaflicker_id,
+                   id = get_mfl_id(fleaflicker_id, pos = pos, player_name = player),
                    pos_temp = pos) %>%
             rename(pos = pos_temp)
         }

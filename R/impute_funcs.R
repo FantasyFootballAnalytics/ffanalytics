@@ -125,8 +125,10 @@ impute_via_rates_and_mean = function(data_result, scoring_objs) {
       }
 
       if("fg_pct" %in% df_names) {
-        idx = is.na(df$fg_att)
-        df$fg_att[idx] = df$fg[idx] / (df$fg_pct[idx] * .01)
+        if(is.numeric(df$fg_pct)) {
+          idx = is.na(df$fg_att)
+          df$fg_att[idx] = df$fg[idx] / (df$fg_pct[idx] * .01)
+        }
       }
     }
 
