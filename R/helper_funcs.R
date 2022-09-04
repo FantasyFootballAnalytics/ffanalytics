@@ -1,5 +1,6 @@
 
 
+
 get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
                       last = NULL, pos = NULL, team = NULL) {
 
@@ -65,6 +66,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
   df_p_info = df_p_info %>%
     mutate(
       id = dplyr::case_when(
+        !is.na(id) ~ id,
         paste0(player_name, pos, team) %in% do.call(paste0, ref_table[c("player_name", "pos", "team")]) ~
           ref_table$id[match(paste0(player_name, pos, team), do.call(paste0, ref_table[c("player_name", "pos", "team")]))],
         paste0(player_name, pos) %in% do.call(paste0, ref_table[c("player_name", "pos")]) ~
