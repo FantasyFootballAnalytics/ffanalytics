@@ -14,6 +14,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
 
   if(week %in% c(0, "ros")) {
     scrape_week = "restofseason"
+    season = 2021 # 2022-09-06: oddly, for 2022 ROS projections, "2021" is in the URL
   } else {
     scrape_week = week
   }
