@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 3.0.0.0007
+Version: 3.0.0.0008
 Authors@R: c(person("Dennis", "Andersen", 
                     email = "andersen.dennis@outlook.com",
                     role = c("aut")),

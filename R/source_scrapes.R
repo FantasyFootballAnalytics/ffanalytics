@@ -764,6 +764,9 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
   if(week > 18) {
     week = week + 2L
   }
+  if(week > 0) {
+    pos = setdiff(pos, c("DST", "DL", "LB", "DB"))
+  }
 
 
   l_pos <- lapply(pos, function(pos){
@@ -862,8 +865,6 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
       # Dataframe
       temp_df = type.convert(scrape[-c(1:2), ], as.is = TRUE)
       names(temp_df) = col_names
-      temp_df$bye = as.integer(gsub("-", "", temp_df$bye, fixed = TRUE))
-
 
 
       # Create / fix additional columns
@@ -881,6 +882,9 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
         temp_df$id = get_mfl_id(fftoday_id, player_name = temp_df$player,
                                 team = temp_df$team, pos = temp_df$pos)
       }
+      if("bye" %in% col_names) {
+        temp_df$bye = as.integer(gsub("-", "", temp_df$bye, fixed = TRUE))
+      }
 
       # Adding it to a list of DF's from the pages
       out_dfs[[i]] = temp_df
@@ -893,7 +897,7 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
     }
 
     # combine df's from each page
-    bind_rows(out_dfs[sapply(out_dfs, nrow) > 0]) # temp fix for zero row dfs
+    dplyr::bind_rows(out_dfs[sapply(out_dfs, nrow) > 0]) # temp fix for zero row dfs
 
 
   })
@@ -1099,6 +1103,9 @@ scrape_fantasyfootballnerd = function(pos = NULL, season = NULL, week = NULL,
 scrape_fantasyfootballnerd_beta = function(pos = NULL, season = NULL, week = NULL,
                                       draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
 
+  draft_url = "https://api.fantasynerds.com/v1/nfl/draft-projections?apikey=TEST"
+  pos_url = "https://api.fantasynerds.com/v1/nfl/ros?apikey=TEST"
+  weekly_url = "https://api.fantasynerds.com/v1/nfl/weekly-projections?apikey=TEST"
 
 }
 
