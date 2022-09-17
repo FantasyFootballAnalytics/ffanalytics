@@ -63,7 +63,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
     if(pos != "DST") {
       out_df = out_df %>%
         tidyr::extract(player, c("player", "pos", "team"),
-                       ".*?[A-Z]{1,3}\\s{2,}[A-Z]{2,3}\\s{2,}(.*?)\\s{2,}(.*?)\\s{2,}(.*)") %>%
+                       ".*?\\s{2,}[A-Z]{1,3}\\s{2,}[A-Z]{2,3}\\s{2,}(.*?)\\s{2,}(.*?)\\s{2,}(.*)") %>%
         dplyr::mutate(src_id = site_id,
                       data_src = "CBS",
                       id = player_ids$id[match(src_id, player_ids$cbs_id)])
