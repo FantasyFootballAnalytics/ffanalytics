@@ -35,4 +35,4 @@ nflTeam.city <- c("Arizona",   "Atlanta",       "Baltimore",   "Buffalo",     "C
 nflTeam.name <- c("Cardinals", "Falcons", "Ravens", "Bills",      "Panthers", "Bears",    "Bengals",  "Browns",
                   "Cowboys",   "Broncos", "Lions",  "Packers",    "Texans",   "Colts",    "Jaguars",  "Chiefs",
                   "Dolphins",  "Vikings", "Saints", "Patriots",   "Giants",   "Jets",     "Eagles",   "Steelers",
-                  "Rams",  "49ers",   "Chargers",   "Buccaneers", "Titans",   "Redskins", "Seahawks", "Raiders")
+                  "Rams",  "49ers",   "Chargers",   "Buccaneers", "Titans",   "Commanders", "Seahawks", "Raiders")
