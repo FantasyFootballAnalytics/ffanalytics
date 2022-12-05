@@ -6,7 +6,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
   l_p_info = list(
     player_name = player_name,
     first = first,
-    last = tolower(last),
+    last = last,
     pos = pos,
     team = team,
     id = NA
@@ -60,7 +60,6 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
 
   if(!"player_name" %in% names(df_p_info)) {
     df_p_info$player_name = tolower(paste0(df_p_info$first, df_p_info$last))
-
   } else {
     df_p_info$player_name = gsub("\\s+", "", tolower(df_p_info$player_name))
   }
