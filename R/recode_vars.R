@@ -10,7 +10,6 @@ team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "
                          NWE = "NE", NOS = "NO", LVR = "LV")
 
 
-
 nflTeam.abb <- c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
                  "DAL", "DEN", "DET", "GB",  "HOU", "IND", "JAC", "KC",
                  "MIA", "MIN", "NO",  "NE",  "NYG", "NYJ", "PHI", "PIT",

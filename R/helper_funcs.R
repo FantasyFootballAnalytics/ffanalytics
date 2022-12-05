@@ -3,11 +3,10 @@
 
 get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
                       last = NULL, pos = NULL, team = NULL) {
-
   l_p_info = list(
     player_name = player_name,
     first = first,
-    last = last,
+    last = tolower(last),
     pos = pos,
     team = team,
     id = NA
@@ -39,6 +38,8 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
               player_name = paste(first_name, last_name),
               player_name = gsub("\\s+(?i)(defense|jr|sr|[iv]+)$", "", player_name),
               player_name = gsub("[[:punct:]]|\\s+", "", tolower(player_name)),
+              last = gsub("\\s+(?i)(defense|jr|sr|[iv]+)$", "", last_name),
+              last = gsub("[[:punct:]]|\\s+", "", tolower(last)),
               pos = rename_vec(position, unlist(pos_corrections)),
               team = rename_vec(team, unlist(team_corrections)))
 
@@ -76,6 +77,17 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
         TRUE ~ NA_character_
       )
     )
+
+  if("last" %in% names(df_p_info) && "team" %in% names(df_p_info) && "pos" %in% names(df_p_info)) {
+    df_p_info$id = ifelse(
+      is.na(df_p_info$id),
+      ref_table$id[match(paste0(df_p_info$last, df_p_info$pos, df_p_info$team),
+                         do.call(paste0, ref_table[c("last", "pos", "team")]))],
+
+      df_p_info$id
+    )
+  }
+
   df_p_info$id
 }
 
