@@ -50,13 +50,14 @@ historical periods will not be successful.
 
 ## Scraping data
 The main function for scraping data is `scrape_data`. This function will pull data
-from the sources specified, for the positions specified in the season and week specificed.
+from the sources specified, for the positions specified in the season and week specified.
 To pull data for QBs, RBs, WRs, TEs and DSTs from CBS, NFL and NumberFire for the 2022
 season the user would run:
 ```
 my_scrape <- scrape_data(src = c("CBS", "NFL", "NumberFire"), 
                          pos = c("QB", "RB", "WR", "TE", "DST"),
-                         season = 2022, week = 0)
+                         season = 2022,
+                         week = NULL) # NULL brings in the current week
 ```
 
 `my_scrape` will be a list of tibbles, one for each position scraped, which contains

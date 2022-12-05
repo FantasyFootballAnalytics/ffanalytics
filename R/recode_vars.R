@@ -1,8 +1,8 @@
 
 
 pos_corrections = list(Def = "DST", D = "DST", DEF = "DST", "D/ST" = "DST", PK = "K" ,
-                       CB = "DB", S = "DB", DE = "DL", DT = "DL")
-
+                       CB = "DB", S = "DB", DE = "DL", DT = "DL", FS = "DB", ILB = "LB",
+                       OLB = "LB", SS = "DB")
 
 team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "LAR",
                          LA = "LAR", SDC = "SD", ARZ = "ARI", NOR = "NO", GBP = "GB",
