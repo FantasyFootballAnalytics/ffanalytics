@@ -60,6 +60,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
 
   if(!"player_name" %in% names(df_p_info)) {
     df_p_info$player_name = tolower(paste0(df_p_info$first, df_p_info$last))
+
   } else {
     df_p_info$player_name = gsub("\\s+", "", tolower(df_p_info$player_name))
   }
@@ -70,23 +71,19 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
         !is.na(id) ~ id,
         paste0(player_name, pos, team) %in% do.call(paste0, ref_table[c("player_name", "pos", "team")]) ~
           ref_table$id[match(paste0(player_name, pos, team), do.call(paste0, ref_table[c("player_name", "pos", "team")]))],
+        paste0(player_name, pos, team) %in% do.call(paste0, ref_table[c("last", "pos", "team")]) ~
+          ref_table$id[match(paste0(player_name, pos, team), do.call(paste0, ref_table[c("last", "pos", "team")]))],
         paste0(player_name, pos) %in% do.call(paste0, ref_table[c("player_name", "pos")]) ~
           ref_table$id[match(paste0(player_name, pos), do.call(paste0, ref_table[c("player_name", "pos")]))],
+        paste0(player_name, pos) %in% do.call(paste0, ref_table[c("last", "pos")]) ~
+          ref_table$id[match(paste0(player_name, pos), do.call(paste0, ref_table[c("last", "pos")]))],
         paste0(player_name, team) %in% do.call(paste0, ref_table[c("player_name", "team")]) ~
           ref_table$id[match(paste0(player_name, team), do.call(paste0, ref_table[c("player_name", "team")]))],
+        paste0(player_name, team) %in% do.call(paste0, ref_table[c("last", "team")]) ~
+          ref_table$id[match(paste0(player_name, team), do.call(paste0, ref_table[c("last", "team")]))],
         TRUE ~ NA_character_
       )
     )
-
-  if("last" %in% names(df_p_info) && "team" %in% names(df_p_info) && "pos" %in% names(df_p_info)) {
-    df_p_info$id = ifelse(
-      is.na(df_p_info$id),
-      ref_table$id[match(paste0(df_p_info$last, df_p_info$pos, df_p_info$team),
-                         do.call(paste0, ref_table[c("last", "pos", "team")]))],
-
-      df_p_info$id
-    )
-  }
 
   df_p_info$id
 }
