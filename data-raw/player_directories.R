@@ -234,7 +234,7 @@ rm(list = ls(pattern = "^fp_"))
 
 # testing new NFL method because they have not updated player ids on player page
 season = 2022
-week = 1
+week = ffanalytics:::get_scrape_week()
 pos = c("QB", "RB", "WR", "TE", "K")
 
 base_link = paste0("https://fantasy.nfl.com/research/projections?position=1",
@@ -548,6 +548,7 @@ sum(duplicated(ffanalytics:::player_ids))
 temp_file = tempfile(fileext = ".rds")
 print(temp_file)
 saveRDS(curr_ids, temp_file)
+
 
 # After running necessary QA, replace data
 player_ids = readRDS(temp_file)
