@@ -4,7 +4,7 @@
 \alias{add_aav}
 \title{Add AAV to the Projections Table}
 \usage{
-add_aav(projection_table, sources = c("RTS", "ESPN", "Yahoo", "NFL"))
+add_aav(projection_table, sources = c("RTS", "ESPN", "Yahoo", "NFL", "MFL"))
 }
 \arguments{
 \item{projection_table}{An output from the \link{projections_table} function}
