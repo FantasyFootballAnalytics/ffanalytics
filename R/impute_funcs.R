@@ -90,84 +90,82 @@ impute_fun_list = list(
 )
 
 
-impute_via_rates_and_mean = function(data_result, scoring_objs, df = NULL, pos = NULL) {
+impute_via_rates_and_mean = function(data_result = NULL,
+                                     scoring_objs = NULL,
+                                     df = NULL,
+                                     pos = NULL) {
 
-  is_table = !is.null(df) && is.null(pos)
-  if(is_table) {
+  is_table = !is.null(df) && !is.null(pos)
+  if (is_table) {
     data_result = list(df)
     names(data_result) = pos
   }
 
   data_result[] = lapply(names(data_result), function(pos) {
-    df = data_result[[pos]]
+    pos = toupper(pos)
+    df = data_result[[tolower(pos)]]
     df_names = names(df)
     scoring_table = scoring_objs$scoring_tables[[pos]]
-
-    # Kickers are weird
-    if(pos == "K") {
-      mis_cols = c("fg_miss_0019", "fg_miss_2029", "fg_miss_3039", "fg_miss_4049", "fg_miss_50")
-      fg_cols = c("fg_0019", "fg_2029", "fg_3039", "fg_4049", "fg_50", "fg_0039")
-
-      if(!("fg_miss" %in% df_names) && all(mis_cols %in% df_names)) {
+    if (pos == "K") {
+      mis_cols = c("fg_miss_0019", "fg_miss_2029", "fg_miss_3039",
+                   "fg_miss_4049", "fg_miss_50")
+      fg_cols = c("fg_0019", "fg_2029", "fg_3039", "fg_4049",
+                  "fg_50", "fg_0039")
+      if (!("fg_miss" %in% df_names) && all(mis_cols %in%
+                                            df_names)) {
         df$fg_miss = rowSums(df[mis_cols], na.rm = TRUE)
       }
-      if("fg" %in% df_names && anyNA(df$fg)) {
+      if ("fg" %in% df_names && anyNA(df$fg)) {
         tot_cols = intersect(df_names, fg_cols)
         idx = is.na(df$fg)
         df$fg[idx] = rowSums(df[idx, tot_cols], na.rm = TRUE)
       }
-      if(!"xp_att" %in% df_names) {
-        if(!"xp_miss" %in% df_names) {
+      if (!"xp_att" %in% df_names) {
+        if (!"xp_miss" %in% df_names) {
           df$xp_att = NA
-        } else {
-          df$xp_att = df$xp + df$xp_miss # if either are NA it returns NA
+        }
+        else {
+          df$xp_att = df$xp + df$xp_miss
         }
       }
-      if(!"fg_miss" %in% df_names) {
+      if (!"fg_miss" %in% df_names) {
         df$fg_miss = NA
-      } else {
+      }
+      else {
         idx = is.na(df$fg_att)
         df$fg_att[idx] = df$fg[idx] + df$fg_miss[idx]
       }
-
-      if("fg_pct" %in% df_names) {
-        if(is.numeric(df$fg_pct)) {
+      if ("fg_pct" %in% df_names) {
+        if (is.numeric(df$fg_pct)) {
           idx = is.na(df$fg_att)
-          df$fg_att[idx] = df$fg[idx] / (df$fg_pct[idx] * .01)
+          df$fg_att[idx] = df$fg[idx]/(df$fg_pct[idx] *
+                                         0.01)
         }
       }
     }
-
-    # intersecting column names (that have a non-zero scoring value)
-    # if < 0 make sure to flatten at zero
     impute_cols = intersect(df_names, scoring_table$column[scoring_table$val != 0])
-
-    if(pos == "DST") {
+    if (pos == "DST") {
       impute_cols = unique(c(impute_cols, "dst_pts_allowed"))
     }
-
-    impute_cols = names(Filter(anyNA, df[impute_cols])) # only grabbing columns with missing values
-
+    impute_cols = names(Filter(anyNA, df[impute_cols]))
     df = group_by(df, id)
     fun_names = names(impute_fun_list)
-
     for (col in impute_cols) {
-      if(col %in% fun_names) {
+      if (col %in% fun_names) {
         df = call_impute_fun(df, col)
-      } else {
-        df = mutate(df, !!col := derive_from_mean(!!as.symbol(col)))
+      }
+      else {
+        df = mutate(df, `:=`(!!col, derive_from_mean(!!as.symbol(col))))
       }
     }
-
     df
   })
-
-  if(is_table) {
-    unlist(data_result)
-  } else {
+  if (is_table) {
+    data_result[[pos]]
+  }
+  else {
     data_result
   }
-
 
 }
 
