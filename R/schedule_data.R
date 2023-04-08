@@ -18,7 +18,7 @@ get_first_last_kickoff <- function(year) {
   req_schedule = req_body[[c("fullNflSchedule", "nflSchedule")]]
   req_schedule = req_schedule[sapply(req_schedule, function(x) any(names(x) == "matchup"))]
   names(req_schedule) = paste0("week_", seq_len(length(req_schedule)))
-  first_last_games = lapply(req_schedule[22], function(x) {
+  first_last_games = lapply(req_schedule, function(x) {
     if(x$week == 22) {
       kick_unixtimes = x$matchup$kickoff
     } else {
