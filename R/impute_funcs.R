@@ -90,7 +90,13 @@ impute_fun_list = list(
 )
 
 
-impute_via_rates_and_mean = function(data_result, scoring_objs) {
+impute_via_rates_and_mean = function(data_result, scoring_objs, df = NULL, pos = NULL) {
+
+  is_table = !is.null(df) && is.null(pos)
+  if(is_table) {
+    data_result = list(df)
+    names(data_result) = pos
+  }
 
   data_result[] = lapply(names(data_result), function(pos) {
     df = data_result[[pos]]
@@ -156,7 +162,12 @@ impute_via_rates_and_mean = function(data_result, scoring_objs) {
     df
   })
 
-  data_result
+  if(is_table) {
+    unlist(data_result)
+  } else {
+    data_result
+  }
+
 
 }
 
