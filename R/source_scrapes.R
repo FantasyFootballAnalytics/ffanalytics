@@ -67,6 +67,11 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
         dplyr::mutate(src_id = site_id,
                       data_src = "CBS",
                       id = player_ids$id[match(src_id, player_ids$cbs_id)])
+      out_df$id = get_mfl_id(
+        player_name = out_df$player,
+        pos = out_df$pos,
+        team = out_df$team
+      )
     } else {
       out_df$team = site_id
       out_df$data_src = "CBS"
@@ -113,11 +118,11 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
     pos_scrape = nfl_pos_idx[pos]
 
     n_records = case_when(
-      pos == "QB" ~ 45,
+      pos == "QB" ~ 42,
       pos == "RB" ~ 100,
       pos == "WR" ~ 150,
       pos == "TE" ~ 60,
-      pos == "K" ~ 32,
+      pos == "K" ~ 64,
       pos == "DST" ~ 32
     )
 
@@ -174,18 +179,26 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
 
     # Misc column cleanup before done
     out_df$data_src = "NFL"
-    out_df$src_id = as.character(site_id)
+    out_df$nfl_id = as.character(site_id)
     out_df$opp = NULL
 
     # Type cleanup
     out_df[out_df == "-"] = NA
-    idx = names(out_df) %in% c("id", "src_id")
+    idx = names(out_df) %in% c("id", "nfl_id")
     out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
 
     # Combining df's, removing NA's, filtering out rows with
     out_df = out_df[out_df$site_pts > 0 & !is.na(out_df$site_pts), ]
     # Adding IDs
-    out_df$id = ffanalytics:::player_ids$id[match(out_df$src_id, ffanalytics:::player_ids$nfl_id)]
+    out_df$id = get_mfl_id(
+      out_df$nfl_id,
+      player_name = out_df$player,
+      pos = out_df$pos,
+      team = out_df$team
+    )
+    out_df = out_df %>%
+      dplyr::select(id, src_id = nfl_id, player, pos, team, dplyr::everything())
+
 
     Sys.sleep(2L) # temporary, until I get an argument for honoring the crawl delay
 
@@ -213,6 +226,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   }
   # historical scrapes (doesn't work)
   year = dplyr::case_when(
+    season == 2023 ~ 778,
     season == 2022 ~ 746,
     season == 2021 ~ 714,
     season == 2020 ~ 682,
@@ -1070,9 +1084,9 @@ scrape_rtsports = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
                            team = out_df$team,
                            pos = out_df$pos)
     out_df$src_id = as.character(out_df$src_id)
-    out_df$stats_id = as.character(out_df$stats_id)
+    out_df$stats_id = NULL
     out_df$data_src = "RTSports"
-    dplyr::select(out_df, id, src_id, stats_id, pos, data_src, dplyr::everything())
+    dplyr::select(out_df, id, src_id, pos, data_src, dplyr::everything())
   })
 
   # list elements named by position
@@ -1083,16 +1097,137 @@ scrape_rtsports = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 }
 
 # ESPN ----
-scrape_espn = function(pos = NULL, season = NULL, week = NULL,
-                       draft = TRUE, weekly = TRUE) {
-  message(
-    "\nThe ESPN scrape is not implemeted yet--we are working on it"
+scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL, week = NULL,
+                       draft = TRUE, weekly = FALSE) {
+
+  message("\nThe ESPN scrape uses a 2 second delay between pages")
+
+  if(is.null(season)) {
+    season = get_scrape_year()
+  }
+  if(is.null(week)) {
+    week = get_scrape_week()
+  }
+
+  team_nums = c(
+    "0" = "FA", "1" = "ATL", "2" = "BUF", "3" = "CHI",  "4" = "CIN", "5" = "CLE",
+    "6" = "DAL", "7" = "DEN", "8" = "DET", "9" = "GB", "10" = "TEN", "11" = "IND",
+    "12" = "KCC", "13" = "LV", "14" = "LAR", "15" = "MIA", "16" = "MIN", "17" = "NE",
+    "18" = "NO", "19" = "NYG", "20" = "NYJ",  "21" = "PHI", "22" = "ARI",
+    "23" = "PIT", "24" = "LAC", "25" = "SF", "26" = "SEA", "27" = "TB", "28" = "WAS",
+    "29" = "CAR", "30" = "JAC", "33" = "BAL", "34" = "HOU"
   )
+
+  slot_nums = c("QB" = 0, "RB" = 2, "WR" = 4, "TE" = 6, "K" = 17, "DST" = 16)
+  position = pos
+
+  l_pos = lapply(position, function(pos){
+
+    if(pos != position[1]) {
+      Sys.sleep(2)
+    }
+
+    pos_idx = slot_nums[pos]
+    week = week + 1
+    limit = dplyr::case_when(
+      pos == "QB" ~ 42,
+      pos == "RB" ~ 100,
+      pos == "WR" ~ 150,
+      pos == "TE" ~ 60,
+      pos == "K" ~ 35,
+      pos == "DST" ~ 32
+    )
+    base_url = paste0("https://fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
+                      "/segments/0/leaguedefaults/3?scoringPeriodId=0",
+                      "&view=kona_player_info")
+    cat(paste0("Scraping ", pos, " projections from"), base_url, sep = "\n  ")
+
+    fantasy_filter = paste0(
+      "{\"players\":{",
+      "\"filterSlotIds\":{\"value\":[", pos_idx, "]},",
+      "\"filterStatsForExternalIds\":{\"value\":[", season, "]},",
+      "\"filterStatsForSourceIds\":{\"value\":[1]},",
+      "\"sortAppliedStatTotal\":{\"sortAsc\":false,\"sortPriority\":3,\"value\":\"10", season, "\"},",
+      "\"sortDraftRanks\":{\"sortPriority\":2,\"sortAsc\":true,\"value\":\"PPR\"},",
+      "\"sortPercOwned\":{\"sortAsc\":false,\"sortPriority\":4},",
+      "\"limit\":", limit, ",",
+      "\"offset\":0,",
+      "\"filterRanksForScoringPeriodIds\":{\"value\":[", 1, "]},",
+      "\"filterRanksForRankTypes\":{\"value\":[\"PPR\"]},",
+      "\"filterRanksForSlotIds\":{\"value\":[0,2,4,6,17,16]},",
+      "\"filterStatsForTopScoringPeriodIds\":{\"value\":2,",
+      "\"additionalValue\":[\"00", season, "\",\"10", season, "\",\"00", season - 1, "\",\"02", season, "\"]}}}"
+    )
+
+    espn_json = httr2::request(base_url) %>%
+      httr2::req_method("GET") %>%
+      httr2::req_headers(
+        Accept = "application/json",
+        `Accept-Encoding` = "gzip, deflate, br",
+        Connection = "keep-alive",
+        Host = "fantasy.espn.com",
+        `X-Fantasy-Source` = "kona",
+        `X-Fantasy-Filter` = fantasy_filter,
+      ) %>%
+      httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
+      httr2::req_perform() %>%
+      httr2::resp_body_json() %>%
+      base::`[[`("players")
+
+    l_players = vector("list", length(espn_json))
+
+    for(i in seq_along(espn_json)) {
+
+      # Player stats (only those on)
+      l_players[[i]] = espn_json[[i]]$player$stats[[1]]$stats
+      l_players[[i]] = l_players[[i]][names(l_players[[i]]) %in% names(espn_columns)]
+      names(l_players[[i]]) = espn_columns[names(l_players[[i]])]
+      l_players[[i]][] = lapply(l_players[[i]], round)
+
+      # Misc player info
+      l_players[[i]]$espn_id = espn_json[[i]]$id
+      l_players[[i]]$player_name = espn_json[[i]]$player$fullName
+      l_players[[i]]$team = team_nums[as.character(espn_json[[i]]$player$proTeamId)]
+      l_players[[i]]$position = pos
+    }
+
+    # TODO: Adding MFL ID, type.convert, reorder columns
+    out_df = dplyr::bind_rows(l_players)
+    out_df$data_src = "ESPN"
+
+    if(pos == "DST") { # ESPN ID's coming in as negative for 2023 wk 0 DST
+      out_df$id = ffanalytics:::get_mfl_id(
+        team = out_df$team,
+        pos = out_df$position
+      )
+    } else {
+      out_df$id = ffanalytics:::get_mfl_id(
+        out_df$espn_id,
+        player_name = out_df$player_name,
+        pos = out_df$position
+      )
+    }
+
+    out_df = out_df %>%
+      dplyr::select(id, src_id = espn_id, position,
+                    player_name, team, dplyr::everything())
+
+    idx = names(out_df) %in% c("id", "src_id")
+    out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
+    out_df
+  })
+
+  names(l_pos) = position
+
+  attr(l_pos, "season") = season
+  attr(l_pos, "week") = week
+  l_pos
+
 }
 
 # Fantasy football nerd ----
 scrape_fantasyfootballnerd = function(pos = NULL, season = NULL, week = NULL,
-                       draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
+                                      draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
   message(
     "\nThe FantasyFootballNerd scrape is not implemeted yet--we are working on it"
     )
@@ -1100,7 +1235,7 @@ scrape_fantasyfootballnerd = function(pos = NULL, season = NULL, week = NULL,
 }
 
 scrape_fantasyfootballnerd_beta = function(pos = NULL, season = NULL, week = NULL,
-                                      draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
+                                           draft = TRUE, weekly = TRUE, ffnerd_api_key = NULL) {
 
   draft_url = "https://api.fantasynerds.com/v1/nfl/draft-projections?apikey=TEST"
   pos_url = "https://api.fantasynerds.com/v1/nfl/ros?apikey=TEST"

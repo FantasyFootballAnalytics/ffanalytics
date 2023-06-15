@@ -465,7 +465,6 @@ fleaflicker_columns = c(
 
 
 # NFL FastR calc player stats ----
-
 nflfastr_calc_cols = c(
   "player_id" = "nflfastr_id",
   "recent_team" = "team",
@@ -511,8 +510,40 @@ nflfastr_calc_cols = c(
   "fantasy_points_ppr"
 )
 
+# ESPN ----
 
-
+espn_columns = c(
+  "0" = "pass_att",
+  "1" = "pass_comp",
+  "3" = "pass_yds",
+  "4" = "pass_tds",
+  "20" = "pass_int",
+  "23" = "rush_att",
+  "24" = "rush_yds",
+  "25" = "rush_tds",
+  "53" = "rec",
+  "42" = "rec_yds",
+  "43" = "rec_tds",
+  "58" = "rec_tgt",
+  "80" = "fg_39",
+  "81" = "fg_att_39",
+  "77" = "fg_49",
+  "78" = "fg_49_att",
+  "74" = "fg_50",
+  "75" = "fg_50_att",
+  "83" = "fg",
+  "84" = "fg_att",
+  "86" = "xp",
+  "87" = "xp_att",
+  "109" = "dst_tackles",
+  "99" = "dst_sacks",
+  "106" = "dst_fumbles",
+  "96" = "dst_fum_recvr",
+  "95" = "dst_int",
+  "122" = "dst_td",
+  "137" = "dst_pts_against",
+  "127" = "dst_yds_against"
+)
 
 
 
