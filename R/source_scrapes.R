@@ -1209,10 +1209,11 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
     }
 
     out_df = out_df %>%
-      dplyr::select(id, src_id = espn_id, position,
-                    player_name, team, dplyr::everything())
+      dplyr::select(id, src_id = espn_id, pos = position,
+                    player = player_name, team, dplyr::everything())
 
     idx = names(out_df) %in% c("id", "src_id")
+    out_df[idx] = lapply(out_df[idx], as.character)
     out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
     out_df
   })
