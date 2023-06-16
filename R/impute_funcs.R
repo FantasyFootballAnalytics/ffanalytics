@@ -102,8 +102,7 @@ impute_via_rates_and_mean = function(data_result = NULL,
   }
 
   data_result[] = lapply(names(data_result), function(pos) {
-    pos = toupper(pos)
-    df = data_result[[tolower(pos)]]
+    df = data_result[[pos]]
     df_names = names(df)
     scoring_table = scoring_objs$scoring_tables[[pos]]
     if (pos == "K") {
