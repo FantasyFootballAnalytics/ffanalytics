@@ -120,11 +120,9 @@ rename_vec = function(x, new_names, old_names = NULL) {
   x
 }
 
-
 omit_NA = function(x) {
   x[!is.na(x)]
 }
-
 
 row_sd = function(x, na.rm = FALSE) {
   if(is.data.frame(x)) {
@@ -145,5 +143,36 @@ row_sd = function(x, na.rm = FALSE) {
   r_sd[n_minus_1 <= 1] = NA
   r_sd
 }
+
+# Returns new player_id table
+update_player_id_table = function(player_id_table = NULL, id_column, value) {
+
+}
+
+get_pos_src_from_scrape = function(data_result) {
+  data_by_pos_src = lapply(data_result, function(x) {
+    split(x, x$data_src)
+  })
+  src_pos = stack(lapply(data_by_pos_src, names))
+  split(as.character(src_pos$ind), src_pos$values)
+}
+
+# TODO: This may be supersceeded by caching at the scrape level
+extract_src_scrapes_from_scrape = function(data_result) {
+  pos_src = get_pos_src_from_scrape(data_result)
+
+  lapply(setNames(names(pos_src), names(pos_src)), function(x) {
+    positions = setNames(pos_src[[x]], pos_src[[x]])
+    lapply(positions, function(pos) {
+      data_result[[pos]][data_result[[pos]]$data_src == x,]
+    })
+  })
+}
+
+
+
+
+
+
 
 

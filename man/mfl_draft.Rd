@@ -35,5 +35,5 @@ A \link{data.frame} with the results.
 }
 \description{
 This function scrapes ADP or AAV data from MyFantasyLeague. More details on
-the API available at \link{https://api.myfantasyleague.com/2022/api_info?STATE=details}
+the API available at \link{https://api.myfantasyleague.com/2023/api_info?STATE=details}
 }

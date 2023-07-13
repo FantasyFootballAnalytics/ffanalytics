@@ -10,6 +10,18 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
   rank_type = match.arg(rank_type, c("Std", "PPR", "Half"))
 
 
+  is_cache_format = rank_period %in% c("draft", "weekly")
+
+  obj_name = paste("ECR", tools::toTitleCase(rank_period), position, rank_type)
+  is_cached = obj_name %in% list_ffanalytics_cache(TRUE)$object
+  file_name = sprintf("ecr_%s_%s_%s.rds", rank_period, tolower(position), tolower(rank_type))
+
+  if(is_cached && is_cache_format) {
+    out_df = get_cached_object(file_name)
+    return(out_df)
+  }
+
+
   if (rank_period == "weekly" & any(position == "Overall")) {
     stop("Overall weekly ranks are not provided", call. = FALSE)
   }
@@ -73,7 +85,7 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
 
   # rank_tab = lapply(rank_tab, `[`, c("player_id", "rank_ave", "rank_std"))
 
-  bind_rows(rank_tab) %>%
+  out_df = bind_rows(rank_tab) %>%
     mutate(fantasypro_num_id = player_id) %>%
     transmute(id = get_mfl_id(fantasypro_num_id, player_name = player_name,
                               team = player_team_id, pos = player_position_id),
@@ -82,6 +94,11 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
               ecr_rank = as.integer(rank_ecr),
               ecr_min = as.integer(rank_min),
               ecr_max = as.integer(rank_max))
+
+  if(is_cache_format) {
+    cache_object(out_df, file_name)
+  }
+  out_df
 
 
 }

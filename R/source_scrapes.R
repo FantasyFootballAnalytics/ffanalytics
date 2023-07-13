@@ -3,7 +3,6 @@
 # CBS ----
 scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL, week = NULL,
                       draft = TRUE, weekly = TRUE) {
-  message("\nThe CBS scrape uses a 2 second delay between pages")
 
   if(is.null(season)) {
     season = get_scrape_year()
@@ -17,6 +16,8 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
   } else {
     scrape_week = week
   }
+
+  message("\nThe CBS scrape uses a 2 second delay between pages")
 
   base_link = paste0("https://www.cbssports.com/fantasy/football/")
   site_session = rvest::session(base_link)
@@ -171,6 +172,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
                 "(.*?)\\s+\\b(QB|RB|WR|TE|K)\\b.*?([A-Z]{2,3})")
     } else {
       out_df$team = sub("\\s+DEF$", "", out_df$team)
+      out_df$pos = "DST"
     }
 
     if(pos %in% c("RB", "WR", "TE") && "pass_int" %in% names(out_df)) {
@@ -192,12 +194,12 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
     # Adding IDs
     out_df$id = get_mfl_id(
       out_df$nfl_id,
-      player_name = out_df$player,
+      player_name = if(pos == "DST") NULL else out_df$player,
       pos = out_df$pos,
       team = out_df$team
     )
     out_df = out_df %>%
-      dplyr::select(id, src_id = nfl_id, player, pos, team, dplyr::everything())
+      dplyr::select(id, src_id = nfl_id, any_of("player"), pos, team, dplyr::everything())
 
 
     Sys.sleep(2L) # temporary, until I get an argument for honoring the crawl delay
@@ -1191,7 +1193,6 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
       l_players[[i]]$position = pos
     }
 
-    # TODO: Adding MFL ID, type.convert, reorder columns
     out_df = dplyr::bind_rows(l_players)
     out_df$data_src = "ESPN"
 

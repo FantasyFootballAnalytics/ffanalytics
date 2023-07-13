@@ -29,15 +29,15 @@ cbs_data = lapply(cbs_links, function(page) {
 
   cols = unique(c(cols12, cols3))
 
-  data.frame(player_names = basename(cols),
-             player_id = basename(dirname(cols)),
+  data.frame(player_names = basename(dirname(cols)),
+             player_id = basename(dirname(dirname(cols))),
              position = basename(page))
 })
 
 final_cbs = dplyr::bind_rows(cbs_data) %>%
   dplyr::transmute(cbs_id = player_id,
                    id = get_mfl_id(player_name = player_names, pos = position),
-                   merge_id = paste0(sub("\\-", "", player_names), "_", tolower(position)))
+                   merge_id = paste0(gsub("\\(-)", "", player_names), "_", tolower(position)))
 
 
 #### FFToday Players #### ----
@@ -75,7 +75,7 @@ final_fft = dplyr::bind_rows(fft_data) %>%
 # Getting Players from last years stats
 # Getting links
 fp_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")
-last_year = 2021
+last_year = 2022
 
 fp_lastyr_links = paste0("https://www.fantasypros.com/nfl/stats/",
                          tolower(fp_pos), ".php?year=", last_year)
@@ -233,7 +233,7 @@ rm(list = ls(pattern = "^fp_"))
 
 
 # testing new NFL method because they have not updated player ids on player page
-season = 2022
+season = 2023
 week = ffanalytics:::get_scrape_week()
 pos = c("QB", "RB", "WR", "TE", "K")
 
@@ -386,7 +386,7 @@ final_flfl = final_flfl %>%
             fleaflicker_id)
 
 #### Yahoo ----
-
+# TODO: update w/ new API
 html_session = rvest::session("https://football.fantasysports.yahoo.com/f1/draftanalysis?tab=AD&pos=ALL&sort=DA_AP")
 
 l_yahoo = list()
@@ -431,6 +431,10 @@ final_yahoo = final_yahoo %>%
             merge_id, stats_id)
 
 
+# Getting ESPN ID's
+
+
+
 
 # Cleaning up above scrapes
 
@@ -443,7 +447,7 @@ gc()
 
 curr_ids = ffanalytics:::player_ids
 
-my_fl_ids = httr::GET("https://api.myfantasyleague.com/2022/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2023/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
   httr::content() %>%
   `[[`("players") %>%
   `[[`("player") %>%

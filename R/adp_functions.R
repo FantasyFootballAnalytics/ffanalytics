@@ -8,16 +8,26 @@
 rts_draft <- function(metric = c("adp", "aav")){
 
   metric = match.arg(tolower(metric), c("adp", "aav"))
-  is_aav = (metric == "aav")
+  obj_name = paste0("RTS ", toupper(metric))
+  is_cached = obj_name %in% list_ffanalytics_cache(quiet = TRUE)$object
 
-  draft_url = "https://www.freedraftguide.com/football/adp-aav-provider.php?NUM=&STYLE=0&AAV="
-  if(is_aav) {
-    draft_url = paste0(draft_url, "YES")
+  if(is_cached) {
+    rts_json = get_cached_object(sprintf("rts_%s.rds", metric))
+  } else {
+    draft_url = "https://www.freedraftguide.com/football/adp-aav-provider.php?NUM=&STYLE=0&AAV="
+    is_aav = (metric == "aav")
+
+    if(is_aav) {
+      draft_url = paste0(draft_url, "YES")
+    }
+
+    rts_json = httr2::request(draft_url) %>%
+      httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
+      httr2::req_perform() %>%
+      httr2::resp_body_json()
+
+    cache_object(rts_json, sprintf("rts_%s.rds", metric))
   }
-
-  rts_json = httr2::request(draft_url) %>%
-    httr2::req_perform() %>%
-    httr2::resp_body_json()
 
   dplyr::bind_rows(rts_json$player_list) %>%
     dplyr::rename(rts_id = player_id) %>%
@@ -39,7 +49,15 @@ rts_draft <- function(metric = c("adp", "aav")){
 #' This function scrapes ADP data from CBS Sports
 #' @return A \link{data.frame} with the results.
 #' @export
-cbs_draft <- function(metric = "adp") {
+cbs_draft = function(metric = "adp") {
+
+  is_cached = "CBS ADP" %in% list_ffanalytics_cache(quiet = TRUE)$object
+
+  if(is_cached) {
+    out_df = get_cached_object("cbs_adp.rds")
+    return(out_df)
+  }
+
   draft_url <- "https://www.cbssports.com/fantasy/football/draft/averages/both/h2h/all"
 
   draft_page <- rvest::read_html(draft_url)
@@ -48,13 +66,15 @@ cbs_draft <- function(metric = "adp") {
     rvest::html_elements("span.CellPlayerName--long > span > a") %>%
     rvest::html_attr("href") %>%
     dirname() %>%
+    dirname() %>%
     basename()
 
-  draft_page %>%
+  out_df = draft_page %>%
     rvest::html_element("#TableBase > div > div > table") %>%
     rvest::html_table() %>%
-    tidyr::extract(Player, c("player", "pos", "team"),
-                   "\\n\\s+(.*?)\\n\\s+([A-Z]{1,3})\\s+([A-Z]{2,3})$") %>%
+    tidyr::extract(
+      Player, c("player", "pos", "team"),
+      "\\n\\s+(.*?)\\n\\s+([A-Z]{1,3})\\s+([A-Z]{2,3})") %>%
     dplyr::transmute(
       id = get_mfl_id(cbs_id, player_name = player, pos = pos, team = team),
       cbs_id = cbs_id,
@@ -68,6 +88,9 @@ cbs_draft <- function(metric = "adp") {
       percent_drafted = Pct
       )
 
+  cache_object(out_df, "cbs_adp.rds")
+  out_df
+
 }
 
 #' Get ADP/AAV data from Yahoo
@@ -80,65 +103,70 @@ cbs_draft <- function(metric = "adp") {
 yahoo_draft = function(metric = c("adp", "aav")) {
   metric = match.arg(tolower(metric), c("adp", "aav"))
   is_aav = (metric == "aav")
-
-  draft_url <- sprintf("https://football.fantasysports.yahoo.com/f1/draftanalysis?tab=%s&pos=ALL",
-                       if(is_aav) "AD" else "SD")
-  html_session = rvest::session(draft_url)
-
-  max_pages = 4 + (as.integer(is_aav) * 4)
-  l_yahoo = vector("list", max_pages)
-  i = 0
-
-  while(i < max_pages) {
-    next_page = paste0(html_session$url, "&count=", i * 50)
-    i = i + 1
-
-    html_page = html_session %>%
-      rvest::session_jump_to(next_page) %>%
-      rvest::read_html()
-
-    yahoo_id = html_page %>%
-      html_elements("table > tbody > tr > td > div > div > span > a") %>%
-      html_attr("data-ys-playerid")
-
-    yahoo_tbl = html_page %>%
-      rvest::html_element("table") %>%
-      rvest::html_table() %>%
-      dplyr::mutate(stats_id = yahoo_id)
-
-    l_yahoo[[i]] = yahoo_tbl
-
-    Sys.sleep(1)
-  }
-
-  output_df = dplyr::bind_rows(l_yahoo) %>%
-    dplyr::mutate(Name = sapply(strsplit(Name, "\\s*\n\\s*"), `[`, 2)) %>%
-    tidyr::extract(Name, c("player", "team", "pos"), "(.*?)\\s+([A-Za-z]+)\\s+-\\s+([A-Z]+)$")
-  names(output_df) = gsub("[^[:alnum:]]$", "", names(output_df))
+  is_cached = "Yahoo ADP/AAV" %in% list_ffanalytics_cache(TRUE)$object
 
   if(is_aav) {
-    output_df %>%
-      dplyr::transmute(
-        id = get_mfl_id(stats_id, player_name = player, pos = pos, team = team),
-        yahoo_id = stats_id,
-        player,
-        team,
-        pos,
-        aav = as.numeric(gsub("[^[:digit:].]*", "", `Avg Salary`)),
-        percent_drafted = as.numeric(sub("%", "", `Percent Drafted`))
-      )
+    adp_aav_cols = c("aav", "projected_av", "percent_drafted")
   } else {
-    output_df %>%
-      dplyr::transmute(
-        id = get_mfl_id(stats_id, player_name = player, pos = pos, team = team),
-        yahoo_id = stats_id,
-        player,
-        team,
-        pos,
-        adp = `Avg Pick`,
-        percent_drafted = as.numeric(sub("%", "", `Percent Drafted`, fixed = TRUE))
-      )
+    adp_aav_cols = c("adp", "percent_drafted")
   }
+
+
+  if(is_cached) {
+    out_df = get_cached_object("yahoo_adp_aav.rds") %>%
+      dplyr::select(id, yahoo_id, player_name, team, pos, dplyr::all_of(adp_aav_cols))
+    return(out_df)
+  }
+
+  req_obj = request("https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/423.l.public;out=settings/players;position=ALL;start=0;count=200;sort=rank_season;search=;out=auction_values;out=expert_ranks;expert_ranks.rank_type=projected_season_remaining/draft_analysis;cut_types=diamond;slices=last7days?format=json_f") %>%
+    req_method("GET") %>%
+    req_headers(
+      Accept = "*/*",
+      Host = "pub-api-ro.fantasysports.yahoo.com",
+      Origin = "https://football.fantasysports.yahoo.com",
+      Connection = "keep-alive",
+      `Sec-Fetch-Dest` = "empty",
+      `Sec-Fetch-Mode` = "no-cors",
+      `Sec-Fetch-Site` = "none",
+      `Accept-Encoding` = "gzip, deflate, br",
+      `Accept-Language` = "en-US,en;q=0.9"
+    ) %>%
+    httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
+    httr2::req_perform() %>%
+    httr2::resp_body_json()
+
+  player_data = req_obj$fantasy_content$league$players %>%
+    lapply(function(x) {
+    data.frame(
+      player_name = x$player$name$full,
+      yahoo_id = x$player$player_id,
+      team = x$player$editorial_team_abbr,
+      pos = x$player$eligible_positions[[1]]$position,
+      adp = x$player$draft_analysis$average_pick,
+      percent_drafted = x$player$draft_analysis$percent_drafted,
+      aav = x$player$draft_analysis$average_cost,
+      projected_av = x$player$projected_auction_value
+    )
+  })
+
+
+
+  out_df = data.table::rbindlist(player_data) %>%
+    dplyr::tibble() %>%
+    dplyr::mutate(dplyr::across(team:projected_av, ~ replace(.x, .x == "-", NA))) %>%
+    dplyr::mutate(dplyr::across(team:projected_av, ~ type.convert(.x, as.is = TRUE))) %>%
+    dplyr::mutate(
+      team = toupper(team),
+      team = ifelse(team %in% names(team_corrections), unlist(team_corrections)[team], team),
+      stats_id = yahoo_id,
+      id = get_mfl_id(stats_id, player_name = player_name, pos = pos, team = team),
+      percent_drafted = percent_drafted * 100
+      )
+
+  cache_object(out_df, "yahoo_adp_aav.rds")
+  out_df %>%
+    dplyr::select(id, yahoo_id, player_name, team, pos, dplyr::all_of(adp_aav_cols))
+
 }
 
 
@@ -149,6 +177,13 @@ yahoo_draft = function(metric = c("adp", "aav")) {
 #' @export
 nfl_draft = function(metric = "adp") {
   year = get_scrape_year()
+
+  is_cached = "NFL ADP" %in% list_ffanalytics_cache(quiet = TRUE)$object
+
+  if(is_cached) {
+    out_df = get_cached_object("nfl_adp.rds")
+    return(out_df)
+  }
 
   nfl_url = paste0("https://fantasy.nfl.com/draftcenter/breakdown?leagueId=&offset=1&count=200&position=all&season=",
                    year, "&sort=draftAveragePosition")
@@ -162,22 +197,25 @@ nfl_draft = function(metric = "adp") {
     extract(X1, c("player", "pos", "team"), "(.*?)\\s+([A-Z]{2,3}).*?([A-Z]{2,3}).*") %>%
     rename(adp = X2, avg_round = X3, average_salary = X4)
 
-  nfl_ids = html_page %>%
+  nfl_id = html_page %>%
     html_elements("tbody > tr > td > div > a") %>%
     html_attr("href") %>%
     unique() %>%
     sub(".*playerId=", "", .)
 
-  nfl_table %>%
-    mutate(id = get_mfl_id(nfl_ids, player_name = player, pos = pos, team = team),
-           nfl_id = nfl_ids)
+  out_df = nfl_table %>%
+    mutate(id = get_mfl_id(nfl_id, player_name = player, pos = pos, team = team),
+           nfl_id = !!nfl_id)
+
+  cache_object(out_df, "nfl_adp.rds")
+  out_df
 }
 
 
 #' Get ADP or AAV data from MyFantasyLeague
 #'
 #' This function scrapes ADP or AAV data from MyFantasyLeague. More details on
-#' the API available at \link{https://api.myfantasyleague.com/2022/api_info?STATE=details}
+#' the API available at \link{https://api.myfantasyleague.com/2023/api_info?STATE=details}
 #' @param metric Indicated whether to pull ADP (default) or AAV
 #' @param period Includes metric for drafts following this time-period
 #' @param format Scoring system for receptions
@@ -194,15 +232,35 @@ mfl_draft = function(metric = c("adp", "aav"),
                      is_keeper = c("No", "Keeper", "Rookie Only"),
                      is_mock = c("No", "Mock", "All Leagues"),
                      cutoff = 10) {
+
   # Todo: clean up the way arguments are input
-  is_aav = (metric == "aav")
   metric = match.arg(tolower(metric), c("adp", "aav"))
+  is_aav = (metric == "aav")
+
   period = match.arg(toupper(period), c("RECENT", "ALL", "DRAFT", "JUNE", "JULY", "AUG1", "AUG15", "START", "MID", "PLAYOFF"))
   fcount = match.arg(as.character(nteams), as.character(c(12, 8, 10, 14, 16)))
   format = match.arg(as.character(format), c("All Leagues", "PPR", "Std"))
   is_keeper = match.arg(is_keeper, c("No", "Keeper", "Rookie Only"), several.ok = TRUE)
   is_mock = match.arg(as.character(is_mock), c("No", "Mock", "All Leagues"))
   cutoff = as.integer(cutoff)
+
+  # Checking to see if default arguments are used / the result may be cached
+  is_cache_format = (
+    period == "RECENT"
+    && fcount == "12"
+    && format == "All Leagues"
+    && is_keeper == "No"
+    && is_mock == "No"
+    && cutoff == "10"
+  )
+
+  obj_name = paste0("MFL ", toupper(metric))
+  is_cached = obj_name %in% list_ffanalytics_cache(quiet = TRUE)$object
+
+  if(is_cached && is_cache_format) {
+    out_df = get_cached_object(sprintf("mfl_%s.rds", metric))
+    return(out_df)
+  }
 
   format = switch(format,
     "All Leagues" = -1,
@@ -216,34 +274,37 @@ mfl_draft = function(metric = c("adp", "aav"),
     "All Leagues" = -1
   )
 
-
-
   if(is_aav) {
     url = sprintf("https://api.myfantasyleague.com/%d/export?TYPE=%s&PERIOD=%s&IS_PPR=%d&IS_KEEPER=%s&JSON=1",
                   get_scrape_year(), metric, period, format, is_keeper)
     cols = setNames(c("id", "averageValue", "minValue", "maxValue", "auctionSelPct"),
-                    c("id", "aav", "min_aav", "max_aav", "draft_percentage"))
+                    c("id", "aav", "min_av", "max_av", "draft_percentage"))
   } else {
     url = sprintf("https://api.myfantasyleague.com/%d/export?TYPE=%s&PERIOD=%s&FCOUNT=%s&IS_PPR=%s&IS_KEEPER=%s&IS_MOCK=%s&CUTOFF=%d&DETAILS=&JSON=1",
                   get_scrape_year(), metric, period, fcount, format, is_keeper, is_mock, cutoff)
     cols = setNames(c("id", "averagePick", "minPick", "maxPick", "draftSelPct"),
-                    c("id", "adp", "min_adp", "max_adp", "draft_percentage"))
+                    c("id", "adp", "min_dp", "max_dp", "draft_percentage"))
   }
 
   mfl_json = httr2::request(url) %>%
+    httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
     httr2::req_perform() %>%
     httr2::resp_body_json()
 
-  out = mfl_json[[metric]]$player %>%
+  out_df = mfl_json[[metric]]$player %>%
     dplyr::bind_rows() %>%
     dplyr::select(!!!cols) %>%
     type.convert(as.is = TRUE) %>%
     dplyr::mutate(id = as.character(id))
 
   if(is_aav) { # $1000 split among N franchises (adjusted to ~$200 per team)
-    out$aav = out$aav * (200 / (1000 / as.integer(fcount)))
+    out_df$aav = out_df$aav * (200 / (1000 / as.integer(fcount)))
   }
-  out
+
+  if(is_cache_format) {
+    cache_object(out_df, sprintf("mfl_%s.rds", metric))
+  }
+  out_df
 
 }
 
@@ -268,16 +329,31 @@ ffc_draft <- function(format= c("standard", "ppr", "half-ppr", "2qb", "dynasty",
   pos <- match.arg(pos, c("all", "qb", "rb", "wr", "te", "def", "pk"))
   n_teams <- match.arg(n_teams, c("12", "8", "10", "14"))
 
+  # Checking to see if default arguments are used / the result may be cached
+  is_cache_format = (
+    n_teams == "12"
+    && format == "standard"
+    && pos == "all"
+  )
+
+  is_cached = "FFC ADP" %in% list_ffanalytics_cache(TRUE)$object
+
+  if(is_cached && is_cache_format) {
+    out_df = get_cached_object("ffc_adp.rds")
+    return(out_df)
+  }
+
   ffc_url <- paste0("https://fantasyfootballcalculator.com/api/v1/adp/",
                     format, "?teams=", n_teams, "&year=", get_scrape_year(),
                     "&position=", pos)
 
   ffc_json = ffc_url %>%
     httr2::request() %>%
+    httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
     httr2::req_perform() %>%
     httr2::resp_body_json(check_type = FALSE)
 
-  dplyr::bind_rows(ffc_json$players) %>%
+  out_df = dplyr::bind_rows(ffc_json$players) %>%
     dplyr::transmute(
       id = get_mfl_id(player_name = name, team = team, pos = position),
       ffc_id = player_id,
@@ -286,6 +362,12 @@ ffc_draft <- function(format= c("standard", "ppr", "half-ppr", "2qb", "dynasty",
       team = team,
       adp
     )
+
+  if(is_cache_format) {
+    cache_object(out_df, "ffc_adp.rds")
+  }
+  out_df
+
 }
 
 
