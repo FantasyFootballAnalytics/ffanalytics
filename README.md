@@ -56,7 +56,7 @@ season the user would run:
 ```
 my_scrape <- scrape_data(src = c("CBS", "NFL", "NumberFire"), 
                          pos = c("QB", "RB", "WR", "TE", "DST"),
-                         season = NULL, # NULL grabs the current week
+                         season = NULL, # NULL grabs the current season
                          week = NULL) # NULL grabs the current week
 ```
 
