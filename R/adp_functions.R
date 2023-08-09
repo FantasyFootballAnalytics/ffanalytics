@@ -240,7 +240,7 @@ mfl_draft = function(metric = c("adp", "aav"),
   period = match.arg(toupper(period), c("RECENT", "ALL", "DRAFT", "JUNE", "JULY", "AUG1", "AUG15", "START", "MID", "PLAYOFF"))
   fcount = match.arg(as.character(nteams), as.character(c(12, 8, 10, 14, 16)))
   format = match.arg(as.character(format), c("All Leagues", "PPR", "Std"))
-  is_keeper = match.arg(is_keeper, c("No", "Keeper", "Rookie Only"), several.ok = TRUE)
+  is_keeper = match.arg(is_keeper, c("No", "Keeper", "Rookie Only"))
   is_mock = match.arg(as.character(is_mock), c("No", "Mock", "All Leagues"))
   cutoff = as.integer(cutoff)
 
