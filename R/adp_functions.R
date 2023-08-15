@@ -371,6 +371,137 @@ ffc_draft <- function(format= c("standard", "ppr", "half-ppr", "2qb", "dynasty",
 }
 
 
+#' Get ADP/AAV data from ESPN
+#'
+#' This function scrapes ADP or AAV data from ESPN
+#' @param metric Indicates whether APD or AAV data is scraped. By default, ADP
+#' data is scraped. Set it to \code{"aav"} to scrape AAV data.
+#' @return A \link{data.frame} with the results.
+#' @export
+espn_draft <- function(metric = c("adp", "aav")){
+
+  metric = match.arg(tolower(metric), c("adp", "aav"))
+  obj_name = "ESPN ADP/AAV"
+  is_cached = obj_name %in% list_ffanalytics_cache(quiet = TRUE)$object
+  season = ffanalytics:::get_scrape_year()
+
+  if(is_cached) {
+    l_pos = get_cached_object("espn_adp_aav.rds")
+  } else {
+    slot_nums = c("QB" = 0, "RB" = 2, "WR" = 4, "TE" = 6, "K" = 17, "DST" = 16)
+    position = c("QB", "RB", "WR", "TE", "K", "DST")
+
+    l_pos = lapply(position, function(pos){
+
+      if(pos != position[1]) {
+        Sys.sleep(2)
+      }
+
+      pos_idx = slot_nums[pos]
+      limit = dplyr::case_when(
+        pos == "QB" ~ 42,
+        pos == "RB" ~ 100,
+        pos == "WR" ~ 150,
+        pos == "TE" ~ 60,
+        pos == "K" ~ 35,
+        pos == "DST" ~ 32
+      )
+      base_url = paste0("https://fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
+                        "/segments/0/leaguedefaults/3?scoringPeriodId=0",
+                        "&view=kona_player_info")
+
+      fantasy_filter = paste0(
+        "{\"players\":{",
+        "\"filterSlotIds\":{\"value\":[", pos_idx, "]},",
+        "\"filterStatsForExternalIds\":{\"value\":[", season, "]},",
+        "\"filterStatsForSourceIds\":{\"value\":[1]},",
+        "\"sortAppliedStatTotal\":{\"sortAsc\":false,\"sortPriority\":3,\"value\":\"10", season, "\"},",
+        "\"sortDraftRanks\":{\"sortPriority\":2,\"sortAsc\":true,\"value\":\"PPR\"},",
+        "\"sortPercOwned\":{\"sortAsc\":false,\"sortPriority\":4},",
+        "\"limit\":", limit, ",",
+        "\"offset\":0,",
+        "\"filterRanksForScoringPeriodIds\":{\"value\":[", 1, "]},",
+        "\"filterRanksForRankTypes\":{\"value\":[\"PPR\"]},",
+        "\"filterRanksForSlotIds\":{\"value\":[0,2,4,6,17,16]},",
+        "\"filterStatsForTopScoringPeriodIds\":{\"value\":2,",
+        "\"additionalValue\":[\"00", season, "\",\"10", season, "\",\"00", season - 1, "\",\"02", season, "\"]}}}"
+      )
+
+      espn_json = httr2::request(base_url) %>%
+        httr2::req_method("GET") %>%
+        httr2::req_headers(
+          Accept = "application/json",
+          `Accept-Encoding` = "gzip, deflate, br",
+          Connection = "keep-alive",
+          Host = "fantasy.espn.com",
+          `X-Fantasy-Source` = "kona",
+          `X-Fantasy-Filter` = fantasy_filter,
+        ) %>%
+        httr2::req_user_agent("ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)") %>%
+        httr2::req_perform() %>%
+        httr2::resp_body_json() %>%
+        base::`[[`("players")
+
+      l_players = vector("list", length(espn_json))
+
+      for(i in seq_along(espn_json)) {
+
+        # Player ADP/AAV
+        keep_cols = c("auctionValueAverage", "averageDraftPosition", "percentOwned")
+
+        l_players[[i]] = espn_json[[i]]$player$ownership[keep_cols]
+        l_players[[i]][] = lapply(l_players[[i]], round)
+
+        # Misc player info
+        l_players[[i]]$espn_id = espn_json[[i]]$id
+        l_players[[i]]$player_name = espn_json[[i]]$player$fullName
+        l_players[[i]]$team = espn_team_nums[as.character(espn_json[[i]]$player$proTeamId)]
+        l_players[[i]]$position = pos
+      }
+
+      out_df = dplyr::bind_rows(l_players)
+
+      if(pos == "DST") { # ESPN ID's coming in as negative for 2023 wk 0 DST
+        out_df$id = ffanalytics:::get_mfl_id(
+          team = out_df$team,
+          pos = out_df$position
+        )
+      } else {
+        out_df$id = ffanalytics:::get_mfl_id(
+          out_df$espn_id,
+          player_name = out_df$player_name,
+          pos = out_df$position
+        )
+      }
+
+      out_df = out_df %>%
+        dplyr::select(id, espn_id, pos = position,
+                      player = player_name, team, adp = averageDraftPosition,
+                      aav = auctionValueAverage, percent_owned = percentOwned)
+
+      idx = names(out_df) %in% c("id", "espn_id")
+      out_df[idx] = lapply(out_df[idx], as.character)
+      out_df[!idx] = type.convert(out_df[!idx], as.is = TRUE)
+      out_df
+    })
+
+    cache_object(l_pos, "espn_adp_aav.rds")
+  }
+
+  if(metric == "adp") {
+    dplyr::bind_rows(l_pos) %>%
+      dplyr::select(-aav) %>%
+      dplyr::arrange(.data[[metric]])
+  } else {
+    dplyr::bind_rows(l_pos) %>%
+      dplyr::select(-adp) %>%
+      dplyr::arrange(dplyr::desc(.data[[metric]]))
+  }
+}
+
+
+
+
 
 #' Get ADP/AAV data from multple sources
 #'
@@ -384,10 +515,10 @@ ffc_draft <- function(format= c("standard", "ppr", "half-ppr", "2qb", "dynasty",
 #' \code{player_ids} table and a column for each source. The average value is also
 #' returned if multiple sources are specified
 #' @export
-get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
+get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL", "ESPN"),
                     metric = c("adp", "aav")) {
   metric <- match.arg(tolower(metric), c("adp", "aav"))
-  sources <- match.arg(sources, c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"), several.ok = TRUE)
+  sources <- match.arg(sources, c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL", "ESPN"), several.ok = TRUE)
   is_aav = (metric == "aav")
 
   if(is_aav) {

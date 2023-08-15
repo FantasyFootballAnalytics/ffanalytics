@@ -109,6 +109,7 @@ clear_cache_by_time = function() {
 
 cache_file_names = c(
   "yahoo_adp_aav.rds" = "Yahoo ADP/AAV",
+  "espn_adp_aav.rds" = "ESPN ADP/AAV",
   "cbs_adp.rds" = "CBS ADP",
   "rts_adp.rds" = "RTS ADP",
   "rts_aav.rds" = "RTS AAV",
