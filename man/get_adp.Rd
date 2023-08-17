@@ -5,7 +5,7 @@
 \title{Get ADP/AAV data from multple sources}
 \usage{
 get_adp(
-  sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL"),
+  sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL", "ESPN"),
   metric = c("adp", "aav")
 )
 }
