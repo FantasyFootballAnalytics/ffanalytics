@@ -44,12 +44,12 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
 
     # Get PID
     if(pos == "DST") {
-      site_id = html_page %>%
+      cbs_id = html_page %>%
         rvest::html_elements("span.TeamName a") %>%
         rvest::html_attr("href") %>%
         sub(".*?([A-Z]{2,3}).*", "\\1",  .)
     } else {
-      site_id = html_page %>%
+      cbs_id = html_page %>%
         rvest::html_elements("table > tbody > tr > td:nth-child(1) > span.CellPlayerName--long > span > a") %>%
         rvest::html_attr("href") %>%
         sub(".*?([0-9]+).*", "\\1", .)
@@ -65,20 +65,21 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
       out_df = out_df %>%
         tidyr::extract(player, c("player", "pos", "team"),
                        ".*?\\s{2,}[A-Z]{1,3}\\s{2,}[A-Z]{2,3}\\s{2,}(.*?)\\s{2,}(.*?)\\s{2,}(.*)") %>%
-        dplyr::mutate(src_id = site_id,
+        dplyr::mutate(src_id = cbs_id,
                       data_src = "CBS",
                       id = player_ids$id[match(src_id, player_ids$cbs_id)])
       out_df$id = get_mfl_id(
+        id_col = cbs_id,
         player_name = out_df$player,
         pos = out_df$pos,
         team = out_df$team
       )
     } else {
-      out_df$team = site_id
+      out_df$team = cbs_id
       out_df$data_src = "CBS"
       dst_ids = ff_player_data[ff_player_data$position == "Def", c("id", "team")]
       dst_ids$team[dst_ids$team == "OAK"] = "LV"
-      out_df$id = dst_ids$id[match(site_id, dst_ids$team)]
+      out_df$id = dst_ids$id[match(cbs_id, dst_ids$team)]
       out_df$src_id = player_ids$cbs_id[match(out_df$id, player_ids$id)]
     }
 
@@ -546,7 +547,14 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
 
 # FleaFlicker ----
 scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
-                               season = 2022, week = NULL, draft = FALSE, weekly = TRUE) {
+                               season = NULL, week = NULL, draft = FALSE, weekly = TRUE) {
+
+  if(is.null(season)) {
+    season = get_scrape_year()
+  }
+  if(is.null(week)) {
+    week = get_scrape_week()
+  }
 
   # IDP positions
   if("DL" %in% pos) {
@@ -609,8 +617,9 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
                          position, "&tableOffset=", offset)
 
 
-      Sys.sleep(1L)
-
+      if(i != 1L) {
+        Sys.sleep(2L)
+      }
 
       # 20 rows of player data by position
       html_page <- site_session %>%
@@ -672,13 +681,21 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
             mutate(player = gsub("^Q(?=[A-Z])", "", player, perl = TRUE)) %>%
             extract(player, into = c("first_name", "last_name", "pos_temp", "team", "bye"),
                     regex = "(.*?)\\s+(.*?)\\s+(.*?)\\s+(.*?)\\s+.*(\\d+)\\)$", convert = TRUE) %>%
-            unite("player", first_name:last_name, sep = " ") %>%
+            tidyr::unite("player", first_name:last_name, sep = " ", remove = FALSE) %>%
             mutate(data_src = "FleaFlicker") %>%
             # rename for now so while loop works
             mutate(src_id = fleaflicker_id,
-                   id = get_mfl_id(fleaflicker_id, pos = pos, player_name = player),
+                   id = get_mfl_id(
+                     id_col = fleaflicker_id,
+                     player_name = player,
+                     first = first_name,
+                     last = last_name,
+                     pos = pos,
+                     team = team
+                     ),
                    pos_temp = pos) %>%
-            rename(pos = pos_temp)
+            rename(pos = pos_temp) %>%
+            select(-first_name, -last_name)
         }
       )
 
@@ -1196,7 +1213,8 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
       out_df$id = ffanalytics:::get_mfl_id(
         out_df$espn_id,
         player_name = out_df$player_name,
-        pos = out_df$position
+        pos = out_df$position,
+        team = out_df$team
       )
     }
 
