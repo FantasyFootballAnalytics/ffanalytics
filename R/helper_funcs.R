@@ -68,7 +68,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
   # If pos = DST, replace by team name
   if("pos" %in% names(l_p_info)) {
     l_p_info$id = ifelse(
-      l_p_info$pos == "DST",
+      l_p_info$pos == "dst",
       ref_table$id[match(l_p_info$team, ref_table$team)],
       l_p_info$id
     )
