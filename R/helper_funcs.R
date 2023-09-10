@@ -79,7 +79,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
     c("last", "pos", "team"),
     c("player_name", "team"),
     c("player_name", "pos"),
-    c("last", "team"),
+    # c("last", "team"),
     c("first", "pos", "team")
   )
   combo_idx = vapply(col_combos, function(x) {
