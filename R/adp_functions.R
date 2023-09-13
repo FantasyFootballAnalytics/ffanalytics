@@ -31,6 +31,7 @@ rts_draft <- function(metric = c("adp", "aav")){
 
   dplyr::bind_rows(rts_json$player_list) %>%
     dplyr::rename(rts_id = player_id) %>%
+    dplyr::mutate(bye_week = replace(bye_week, bye_week == '-', NA)) %>%
     dplyr::transmute(
       id = get_mfl_id(rts_id, player_name = name, team = team, pos = position),
       rts_id,
@@ -526,11 +527,25 @@ get_adp <- function(sources = c("RTS", "CBS", "Yahoo", "NFL", "FFC", "MFL", "ESP
   }
 
   draft_l = lapply(tolower(sources), function(source) {
-    df = match.fun(paste0(source, "_draft"))(metric = metric)
-    df = df[c("id", metric)]
-    names(df)[2] = paste0(metric, "_", source)
-    df[!is.na(df$id), ]
+    tryCatch(
+      expr = {
+        df = match.fun(paste0(source, "_draft"))(metric = metric)
+        df = df[c("id", metric)]
+        names(df)[2] = paste0(metric, "_", source)
+        df[!is.na(df$id), ]
+      },
+      error = function(error) {
+        message(
+          paste0(
+            " Error with the ", toupper(source), " ", toupper(metric),
+            " data. It is not included in the table or summary columns"
+          )
+        )
+        NULL
+      }
+    )
   })
+
   draft_l = Filter(Negate(is.null), draft_l)
 
   if(length(draft_l) == 0) {
