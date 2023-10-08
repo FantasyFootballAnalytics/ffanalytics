@@ -1195,6 +1195,11 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
 
     for(i in seq_along(espn_json)) {
 
+      # Checking for empty stats (bye weeks)
+      if(length(espn_json[[i]]$player$stats) == 0L) {
+        next
+      }
+
       # Player stats (only those on)
       l_players[[i]] = espn_json[[i]]$player$stats[[1]]$stats
       l_players[[i]] = l_players[[i]][names(l_players[[i]]) %in% names(espn_columns)]
