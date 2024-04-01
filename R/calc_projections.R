@@ -34,7 +34,7 @@ mad2 = function(x, center = median(x), constant = 1.4826, na.rm = FALSE,
 
 #' Weighted Harrell-Davis quantile estimator
 #'
-#' From: https://aakinshin.net/posts/weighted-quantiles/
+#' From: Andrey Akinshin (2023) "Weighted quantile estimators" arXiv:2304.07265 [stat.ME]
 whdquantile <- function(x, w = NA, probs, na.rm) { #na.rm is ignored
 
   cdf.gen <- function(n, p) {

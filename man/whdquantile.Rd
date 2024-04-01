@@ -7,5 +7,5 @@
 whdquantile(x, w = NA, probs, na.rm)
 }
 \description{
-From: https://aakinshin.net/posts/weighted-quantiles/
+From: Andrey Akinshin (2023) "Weighted quantile estimators" arXiv:2304.07265 [stat.ME]
 }
