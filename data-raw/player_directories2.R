@@ -139,7 +139,7 @@ gc()
 
 curr_ids = ffanalytics:::player_ids
 
-my_fl_ids = httr::GET("https://api.myfantasyleague.com/2023/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2024/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
   httr::content() %>%
   `[[`("players") %>%
   `[[`("player") %>%

@@ -75,7 +75,7 @@ final_fft = dplyr::bind_rows(fft_data) %>%
 # Getting Players from last years stats
 # Getting links
 fp_pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")
-last_year = 2022
+last_year = 2023
 
 fp_lastyr_links = paste0("https://www.fantasypros.com/nfl/stats/",
                          tolower(fp_pos), ".php?year=", last_year)
@@ -233,7 +233,7 @@ rm(list = ls(pattern = "^fp_"))
 
 
 # testing new NFL method because they have not updated player ids on player page
-season = 2023
+season = 2024
 week = ffanalytics:::get_scrape_week()
 pos = c("QB", "RB", "WR", "TE", "K")
 
@@ -447,7 +447,7 @@ gc()
 
 curr_ids = ffanalytics:::player_ids
 
-my_fl_ids = httr::GET("https://api.myfantasyleague.com/2023/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2024/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
   httr::content() %>%
   `[[`("players") %>%
   `[[`("player") %>%
