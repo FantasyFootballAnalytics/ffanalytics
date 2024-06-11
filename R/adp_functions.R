@@ -407,25 +407,26 @@ espn_draft <- function(metric = c("adp", "aav")){
         pos == "K" ~ 35,
         pos == "DST" ~ 32
       )
-      base_url = paste0("https://fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
-                        "/segments/0/leaguedefaults/3?scoringPeriodId=0",
-                        "&view=kona_player_info")
+      base_url = base_url = paste0(
+        "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
+        "/segments/0/leaguedefaults/3?scoringPeriodId=0&view=kona_player_info"
+      )
 
       fantasy_filter = paste0(
-        "{\"players\":{",
-        "\"filterSlotIds\":{\"value\":[", pos_idx, "]},",
-        "\"filterStatsForExternalIds\":{\"value\":[", season, "]},",
-        "\"filterStatsForSourceIds\":{\"value\":[1]},",
-        "\"sortAppliedStatTotal\":{\"sortAsc\":false,\"sortPriority\":3,\"value\":\"10", season, "\"},",
-        "\"sortDraftRanks\":{\"sortPriority\":2,\"sortAsc\":true,\"value\":\"PPR\"},",
-        "\"sortPercOwned\":{\"sortAsc\":false,\"sortPriority\":4},",
-        "\"limit\":", limit, ",",
-        "\"offset\":0,",
-        "\"filterRanksForScoringPeriodIds\":{\"value\":[", 1, "]},",
-        "\"filterRanksForRankTypes\":{\"value\":[\"PPR\"]},",
-        "\"filterRanksForSlotIds\":{\"value\":[0,2,4,6,17,16]},",
-        "\"filterStatsForTopScoringPeriodIds\":{\"value\":2,",
-        "\"additionalValue\":[\"00", season, "\",\"10", season, "\",\"00", season - 1, "\",\"02", season, "\"]}}}"
+        '{"players":{',
+        '"filterSlotIds":{"value":[', pos_idx, ']},',
+        '"filterStatsForSourceIds":{"value":[1]},',
+        '"filterStatsForSplitTypeIds":{"value":[', filter_split_id, ']},',
+        '"sortAppliedStatTotal":{"sortAsc":false,"sortPriority":3,"value":"11', season, week, '"},',
+        '"sortDraftRanks":{"sortPriority":2,"sortAsc":true,"value":"PPR"},',
+        '"sortPercOwned":{"sortAsc":false,"sortPriority":4},',
+        '"limit":', limit, ',',
+        '"offset":0,',
+        '"filterRanksForScoringPeriodIds":{"value":[2]},',
+        '"filterRanksForRankTypes":{"value":["PPR"]},',
+        '"filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},',
+        '"filterStatsForTopScoringPeriodIds":{"value":2,',
+        '"additionalValue":["00', season, '","10', season, '","11', season, week, '","02', season, '"]}}}'
       )
 
       espn_json = httr2::request(base_url) %>%
@@ -434,7 +435,7 @@ espn_draft <- function(metric = c("adp", "aav")){
           Accept = "application/json",
           `Accept-Encoding` = "gzip, deflate, br",
           Connection = "keep-alive",
-          Host = "fantasy.espn.com",
+          Host = "lm-api-reads.fantasy.espn.com",
           `X-Fantasy-Source` = "kona",
           `X-Fantasy-Filter` = fantasy_filter,
         ) %>%
