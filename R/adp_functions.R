@@ -416,8 +416,8 @@ espn_draft <- function(metric = c("adp", "aav")){
         '{"players":{',
         '"filterSlotIds":{"value":[', pos_idx, ']},',
         '"filterStatsForSourceIds":{"value":[1]},',
-        '"filterStatsForSplitTypeIds":{"value":[', filter_split_id, ']},',
-        '"sortAppliedStatTotal":{"sortAsc":false,"sortPriority":3,"value":"11', season, week, '"},',
+        '"filterStatsForSplitTypeIds":{"value":[0]},',
+        '"sortAppliedStatTotal":{"sortAsc":false,"sortPriority":3,"value":"11', season, '0"},',
         '"sortDraftRanks":{"sortPriority":2,"sortAsc":true,"value":"PPR"},',
         '"sortPercOwned":{"sortAsc":false,"sortPriority":4},',
         '"limit":', limit, ',',
@@ -426,7 +426,7 @@ espn_draft <- function(metric = c("adp", "aav")){
         '"filterRanksForRankTypes":{"value":["PPR"]},',
         '"filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},',
         '"filterStatsForTopScoringPeriodIds":{"value":2,',
-        '"additionalValue":["00', season, '","10', season, '","11', season, week, '","02', season, '"]}}}'
+        '"additionalValue":["00', season, '","10', season, '","11', season, '0","02', season, '"]}}}'
       )
 
       espn_json = httr2::request(base_url) %>%
@@ -452,7 +452,7 @@ espn_draft <- function(metric = c("adp", "aav")){
         keep_cols = c("auctionValueAverage", "averageDraftPosition", "percentOwned")
 
         l_players[[i]] = espn_json[[i]]$player$ownership[keep_cols]
-        l_players[[i]][] = lapply(l_players[[i]], round)
+        l_players[[i]][] = lapply(l_players[[i]], round, 1)
 
         # Misc player info
         l_players[[i]]$espn_id = espn_json[[i]]$id
@@ -480,6 +480,7 @@ espn_draft <- function(metric = c("adp", "aav")){
         dplyr::select(id, espn_id, pos = position,
                       player = player_name, team, adp = averageDraftPosition,
                       aav = auctionValueAverage, percent_owned = percentOwned)
+
 
       idx = names(out_df) %in% c("id", "espn_id")
       out_df[idx] = lapply(out_df[idx], as.character)
