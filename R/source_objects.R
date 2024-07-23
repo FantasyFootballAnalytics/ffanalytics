@@ -61,7 +61,7 @@ cbs_columns = c(
   "Yards Against Per Game" = "dst_avg_yds_allowed",
   "Fantasy Points" = "site_pts",
   "Fantasy Points Per Game" = "site_fppg"
-  )
+)
 
 # NFL ----
 nfl_columns = c(
@@ -140,7 +140,7 @@ rts_columns = c(
   "sacks" = "dst_sacks",
   "ints" = "dst_int",
   "fumbles_recovered" = "dst_fum_rec"
-  )
+)
 
 # Fantasy sharks ----
 
@@ -264,7 +264,7 @@ numberfire_idp_columns = c(
   `Yahoo Value` = "yahoo_value",
   `Opp Team` = "opp",
   `Opp Rank` = "opp_rank"
-  )
+)
 
 numberfire_columns = c(
   id = "id",
@@ -311,7 +311,7 @@ numberfire_columns = c(
   `Yahoo FP` = "yahoo_site_points",
   `Yahoo Salary` = "yahoo_salary",
   `Yahoo Value` = "yahoo_value"
-  )
+)
 
 # Walterfootball columns ----
 walterfootball_columns = c(
@@ -332,20 +332,20 @@ walterfootball_columns = c(
   `FG 50+` = "fg_50",
   XP = "xp",
   `Points (ESPN Scoring)` = "site_pts"
-  )
+)
 
 # FFToday columns ----
 fftoday_columns = c(
-  "Passing Comp" = "pass_comp",
+  "Passing Cmp" = "pass_comp",
   "Passing Att" = "pass_att",
-  "Passing Yard" = "pass_yds",
+  "Passing Yds" = "pass_yds",
   "Passing TD" = "pass_tds",
   "Passing INT" = "pass_int",
   "Rushing Att" = "rush_att",
-  "Rushing Yard"  = "rush_yds",
+  "Rushing Yds"  = "rush_yds",
   "Rushing TD" = "rush_tds",
   "Receiving Rec" = "rec",
-  "Receiving Yard" = "rec_yds",
+  "Receiving Yds" = "rec_yds",
   "Receiving TD" = "rec_tds",
   "FGM" = "fg",
   "FGA" = "fg_att",
@@ -363,7 +363,7 @@ fftoday_columns = c(
   "PA" = "dst_pts_allowed",
   "PaYd/G" = "dst_pass_yds_g",
   "RuYd/G" = "dst_rush_yds_g",
-  "Safety" = "dst_safety",
+  "S" = "dst_safety",
   "KickTD" = "dst_ret_tds",
   "Tackle" = "idp_solo",
   "Assist" = "idp_asst",
@@ -375,11 +375,12 @@ fftoday_columns = c(
   "Fantasy FFPts" = "site_pts",
   "Fantasy FPts" = "site_pts",
   "Player" = "player",
+  "Tm" = "team",
   "Team" = "team",
   "Opp" = "opp",
   "Chg" = "chg",
   "Bye" = "bye"
-  )
+)
 
 # Fantasypros columns ----
 fantasypros_columns = c(
@@ -409,7 +410,7 @@ fantasypros_columns = c(
   "MISC FPTS" = "site_pts",
   "Player" = "player",
   "FG" = "fg"
-  )
+)
 
 # Fleaflicker columns ----
 
