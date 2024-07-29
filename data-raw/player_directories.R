@@ -37,7 +37,7 @@ cbs_data = lapply(cbs_links, function(page) {
 final_cbs = dplyr::bind_rows(cbs_data) %>%
   dplyr::transmute(cbs_id = player_id,
                    id = get_mfl_id(player_name = player_names, pos = position),
-                   merge_id = paste0(gsub("\\(-)", "", player_names), "_", tolower(position)))
+                   merge_id = paste0(gsub("\\(-)|-", "", player_names), "_", tolower(position)))
 
 
 #### FFToday Players #### ----
@@ -467,7 +467,10 @@ updated_ids = my_fl_ids %>%
          merge_id = paste0(merge_id, "_", tolower(position)))
 
 new_ids = mget(ls(pattern = "^final"))
-new_ids = Reduce(function(x, y) full_join(x, y, "merge_id"), new_ids) %>%
+new_ids = lapply(new_ids, function(x) {
+  x[!duplicated(x$merge_id), ]
+}) %>%
+  Reduce(function(x, y) full_join(x, y, "merge_id"), .) %>%
   filter(!grepl("_(dst|def)$", merge_id)) %>%
   distinct()
 

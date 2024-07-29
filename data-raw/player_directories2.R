@@ -226,6 +226,7 @@ for(j in curr_cols) {
 
   }
 }
+curr_ids = unique(curr_ids)
 
 
 # Run necessary QA. Looks at the data. Etc..
@@ -236,7 +237,7 @@ dim(ffanalytics:::player_ids)
 dim(curr_ids)
 
 
-curr_ids[curr_ids$id %in% curr_ids$id[duplicated(curr_ids$id)], ]
+curr_ids[curr_ids$id %in% curr_ids$id[duplicated(curr_ids$id)], ] |> View()
 
 
 
