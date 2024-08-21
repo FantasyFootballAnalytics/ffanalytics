@@ -511,7 +511,7 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
 
     # Combine data w/ player ID's
     pos_df <- data %>%
-      mutate(id = get_mfl_id(last = last_name, first = first_name, pos = position),
+      mutate(id = get_mfl_id(id_col = "fantasypro_id", player_name = Player, pos = position),
              data_src = "WalterFootball") %>%
       select(id, everything(), -last_name, -first_name)
 
