@@ -1,14 +1,14 @@
 
 #' Create Custom Scoring
 #'
-#' This function geerates a list of scoring settings that can be used as custom
-#' scoring setting for calculations. THe resulting list will still need to have
+#' This function generates a list of scoring settings that can be used as custom
+#' scoring setting for calculations. The resulting list will still need to have
 #' a \code{pts_bracket} element added to handle points allowed for DSTs. See
 #' \code{vignette("scoring_settings")} about this.
 #'
-#' @param ... this can be indivdual scoring variables or a list of scoring variables
+#' @param ... this can be individual scoring variables or a list of scoring variables
 #' for specific positions. The list will need to be named with a separated list of
-#' positions. Note that scoring for passing, kicking, and dst should never be specified
+#' positions. Note that scoring for passing, kicking, and DST should never be specified
 #' within a list.
 #'
 #' @examples
