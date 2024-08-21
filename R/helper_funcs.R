@@ -207,6 +207,113 @@ extract_src_scrapes_from_scrape = function(data_result) {
 
 
 
+# nflr_player_stats_df = nflreadr::load_player_stats(2023, "offense")
+# nflr_pbp_data = nflreadr::load_pbp(2023)
+# This accepts nflreadr data (e.g., above) and scoring
+actual_points_scoring = function(nflr_player_stats_df,
+                                 nflr_pbp_data,
+                                 scoring_rules = NULL,
+                                 vor_baseline = NULL,
+                                 rename_colums = TRUE) {
+
+  # Filling in missing arguments
+  if(is.null(scoring_rules)) {
+    scoring_rules = scoring
+  }
+  if(is.null(vor_baseline)) {
+    vor_baseline = default_baseline
+  }
+
+  # Make the nflr object match our scrape data structures to utilize our current
+  # scoring infrastructure (typically named `data_result` in internal functions)
+  nflr_actuals_attrs = attributes(nflr_player_stats_df)
+  stat_type = sub("^.*:\\s?", "", nflr_actuals_attrs$nflverse_type)
+
+  # Updating columns names to match our standard column names
+  if(isTRUE(stat_type == "offense")) {
+    names(nflr_player_stats_df) = rename_vec(names(nflr_player_stats_df), nflreadr_offense_cols)
+  }
+
+  scoring_objs = make_scoring_tables(scoring_rules)
+
+
+  # Calculating specific data from PBP data
+  # pass_40_yds, pass_300_yds, pass_350_yds, pass_400_yds
+  # rush_40_yds, rush_100_yds, rush_150_yds, rush_200_yds
+  # rec_40_yds, rec_100_yds, rec_150_yds, rec_200_yds
+  df_pass_40_yds = nflr_pbp_data %>%
+    dplyr::filter(!is.na(passer_player_id)) %>%
+    dplyr::group_by(season_year = season, week, gsis_id = passer_player_id) %>%
+    dplyr::summarise(pass_40_yds = sum(passing_yards >= 40, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+
+  df_rush_40_yds = nflr_pbp_data %>%
+    dplyr::filter(!is.na(rusher_player_id)) %>%
+    dplyr::group_by(season_year = season, week, gsis_id = rusher_player_id) %>%
+    dplyr::summarise(rush_40_yds = sum(rushing_yards >= 40, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+
+  df_rec_40_yds = nflr_pbp_data %>%
+    dplyr::filter(!is.na(receiver_player_id)) %>%
+    dplyr::group_by(season_year = season, week, gsis_id = rusher_player_id) %>%
+    dplyr::summarise(rush_40_yds = sum(receiving_yards >= 40, na.rm = TRUE)) %>%
+    dplyr::ungroup()
+
+  df_return_yds = nflr_pbp_data %>%
+    dplyr::mutate(gsis_id = dplyr::coalesce(punt_returner_player_id, kickoff_returner_player_name)) %>%
+    dplyr::filter(!is.na(gsis_id)) %>%
+    dplyr::group_by(season_year = season, week, gsis_id) %>%
+    dplyr::summarise(return_yds = sum(return_yards, na.rm = TRUE))
+
+  nflr_player_stats_df = nflr_player_stats_df %>%
+    dplyr::left_join(df_pass_40_yds, c("season_year", "week", "gsis_id")) %>%
+    dplyr::left_join(df_rush_40_yds, c("season_year", "week", "gsis_id")) %>%
+    dplyr::left_join(df_rec_40_yds, c("season_year", "week", "gsis_id")) %>%
+    dplyr::full_join(df_return_yds, c("season_year", "week", "gsis_id")) %>%
+    dplyr::mutate(
+      pass_inc = pass_att - pass_comp,
+      pass_comp_pct = round(pass_comp / pass_att, 5),
+      fumbles = rowSums(dplyr::pick(pass_sack_fumbles,  rush_fumbles,  rec_fumbles), na.rm = TRUE),
+      two_pts = rowSums(dplyr::pick(pass_two_pts, rush_two_pts, rec_two_pts), na.rm = TRUE),
+      pass_300_yds = as.integer(pass_yds >= 300, na.rm = TRUE),
+      pass_350_yds = as.integer(pass_yds >= 350, na.rm = TRUE),
+      pass_400_yds = as.integer(pass_yds >= 400, na.rm = TRUE),
+      rush_100_yds = as.integer(rush_yds >= 100, na.rm = TRUE),
+      rush_150_yds = as.integer(rush_yds >= 150, na.rm = TRUE),
+      rush_200_yds = as.integer(rush_yds >= 200, na.rm = TRUE),
+      rec_100_yds = as.integer(rec_yds >= 100, na.rm = TRUE),
+      rec_150_yds = as.integer(rec_yds >= 150, na.rm = TRUE),
+      rec_200_yds = as.integer(rec_yds >= 200, na.rm = TRUE)
+    )
+
+  data_result = split.data.frame(nflr_player_stats_df, nflr_player_stats_df$pos)
+  attr(data_result, "season") = unique(nflr_player_stats_df$season_year)
+
+  if(length(unique(nflr_player_stats_df$week)) > 1) {
+    attr(data_result, "week") = 1
+  } else {
+    attr(data_result, "week") = unique(nflr_player_stats_df$week)
+  }
+
+  data_result[] = source_points(data_result, scoring_rules, return_data_result = TRUE)
+
+  nflr_player_stats_df = dplyr::bind_rows(data_result)
+
+  attr(nflr_player_stats_df, "nflfastR_version") = nflr_actuals_attrs$nflfastR_version
+  attr(nflr_player_stats_df, ".internal.selfref") = nflr_actuals_attrs$.internal.selfref
+  attr(nflr_player_stats_df, "class") = nflr_actuals_attrs$class
+  attr(nflr_player_stats_df, "nflverse_type") = nflr_actuals_attrs$nflverse_type
+  attr(nflr_player_stats_df, "nflverse_timestamp") = nflr_actuals_attrs$nflverse_timestamp
+
+  if(isFALSE(rename_colums)) {
+    switch_back_names = setNames(names(nflreadr_offense_cols), nflreadr_offense_cols)
+
+    names(nflr_player_stats_df) = rename_vec(names(nflr_player_stats_df), switch_back_names)
+  }
+  nflr_player_stats_df
+
+}
+
 
 
 
