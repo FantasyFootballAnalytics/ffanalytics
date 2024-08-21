@@ -510,6 +510,64 @@ nflfastr_calc_cols = c(
   "fantasy_points_ppr"
 )
 
+nflreadr_offense_cols = c(
+  "player_id" = "gsis_id",
+  "player_name" = "abrv_player_name",
+  "player_display_name" = "player_name",
+  "position" = "position",
+  "position_group" = "pos",
+  "headshot_url" = "headshot_url",
+  "recent_team" = "team",
+  "season" = "season_year",
+  "week" = "week",
+  "season_type" = "season_type",
+  "opponent_team" = "opponent_team",
+  "completions" = "pass_comp",
+  "attempts" = "pass_att",
+  "passing_yards" = "pass_yds",
+  "passing_tds" = "pass_tds",
+  "interceptions" = "pass_int",
+  "sacks" = "pass_sack",
+  "sack_yards" = "pass_sack_yds",
+  "sack_fumbles" = "pass_sack_fumbles",
+  "sack_fumbles_lost" = "pass_sack_fumbles_lost",
+  "passing_air_yards" = "passing_air_yards",
+  "passing_yards_after_catch" = "passing_yards_after_catch",
+  "passing_first_downs" = "passing_first_downs",
+  "passing_epa" = "passing_epa",
+  "passing_2pt_conversions" = "pass_two_pts",
+  "pacr" = "pacr",
+  "dakota" = "dakota",
+  "carries" = "carries",
+  "rushing_yards" = "rush_yds",
+  "rushing_tds" = "rush_tds",
+  "rushing_fumbles" = "rush_fumbles",
+  "rushing_fumbles_lost" = "rush_fumbles_lost",
+  "rushing_first_downs" = "rushing_first_downs",
+  "rushing_epa" = "rushing_epa",
+  "rushing_2pt_conversions" = "rush_two_pts",
+  "receptions" = "rec",
+  "targets" = "rec_tgt",
+  "receiving_yards" = "rec_yds",
+  "receiving_tds" = "rec_tds",
+  "receiving_fumbles" = "rec_fumbles",
+  "receiving_fumbles_lost" = "rec_fumbles_lost",
+  "receiving_air_yards" = "receiving_air_yards",
+  "receiving_yards_after_catch" = "receiving_yards_after_catch",
+  "receiving_first_downs" = "receiving_first_downs",
+  "receiving_epa" = "receiving_epa",
+  "receiving_2pt_conversions" = "rec_two_pts",
+  "racr" = "racr",
+  "target_share" = "target_share",
+  "air_yards_share" = "air_yards_share",
+  "wopr" = "wopr",
+  "special_teams_tds" = "return_tds",
+  "fantasy_points" = "nflreadr_fantasy_points",
+  "fantasy_points_ppr" = "nflreadr_fantasy_points_ppr"
+  )
+
+
+
 # ESPN ----
 
 espn_columns = c(
