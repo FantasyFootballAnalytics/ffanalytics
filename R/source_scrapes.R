@@ -229,6 +229,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   }
   # historical scrapes (doesn't work)
   year = dplyr::case_when(
+    season == 2024 ~ 810,
     season == 2023 ~ 778,
     season == 2022 ~ 746,
     season == 2021 ~ 714,
@@ -244,7 +245,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   } else if (week %in% c(1:22)) {
     segment <- year + week + 8
   } else if (week %in% "ros") {
-    segment <- 717
+    segment <- 813
   }
 
   l_pos <- lapply(pos, function(pos){
@@ -260,7 +261,6 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
       pos %in% "LB" ~ 9,
       pos %in% "DB" ~ 10
     )
-
     scrape_link <- paste0("https://www.fantasysharks.com/apps/bert/forecasts/projections.php?csv=1&Sort=",
                           "&League=-1&Position=",position, "&scoring=1&Segment=", segment, "&uid=4")
 
