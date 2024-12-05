@@ -237,7 +237,7 @@ dim(ffanalytics:::player_ids)
 dim(curr_ids)
 
 
-curr_ids[curr_ids$id %in% curr_ids$id[duplicated(curr_ids$id)], ] |> View()
+curr_ids[curr_ids$id %in% curr_ids$id[duplicated(curr_ids$id)], ]
 
 
 
@@ -251,6 +251,22 @@ colSums(!is.na(curr_ids)) - colSums(!is.na(ffanalytics:::player_ids))
 sum(duplicated(curr_ids$id))
 sum(duplicated(ffanalytics:::player_ids))
 
+
+# Updating specific ID with an issue
+
+
+
+
+# Adding gsis-id and sleeper (will add more robust sleeper pull directly to their
+# API)
+nflr_ids = nflreadr::load_ff_playerids() %>%
+  select(mfl_id, gsis_id, sleeper_id)
+
+curr_ids = curr_ids %>%
+  left_join(nflr_ids, c("id" = "mfl_id"))
+
+
+# Writing temp file
 temp_file = tempfile(fileext = ".rds")
 print(temp_file)
 saveRDS(curr_ids, temp_file)
