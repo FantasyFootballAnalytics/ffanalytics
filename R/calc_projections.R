@@ -109,7 +109,57 @@ default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
                     WalterFootball = 0.281, RTSports= 0.330,
                     FantasyData= 0.428, FleaFlicker = 0.428)
 
+#' Default Weights for Projection Sources
+#'
+#' Object with default weights for each position by source
+default_weights_by_src = list(
+  QB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  RB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  WR = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  TE = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  DST = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  K = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+        NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+        WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  DB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  DL = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
+  LB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
+         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5)
+)
 
+
+prep_src_weights = function(src_weights = NULL) {
+
+  if(isFALSE(is.list(src_weights))) {
+    positions = c("QB", "RB", "WR", "TE", "DST", "K", "DB", "DL", "LB")
+    l_src_weight = vector("list", length = length(positions))
+    names(l_src_weight) = positions
+
+    for(i in positions) {
+      l_src_weight[[i]] = as.list(src_weights)
+    }
+    src_weights = l_src_weight
+  }
+
+  dplyr::bind_rows(src_weights, .id = "pos") %>%
+    tidyr::pivot_longer(-pos, names_to = "data_src", values_to = "weights")
+
+}
 
 #' Default VOR Baseline
 #'
@@ -278,10 +328,12 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
   l_pts_bracket = scoring_objs$pts_bracket
 
   # Adding weight and removing empty id's
+  src_weights = prep_src_weights(src_weights)
+
   data_result[] = lapply(data_result, function(df) {
-    df = df[!is.na(df$id), ]
-    df$weights = src_weights[df$data_src]
-    df
+    df %>%
+      dplyr::filter(!is.na(id)) %>%
+      dplyr::left_join(src_weights, c("pos", "data_src"))
   })
 
   # Imputing values ----
