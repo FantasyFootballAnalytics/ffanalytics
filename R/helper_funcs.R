@@ -206,17 +206,54 @@ extract_src_scrapes_from_scrape = function(data_result) {
 
 
 
-
-# nflr_player_stats_df = nflreadr::load_player_stats(2023, "offense")
-# nflr_pbp_data = nflreadr::load_pbp(2023)
-# This accepts nflreadr data (e.g., above) and scoring
-actual_points_scoring = function(nflr_player_stats_df,
-                                 nflr_pbp_data,
+# actual_points_scoring(
+#   season = 2023,
+#   summary_level = c("season", "week"),
+#   stat_type = c("player", "dst", "team"),
+#   season_type = c("REG", "POST", "REG+POST"),
+#   scoring_rules = NULL,
+#   vor_baseline = NULL,
+#   rename_colums = TRUE
+# )
+actual_points_scoring = function(season = NULL,
+                                 summary_level = c("season", "week"),
+                                 stat_type = c("player", "dst", "team"),
+                                 season_type = c("REG", "POST", "REG+POST"),
                                  scoring_rules = NULL,
                                  vor_baseline = NULL,
                                  rename_colums = TRUE) {
 
-  # Filling in missing arguments
+  # Checking if suggested package is installed w/ correct version
+  if(isFALSE(requireNamespace("nflfastR", quietly = TRUE))) {
+    stop(
+      "Package \"nflfastR\" (>= v5.0.0) must be installed to use this function.",
+      call. = FALSE
+    )
+  }
+  if(isTRUE(requireNamespace("nflfastR", quietly = TRUE))) {
+    # need to find more robust way to check
+    pkg_version = as.integer(substr(packageVersion("nflfastR"), 1, 1))
+
+    if(pkg_version < 5L)
+      stop(
+        "Package \"nflfastR\" (>= v5.0.0) must be installed to use this function.",
+        call. = FALSE
+      )
+  }
+
+
+
+  # Argument checking / filling missing arguments
+  if(is.null(season)) {
+    stop("Must provide argument to season. E.g., `season = 2023`")
+  }
+  if(length(season) != 1) {
+    stop("Must provide one year to season argument. e.g., `season = 2023`")
+  }
+
+  summary_level = match.arg(tolower(summary_level), c("season", "week"))
+  stat_type = match.arg(tolower(stat_type), c("player", "dst", "team"))
+  season_type = match.arg(toupper(season_type), c("REG", "POST", "REG+POST"))
   if(is.null(scoring_rules)) {
     scoring_rules = scoring
   }
@@ -224,14 +261,59 @@ actual_points_scoring = function(nflr_player_stats_df,
     vor_baseline = default_baseline
   }
 
-  # Make the nflr object match our scrape data structures to utilize our current
-  # scoring infrastructure (typically named `data_result` in internal functions)
-  nflr_actuals_attrs = attributes(nflr_player_stats_df)
-  stat_type = sub("^.*:\\s?", "", nflr_actuals_attrs$nflverse_type)
+  # browser()
+
+  if(isTRUE(stat_type == "dst")) {
+    nflf_stat_type = "team"
+  } else {
+    nflf_stat_type = stat_type
+  }
+
+
+  # Passing arguments to the actuals functions
+  nflf_stat = nflfastR::calculate_stats(
+    season = season,
+    summary_level = summary_level,
+    stat_type = nflf_stat_type,
+    season_type = season_type
+  )
+  nflf_stat = nflf_stat %>%
+    dplyr::filter(grepl(sub("+", "|", !!season_type, fixed = TRUE), .data$season_type))
+
+
+
+  # Loading pbp and filtering for season_type
+  nflf_pbp = nflfastR::load_pbp(
+    season = season,
+    file_type = "rds"
+  )
+  nflf_pbp = nflf_pbp %>%
+    dplyr::filter(grepl(sub("+", "|", !!season_type, fixed = TRUE), .data$season_type))
+
+
+
+  # Adding week if summary level = "season"
+  if(isTRUE(summary_level %in% c("season"))) {
+    nflf_stat$week = 0L
+    nflf_pbp$week = 0L
+  }
 
   # Updating columns names to match our standard column names
-  if(isTRUE(stat_type == "offense")) {
-    names(nflr_player_stats_df) = rename_vec(names(nflr_player_stats_df), nflreadr_offense_cols)
+
+  if(isTRUE(stat_type == "player")) {
+    names(nflf_stat) = rename_vec(names(nflf_stat), nflfastr_player_cols)
+  } else {
+    # names(nflfastr_player_cols) = gsub("idp", "dst", names(nflfastr_player_cols), fixed = TRUE)
+    nflfastr_player_cols = gsub("idp", "dst", nflfastr_player_cols, fixed = TRUE)
+    names(nflf_stat) = rename_vec(names(nflf_stat), nflfastr_player_cols)
+
+    nflf_stat$gsis_id = nflf_stat$team
+    nflf_stat$pos = "DST"
+
+    nflf_pbp$passer_player_id = ifelse(!is.na(nflf_pbp$passer_player_id), nflf_pbp$posteam, NA)
+    nflf_pbp$rusher_player_id = ifelse(!is.na(nflf_pbp$rusher_player_id), nflf_pbp$posteam, NA)
+    nflf_pbp$receiver_player_id = ifelse(!is.na(nflf_pbp$receiver_player_id), nflf_pbp$posteam, NA)
+
   }
 
   scoring_objs = make_scoring_tables(scoring_rules)
@@ -241,40 +323,40 @@ actual_points_scoring = function(nflr_player_stats_df,
   # pass_40_yds, pass_300_yds, pass_350_yds, pass_400_yds
   # rush_40_yds, rush_100_yds, rush_150_yds, rush_200_yds
   # rec_40_yds, rec_100_yds, rec_150_yds, rec_200_yds
-  df_pass_40_yds = nflr_pbp_data %>%
+  df_pass_40_yds = nflf_pbp %>%
     dplyr::filter(!is.na(passer_player_id)) %>%
     dplyr::group_by(season_year = season, week, gsis_id = passer_player_id) %>%
-    dplyr::summarise(pass_40_yds = sum(passing_yards >= 40, na.rm = TRUE)) %>%
-    dplyr::ungroup()
+    dplyr::summarise(
+      pass_40_yds = sum(passing_yards >= 40, na.rm = TRUE),
+      .groups = "drop"
+    )
 
-  df_rush_40_yds = nflr_pbp_data %>%
+  df_rush_40_yds = nflf_pbp %>%
     dplyr::filter(!is.na(rusher_player_id)) %>%
     dplyr::group_by(season_year = season, week, gsis_id = rusher_player_id) %>%
-    dplyr::summarise(rush_40_yds = sum(rushing_yards >= 40, na.rm = TRUE)) %>%
-    dplyr::ungroup()
+    dplyr::summarise(
+      rush_40_yds = sum(rushing_yards >= 40, na.rm = TRUE),
+      .groups = "drop"
+    )
 
-  df_rec_40_yds = nflr_pbp_data %>%
+  df_rec_40_yds = nflf_pbp %>%
     dplyr::filter(!is.na(receiver_player_id)) %>%
-    dplyr::group_by(season_year = season, week, gsis_id = rusher_player_id) %>%
-    dplyr::summarise(rush_40_yds = sum(receiving_yards >= 40, na.rm = TRUE)) %>%
-    dplyr::ungroup()
+    dplyr::group_by(season_year = season, week, gsis_id = receiver_player_id) %>%
+    dplyr::summarise(
+      rec_40_yds = sum(receiving_yards >= 40, na.rm = TRUE),
+      .groups = "drop"
+    )
 
-  df_return_yds = nflr_pbp_data %>%
-    dplyr::mutate(gsis_id = dplyr::coalesce(punt_returner_player_id, kickoff_returner_player_name)) %>%
-    dplyr::filter(!is.na(gsis_id)) %>%
-    dplyr::group_by(season_year = season, week, gsis_id) %>%
-    dplyr::summarise(return_yds = sum(return_yards, na.rm = TRUE))
-
-  nflr_player_stats_df = nflr_player_stats_df %>%
+  nflf_stat = nflf_stat %>%
     dplyr::left_join(df_pass_40_yds, c("season_year", "week", "gsis_id")) %>%
     dplyr::left_join(df_rush_40_yds, c("season_year", "week", "gsis_id")) %>%
     dplyr::left_join(df_rec_40_yds, c("season_year", "week", "gsis_id")) %>%
-    dplyr::full_join(df_return_yds, c("season_year", "week", "gsis_id")) %>%
     dplyr::mutate(
       pass_inc = pass_att - pass_comp,
       pass_comp_pct = round(pass_comp / pass_att, 5),
       fumbles = rowSums(dplyr::pick(pass_sack_fumbles,  rush_fumbles,  rec_fumbles), na.rm = TRUE),
       two_pts = rowSums(dplyr::pick(pass_two_pts, rush_two_pts, rec_two_pts), na.rm = TRUE),
+      return_yds = kickoff_return_yds + punt_return_yds,
       pass_300_yds = as.integer(pass_yds >= 300, na.rm = TRUE),
       pass_350_yds = as.integer(pass_yds >= 350, na.rm = TRUE),
       pass_400_yds = as.integer(pass_yds >= 400, na.rm = TRUE),
@@ -283,35 +365,56 @@ actual_points_scoring = function(nflr_player_stats_df,
       rush_200_yds = as.integer(rush_yds >= 200, na.rm = TRUE),
       rec_100_yds = as.integer(rec_yds >= 100, na.rm = TRUE),
       rec_150_yds = as.integer(rec_yds >= 150, na.rm = TRUE),
-      rec_200_yds = as.integer(rec_yds >= 200, na.rm = TRUE)
+      rec_200_yds = as.integer(rec_yds >= 200, na.rm = TRUE),
     )
 
-  data_result = split.data.frame(nflr_player_stats_df, nflr_player_stats_df$pos)
-  attr(data_result, "season") = unique(nflr_player_stats_df$season_year)
+  data_result = split.data.frame(nflf_stat, nflf_stat$pos)
+  attr(data_result, "season") = unique(nflf_stat$season_year)
 
-  if(length(unique(nflr_player_stats_df$week)) > 1) {
+  if(length(unique(nflf_stat$week)) > 1) {
     attr(data_result, "week") = 1
   } else {
-    attr(data_result, "week") = unique(nflr_player_stats_df$week)
+    attr(data_result, "week") = unique(nflf_stat$week)
   }
 
-  data_result[] = source_points(data_result, scoring_rules, return_data_result = TRUE)
+  # Add points allowed & cleanup columns
+  if(isTRUE(stat_type %in% c("team", "dst"))) {
 
-  nflr_player_stats_df = dplyr::bind_rows(data_result)
+    # Points allowed
+    temp_scores = nflf_pbp %>%
+      dplyr::group_by(season, week, home_team, away_team) %>%
+      dplyr::summarise(total_home_score = max(total_home_score),
+                       total_away_score = max(total_away_score),
+                       .groups = "drop")
 
-  attr(nflr_player_stats_df, "nflfastR_version") = nflr_actuals_attrs$nflfastR_version
-  attr(nflr_player_stats_df, ".internal.selfref") = nflr_actuals_attrs$.internal.selfref
-  attr(nflr_player_stats_df, "class") = nflr_actuals_attrs$class
-  attr(nflr_player_stats_df, "nflverse_type") = nflr_actuals_attrs$nflverse_type
-  attr(nflr_player_stats_df, "nflverse_timestamp") = nflr_actuals_attrs$nflverse_timestamp
+    actual_allowed = dplyr::bind_rows(
+      dplyr::select(temp_scores, season_year = season, week, team = home_team, dst_pts_allowed = total_away_score),
+      dplyr::select(temp_scores, season_year = season, week, team = away_team, dst_pts_allowed = total_home_score)
+    )
+
+    data_result[["DST"]] = data_result[["DST"]] %>%
+      dplyr::left_join(actual_allowed, c("season_year", "week", "team")) %>%
+      dplyr::select(-gsis_id, -pos)
+
+  }
+
+
+  if(isTRUE(stat_type == "dst")) {
+    scoring_rules = scoring_rules[c("ret", "dst", "pts_bracket")]
+  }
+
+
+  data_result[] = source_points(data_result, scoring_rules, return_data_result = TRUE, is_actual = TRUE)
+
+  nflf_out_df = dplyr::bind_rows(data_result)
+
 
   if(isFALSE(rename_colums)) {
-    switch_back_names = setNames(names(nflreadr_offense_cols), nflreadr_offense_cols)
+    switch_back_names = setNames(names(nflfastr_player_cols), nflfastr_player_cols)
 
-    names(nflr_player_stats_df) = rename_vec(names(nflr_player_stats_df), switch_back_names)
+    names(nflf_out_df) = rename_vec(names(nflf_out_df), switch_back_names)
   }
-  nflr_player_stats_df
-
+  nflf_out_df
 }
 
 

@@ -178,7 +178,7 @@ score_pts_bracket = function(points, pts_bracket) {
 }
 
 
-score_dst_pts_allowed = function(data_result, pts_bracket) {
+score_dst_pts_allowed = function(data_result, pts_bracket, is_actual = FALSE) {
   week = attr(data_result, "week")
   year = attr(data_result, "season")
   df = data_result[["DST"]]
@@ -190,7 +190,7 @@ score_dst_pts_allowed = function(data_result, pts_bracket) {
     n_games = 16L
   }
 
-  if(week == 0) {
+  if(week == 0 && isFALSE(is_actual)) {
     set.seed(1L)
 
     ids_idx = coalesce(
@@ -215,7 +215,7 @@ score_dst_pts_allowed = function(data_result, pts_bracket) {
   df$dst_pts_allowed
 }
 
-source_points = function(data_result, scoring_rules, return_data_result = FALSE) {
+source_points = function(data_result, scoring_rules, return_data_result = FALSE, is_actual = FALSE) {
 
   year = attr(data_result, "season")
   week = attr(data_result, "week")
@@ -225,7 +225,7 @@ source_points = function(data_result, scoring_rules, return_data_result = FALSE)
   pts_bracket = scoring_cleaned$pts_bracket
 
   # Scoring the points brackets
-  data_result$DST$dst_pts_allowed = score_dst_pts_allowed(data_result, pts_bracket)
+  data_result$DST$dst_pts_allowed = score_dst_pts_allowed(data_result, pts_bracket, is_actual)
 
   l_raw_points = lapply(names(data_result), function(pos) {
     scoring_table = scoring_tables[[pos]]
