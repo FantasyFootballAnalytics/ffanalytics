@@ -5,9 +5,10 @@ pos_corrections = list(Def = "DST", D = "DST", DEF = "DST", "D/ST" = "DST", PK =
                        OLB = "LB", SS = "DB", FB = "RB")
 
 team_corrections <- list(KCC = "KC", SFO = "SF", TBB = "TB", NEP = "NE", RAM = "LAR",
-                         LA = "LAR", SDC = "SD", ARZ = "ARI", NOR = "NO", GBP = "GB",
+                         LA = "LAR", SDC = "LAC", ARZ = "ARI", NOR = "NO", GBP = "GB",
                          JAX = "JAC", WSH = "WAS", HST = "HOU", CLV = "CLE", BLT = "BAL",
-                         NWE = "NE", NOS = "NO", LVR = "LV")
+                         NWE = "NE", NOS = "NO", LVR = "LV", STL = "LAR", OAK = "LV",
+                         SD = "LAC")
 
 
 nflTeam.abb <- c("ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",

@@ -210,7 +210,7 @@ score_dst_pts_allowed = function(data_result, pts_bracket, is_actual = FALSE) {
     }, ppg, ppg_sd)
     df$dst_pts_allowed[!na_idx] = vapply(game_l, sum, numeric(1L))
   } else {
-    df$dst_pts_allowed[!na_idx] = score_pts_bracket(df$dst_pts_allowed, pts_bracket)
+    df$dst_pts_allowed[!na_idx] = score_pts_bracket(df$dst_pts_allowed[!na_idx], pts_bracket)
   }
   df$dst_pts_allowed
 }

@@ -277,10 +277,9 @@ actual_points_scoring = function(season = NULL,
     stat_type = nflf_stat_type,
     season_type = season_type
   )
+
   nflf_stat = nflf_stat %>%
     dplyr::filter(grepl(sub("+", "|", !!season_type, fixed = TRUE), .data$season_type))
-
-
 
   # Loading pbp and filtering for season_type
   nflf_pbp = nflfastR::load_pbp(
@@ -288,7 +287,9 @@ actual_points_scoring = function(season = NULL,
     file_type = "rds"
   )
   nflf_pbp = nflf_pbp %>%
-    dplyr::filter(grepl(sub("+", "|", !!season_type, fixed = TRUE), .data$season_type))
+    dplyr::filter(grepl(sub("+", "|", !!season_type, fixed = TRUE), .data$season_type)) %>%
+    dplyr::mutate(home_team = rename_vec(home_team, unlist(team_corrections)),
+                  away_team = rename_vec(away_team, unlist(team_corrections)))
 
 
 
@@ -296,17 +297,24 @@ actual_points_scoring = function(season = NULL,
   if(isTRUE(summary_level %in% c("season"))) {
     nflf_stat$week = 0L
     nflf_pbp$week = 0L
+  } else {
+    nflf_stat$opponent_team = rename_vec(nflf_stat$opponent_team, unlist(team_corrections))
   }
 
-  # Updating columns names to match our standard column names
+  # browser()
 
+
+  # Updating columns names to match our standard column names
   if(isTRUE(stat_type == "player")) {
     names(nflf_stat) = rename_vec(names(nflf_stat), nflfastr_player_cols)
+    nflf_stat$recent_team = rename_vec(nflf_stat$recent_team, unlist(team_corrections))
+
   } else {
     # names(nflfastr_player_cols) = gsub("idp", "dst", names(nflfastr_player_cols), fixed = TRUE)
     nflfastr_player_cols = gsub("idp", "dst", nflfastr_player_cols, fixed = TRUE)
     names(nflf_stat) = rename_vec(names(nflf_stat), nflfastr_player_cols)
 
+    nflf_stat$team = rename_vec(nflf_stat$team, unlist(team_corrections))
     nflf_stat$gsis_id = nflf_stat$team
     nflf_stat$pos = "DST"
 
@@ -366,6 +374,7 @@ actual_points_scoring = function(season = NULL,
       rec_100_yds = as.integer(rec_yds >= 100, na.rm = TRUE),
       rec_150_yds = as.integer(rec_yds >= 150, na.rm = TRUE),
       rec_200_yds = as.integer(rec_yds >= 200, na.rm = TRUE),
+      pos = ifelse(pos == "SPEC", "K", pos)
     )
 
   data_result = split.data.frame(nflf_stat, nflf_stat$pos)
@@ -388,9 +397,26 @@ actual_points_scoring = function(season = NULL,
                        .groups = "drop")
 
     actual_allowed = dplyr::bind_rows(
-      dplyr::select(temp_scores, season_year = season, week, team = home_team, dst_pts_allowed = total_away_score),
-      dplyr::select(temp_scores, season_year = season, week, team = away_team, dst_pts_allowed = total_home_score)
+      dplyr::select(
+        temp_scores, season_year = season, week, team = home_team,
+        team_pts_scored = total_home_score, opp_pts_scored = total_away_score,
+        dst_pts_allowed = total_away_score
+        ),
+      dplyr::select(
+        temp_scores, season_year = season, week, team = away_team,
+        team_pts_scored = total_away_score, opp_pts_scored = total_home_score,
+        dst_pts_allowed = total_home_score
+        )
     )
+
+    if(summary_level == "season") {
+      actual_allowed = actual_allowed %>%
+        dplyr::group_by(season_year, week, team) %>%
+        dplyr::summarise(team_pts_scored = sum(team_pts_scored, na.rm = TRUE),
+                         opp_pts_scored = sum(opp_pts_scored, na.rm = TRUE),
+                         dst_pts_allowed = sum(dst_pts_allowed, na.rm = TRUE),
+                         .groups = "drop")
+    }
 
     data_result[["DST"]] = data_result[["DST"]] %>%
       dplyr::left_join(actual_allowed, c("season_year", "week", "team")) %>%
@@ -402,11 +428,10 @@ actual_points_scoring = function(season = NULL,
   if(isTRUE(stat_type == "dst")) {
     scoring_rules = scoring_rules[c("ret", "dst", "pts_bracket")]
   }
-
-
   data_result[] = source_points(data_result, scoring_rules, return_data_result = TRUE, is_actual = TRUE)
 
   nflf_out_df = dplyr::bind_rows(data_result)
+
 
 
   if(isFALSE(rename_colums)) {
@@ -416,6 +441,24 @@ actual_points_scoring = function(season = NULL,
   }
   nflf_out_df
 }
+# devtools::load_all()
+# df_out = actual_points_scoring(
+#   season = 2019,
+#   summary_level = c("season"),
+#   stat_type = c("player", "dst", "team"),
+#   season_type = c("REG", "POST", "REG+POST"),
+#   scoring_rules = NULL,
+#   vor_baseline = NULL,
+#   rename_colums = TRUE
+# )
+
+
+
+
+
+
+
+
 
 
 
