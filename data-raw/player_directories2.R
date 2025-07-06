@@ -139,7 +139,7 @@ gc()
 
 curr_ids = ffanalytics:::player_ids
 
-my_fl_ids = httr::GET("https://api.myfantasyleague.com/2024/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2025/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
   httr::content() %>%
   `[[`("players") %>%
   `[[`("player") %>%
@@ -264,6 +264,9 @@ nflr_ids = nflreadr::load_ff_playerids() %>%
 
 curr_ids = curr_ids %>%
   left_join(nflr_ids, c("id" = "mfl_id"))
+
+curr_ids = curr_ids[!grepl("\\.(x|y)", names(curr_ids))]
+
 
 
 # Writing temp file
