@@ -80,6 +80,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
       dst_ids = ff_player_data[ff_player_data$position == "Def", c("id", "team")]
       dst_ids$team[dst_ids$team == "OAK"] = "LV"
       out_df$id = dst_ids$id[match(cbs_id, dst_ids$team)]
+      out_df$pos = pos
       out_df$src_id = player_ids$cbs_id[match(out_df$id, player_ids$id)]
     }
 
