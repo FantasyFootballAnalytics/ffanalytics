@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 3.1.6.0000
+Version: 3.1.7.0000
 Authors@R: c(person("Dennis", "Andersen", 
                     email = "andersen.dennis@outlook.com",
                     role = c("aut")),
@@ -30,7 +30,7 @@ Imports:
     rrapply
 Depends: 
     R (>= 4.1.0)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.2
 Collate:
     'adp_functions.R'
     'caching_helpers.R'

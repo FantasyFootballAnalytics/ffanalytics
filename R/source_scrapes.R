@@ -268,7 +268,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
     Sys.sleep(2L) # temporary, until I get an argument for honoring the crawl delay
     cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
 
-    pos_df = data.table::fread(scrape_link, data.table = FALSE, showProgress = FALSE)
+    pos_df = suppressMessages(readr::read_csv(scrape_link, progress = FALSE, name_repair = "minimal"))
     pos_df$Rank = NULL
 
     # Rename columns with new names

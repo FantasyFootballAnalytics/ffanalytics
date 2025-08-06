@@ -15,7 +15,8 @@ projections_table(
 )
 }
 \arguments{
-\item{data_result}{An output from the \link{scrape_data} function}
+\item{data_result}{An output from the \link{scrape_data} function. The `data_result`
+object is intended to have multiple sources included for aggregation.}
 
 \item{scoring_rules}{The scoring rules to be used for calculations. See
 \code{vignette("scoring_settings")} on how to define custom scoring settings.

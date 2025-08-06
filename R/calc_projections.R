@@ -268,7 +268,8 @@ default_threshold <-  c(QB = 1, RB = 1, WR = 1, TE = 1, K = 1, DST = 0.1, DL = 1
 #' \link{scrape_data} function. The output is a table containing the projected
 #' points, confidence intervals, standard deviation for points, and if seasonal
 #' data also the VOR values
-#' @param data_result An output from the \link{scrape_data} function
+#' @param data_result An output from the \link{scrape_data} function. The `data_result`
+#' object is intended to have multiple sources included for aggregation.
 #' @param scoring_rules The scoring rules to be used for calculations. See
 #' \code{vignette("scoring_settings")} on how to define custom scoring settings.
 #' If omitted then default \link{scoring} settings will be used.
