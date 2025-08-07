@@ -1278,6 +1278,285 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
       )
 }
 
+# FanDuel ----
+scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
+                           season = NULL, week = 0, draft = TRUE, weekly = FALSE) {
+
+  if(is.null(week)) {
+    season = get_scrape_year()
+  }
+
+  if(is.null(week)) {
+    week = get_scrape_week()
+  }
+
+  if(week > 0) {
+    proj_type = "WEEKLY"
+  } else {
+    proj_type = "REMAINING"
+  }
+
+  if(is.null(pos)) {
+    pos = c("QB", "RB", "WR", "TE", "K", "DST")
+  } else {
+    pos
+  }
+
+  message(paste0("\nScraping FanDuel projections for ", paste(pos, collapse = ", "), "..."))
+
+  query <- '
+  query GetProjections($input: ProjectionsInput!) {
+    getProjections(input: $input) {
+      ... on NflSkill {
+        player {
+          numberFireId
+          name
+          position
+        }
+        team {
+          numberFireId
+          name
+          abbreviation
+        }
+        gameInfo {
+          homeTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          awayTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          gameTime
+        }
+        salary
+        value
+        completionsAttempts
+        passingYards
+        passingTouchdowns
+        interceptionsThrown
+        rushingAttempts
+        rushingYards
+        rushingTouchdowns
+        receptions
+        targets
+        receivingYards
+        receivingTouchdowns
+        fantasy
+        positionRank
+        overallRank
+        opponentDefensiveRank
+      }
+      ... on NflKicker {
+        player {
+          numberFireId
+          name
+          position
+        }
+        team {
+          numberFireId
+          name
+
+          abbreviation
+        }
+        gameInfo {
+          homeTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          awayTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          gameTime
+        }
+        salary
+        value
+        extraPointsAttempted
+        extraPointsMade
+        fieldGoalsAttempted
+        fieldGoalsMade
+        fieldGoalsMade0To19
+        fieldGoalsMade20To29
+        fieldGoalsMade30To39
+        fieldGoalsMade40To49
+        fieldGoalsMade50Plus
+        fantasy
+        positionRank
+        opponentDefensiveRank
+      }
+      ... on NflDefenseSt {
+        player {
+          numberFireId
+          name
+          position
+        }
+        team {
+          numberFireId
+          name
+          abbreviation
+        }
+        gameInfo {
+          homeTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          awayTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          gameTime
+        }
+        salary
+        value
+        pointsAllowed
+        yardsAllowed
+        sacks
+        interceptions
+        fumblesRecovered
+        touchdowns
+        fantasy
+        positionRank
+        opponentOffensiveRank
+      }
+      ... on NflDefensePlayer {
+        player {
+          numberFireId
+          name
+          position
+        }
+        team {
+          numberFireId
+          name
+          abbreviation
+        }
+        gameInfo {
+          homeTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          awayTeam {
+            numberFireId
+            name
+            abbreviation
+          }
+          gameTime
+        }
+        tackles
+        sacks
+        interceptions
+        touchdowns
+        passesDefended
+        fumblesRecovered
+        opponentOffensiveRank
+      }
+    }
+  }
+  '
+
+  data_payload <- list(
+    query = query,
+    variables = list(
+      input = list(
+        type = proj_type,
+        position = "NFL_SKILL",
+        sport = "NFL"
+      )
+    ),
+    operationName = "GetProjections"
+  )
+
+  req <- httr2::request("https://fdresearch-api.fanduel.com/graphql") %>%
+    httr2::req_headers(
+      Accept = "*/*",
+      "Content-Type" = "application/json",
+      "Sec-Fetch-Site" = "same-site",
+      Origin = "https://www.fanduel.com",
+      "Sec-Fetch-Dest" = "empty",
+      "Accept-Language" = "en-US,en;q=0.9",
+      "Sec-Fetch-Mode" = "cors",
+      "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15",
+      "Accept-Encoding" = "gzip, deflate, br"
+    )
+
+  position_groups <- list(
+    NFL_SKILL  = c("QB","RB","WR","TE"),
+    NFL_KICKER = c("K"),
+    NFL_D_ST   = c("DST")
+  )
+
+  graphql_positions <- names(position_groups)[
+    vapply(position_groups, function(x) any(pos %in% x), logical(1))
+  ]
+
+  all_dfs <- map(graphql_positions, function(graph_pos) {
+    data_payload$variables$input$position <- graph_pos
+
+    resp <- req %>%
+      httr2::req_body_json(data_payload) %>%
+      httr2::req_perform()
+
+    result <- httr2::resp_body_json(
+      resp,
+      simplifyDataFrame = TRUE,
+      flatten = TRUE
+    )
+
+    df <- tibble::as_tibble(result$data$getProjections)
+
+    names(df) <- gsub("\\.", "_", names(df))
+    names(df) <- rename_vec(names(df), fanduel_columns)
+
+    df <- df %>%
+      type.convert(as.is = TRUE) %>%
+      dplyr::mutate(
+        data_src  = "FanDuel",
+        proj_type = proj_type,
+        pos = ifelse(pos == "D", "DST", pos),
+        id = get_mfl_id(df$src_id,
+                        player_name = df$player,
+                        team = df$team,
+                        pos = df$pos),
+        src_id = as.character(src_id)
+      )
+
+    if ("completionsAttempts" %in% names(df)) {
+      df <- df %>%
+        tidyr::separate(
+          completionsAttempts,
+          into = c("pass_comp", "pass_att"),
+          sep = "/",
+          convert = TRUE
+        )
+    }
+
+    df %>% dplyr::filter(pos %in% position_groups[[graph_pos]])
+  })
+
+  out_df <- all_dfs %>%
+    dplyr::bind_rows() %>%
+    dplyr::select(id, src_id, player, pos, team, everything())
+  l_pos  <- split(out_df, out_df$pos)
+  l_pos <- l_pos[pos[pos %in% names(l_pos)]]
+  l_pos <- purrr::map(l_pos, function(df) {
+    df %>%
+      dplyr::select(-salary, -value) %>%
+      dplyr::select(where(~ !all(is.na(.))))
+  })
+
+  attr(l_pos, "season") <- season
+  attr(l_pos, "week") <- week
+
+  l_pos
+}
+
 # Depreceated ----
 scrape_yahoo = function(pos = NULL, season = NULL, week = NULL,
                         draft = TRUE, weekly = TRUE) {
