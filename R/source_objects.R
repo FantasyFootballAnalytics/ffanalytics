@@ -464,6 +464,54 @@ fleaflicker_columns = c(
   "Availability % Own" = "pct_owned"
 )
 
+# FanDuel columns ----
+fanduel_columns <- c(
+  "player_numberFireId" = "src_id",
+  "player_name" = "player",
+  "player_position" = "pos",
+  "team_numberFireId" = "team_id",
+  "team_name" = "team_name",
+  "team_abbreviation" = "team",
+  "gameInfo_homeTeam_numberFireId" = "home_team_id",
+  "gameInfo_homeTeam_name" = "home_team",
+  "gameInfo_homeTeam_abbreviation" = "home_abbr",
+  "gameInfo_awayTeam_numberFireId" = "away_team_id",
+  "gameInfo_awayTeam_name" = "away_team",
+  "gameInfo_awayTeam_abbreviation" = "away_abbr",
+  "salary" = "salary",
+  "value" = "value",
+  "pass_comp" = "pass_comp",
+  "pass_att" = "pass_att",
+  "passingYards" = "pass_yds",
+  "passingTouchdowns" = "pass_tds",
+  "interceptionsThrown" = "pass_int",
+  "rushingAttempts" = "rush_att",
+  "rushingYards" = "rush_yds",
+  "rushingTouchdowns" = "rush_tds",
+  "receptions" = "rec",
+  "targets" = "rec_tgt",
+  "receivingYards" = "rec_yds",
+  "receivingTouchdowns" = "rec_tds",
+  "fantasy" = "site_pts",
+  "positionRank" = "pos_rank",
+  "overallRank" = "overall_rank",
+  "opponentDefensiveRank" = "opp_def_rank",
+  "pointsAllowed" = "dst_pts_allowed",
+  "yardsAllowed" = "dst_yds_allowed",
+  "sacks" = "dst_sacks",
+  "interceptions" = "dst_int",
+  "touchdowns" = "dst_td",
+  "extraPointsAttempted" = "fg_att",
+  "extraPointsMade" = "xp",
+  "fieldGoalsAttempted" = "xp_att",
+  "fieldGoalsMade" = "fg",
+  "fieldGoalsMade0To19" = "fg_0019",
+  "fieldGoalsMade20To29" = "fg_2029",
+  "fieldGoalsMade30To39" = "fg_3039",
+  "fieldGoalsMade40To49" = "fg_4049",
+  "fieldGoalsMade50Plus" = "fg_50"
+)
+
 
 # NFL FastR calc player stats ----
 
