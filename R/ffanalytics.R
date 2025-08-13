@@ -12,8 +12,8 @@
                                   "age", "exp"),
                       sep = ",", skip = 0, data.table = FALSE, showProgress = FALSE)
   player_table = dplyr::tibble(player_table)
-  environment(player_table) = asNamespace("ffanalytics")
-  assignInNamespace("player_table", player_table, ns = "ffanalytics")
+  base::environment(player_table) = base::asNamespace("ffanalytics")
+  utils::assignInNamespace("player_table", player_table, ns = "ffanalytics")
 
 }
 

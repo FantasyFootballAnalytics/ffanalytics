@@ -3,7 +3,7 @@ Type: Package
 Title: Scrape Data For Fantasy Football
 Version: 3.1.9.0000
 Authors@R: c(person("Andrew", "Tungate", 
-                    role = c("aut", cre"), 
+                    role = c("aut", "cre"), 
                     email = "atungate@gmail.com"),
             person("Dennis", "Andersen", 
                     email = "andersen.dennis@outlook.com",
