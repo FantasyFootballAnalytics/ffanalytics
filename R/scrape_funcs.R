@@ -7,7 +7,7 @@
 #' @param src the sources that data should be scraped from should be one or more
 #' of \code{c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks",
 #' "FFToday", "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
-#' "RTSports","Walterfootball", "FanDuel)}
+#' "RTSports","Walterfootball", "FanDuel")}
 #' @param pos the posistions that data should be scraped for. Should be one or more
 #' of \code{c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")}
 #' @param season The seaon for which data should be scraped. Should be set to the
@@ -32,7 +32,8 @@ scrape_data <- function(
   src = match.arg(src, several.ok = TRUE,
                   c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks", "FFToday",
                     "FleaFlicker", "NumberFire", "FantasyFootballNerd", "NFL",
-                    "RTSports", "Walterfootball", "FanDuel"))
+                    "RTSports", "Walterfootball", "FanDuel")
+                  )
 
   # Check for NumberFire in src and convert to FanDuel
   if("NumberFire" %in% src) {

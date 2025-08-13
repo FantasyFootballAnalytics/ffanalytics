@@ -17,7 +17,7 @@ scrape_data(
 \item{src}{the sources that data should be scraped from should be one or more
 of \code{c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks",
 "FFToday", "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
-"RTSports","Walterfootball", "FanDuel)}}
+"RTSports","Walterfootball", "FanDuel")}}
 
 \item{pos}{the posistions that data should be scraped for. Should be one or more
 of \code{c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")}}
