@@ -1485,9 +1485,11 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
       "Sec-Fetch-Dest" = "empty",
       "Accept-Language" = "en-US,en;q=0.9",
       "Sec-Fetch-Mode" = "cors",
-      "User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15",
       "Accept-Encoding" = "gzip, deflate, br"
-    )
+    ) %>%
+    httr2::req_user_agent(
+      "ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)"
+      )
 
   position_groups <- list(
     NFL_SKILL  = c("QB","RB","WR","TE"),

@@ -2,15 +2,17 @@ Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
 Version: 3.1.8.0000
-Authors@R: c(person("Dennis", "Andersen", 
+Authors@R: c(person("Andrew", "Tungate", 
+                    role = c("aut", cre"), 
+                    email = "atungate@gmail.com"),
+            person("Dennis", "Andersen", 
                     email = "andersen.dennis@outlook.com",
                     role = c("aut")),
-             person("Isaac", "Petersen", 
+            person("Isaac", "Petersen", 
                     role = c("aut")),
-             person("Andrew", "Tungate", 
-                    role = "cre", 
-                    email = "atungate@gmail.com"),
-             person("Graham", "Seacat", 
+            person("Jesse", "Kartes", 
+                    role = "ctb"),
+            person("Graham", "Seacat", 
                     role = "ctb"))
 Author: Dennis Andersen
 Maintainer: Andrew Tungate <atungate@gmail.com>

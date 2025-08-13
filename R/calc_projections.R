@@ -102,42 +102,42 @@ wilcox.loc <- function(vec, na.rm = FALSE, w = NULL){
 #' FFToday = 0.379, NumberFire = 0.322, FantasyPros = 0.000,
 #' FantasySharks = 0.327, FantasyFootballNerd = 0.000,
 #' Walterfootball = 0.281, RTSports = 0.330,
-#' FantasyData = 0.428, Fleaflicker = 0.428)}
+#' FantasyData = 0.428, Fleaflicker = 0.428, FanDuel = 0.322)}
 default_weights <- c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
                     FFToday = 0.379, NumberFire = 0.322, FantasyPros = 0.000,
                     FantasySharks= 0.327, FantasyFootballNerd = 0.000,
                     WalterFootball = 0.281, RTSports= 0.330,
-                    FantasyData= 0.428, FleaFlicker = 0.428)
+                    FantasyData= 0.428, FleaFlicker = 0.428, FanDuel = 0.322)
 
 #' Default Weights for Projection Sources
 #'
 #' Object with default weights for each position by source
 default_weights_by_src = list(
-  QB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  QB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  RB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  RB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  WR = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  WR = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  TE = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  TE = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  DST = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  DST = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
           NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
           WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  K = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  K = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
         NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
         WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  DB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  DB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  DL = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  DL = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5),
-  LB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5,
+  LB = c(CBS = 0.5, Yahoo = 0.5, ESPN = 0.5, NFL = 0.5, FFToday = 0.5, FanDuel = 0.5,
          NumberFire = 0.5, FantasyPros = 0.5, FantasySharks = 0.5, FantasyFootballNerd = 0.5,
          WalterFootball = 0.5, RTSports = 0.5, FantasyData = 0.5, FleaFlicker = 0.5)
 )
