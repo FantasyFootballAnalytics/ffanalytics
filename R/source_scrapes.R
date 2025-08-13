@@ -22,12 +22,15 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
   base_link = paste0("https://www.cbssports.com/fantasy/football/")
   site_session = rvest::session(base_link)
 
-  l_pos = lapply(pos, function(pos) {
-    scrape_link = paste0("https://www.cbssports.com/fantasy/football/stats/", pos, "/",
+  l_pos = lapply_safe(pos, function(position) {
+    scrape_link = paste0("https://www.cbssports.com/fantasy/football/stats/", position, "/",
                          season, "/", scrape_week, "/projections/nonppr/")
 
-    Sys.sleep(2L) # temporary, until I get an argument for honoring the crawl delay
-    cat(paste0("Scraping ", pos, " projections from"), scrape_link, sep = "\n  ")
+    if(position != pos[1]) {
+      Sys.sleep(2L)
+    }
+
+    cat(paste0("Scraping ", position, " projections from"), scrape_link, sep = "\n  ")
 
     html_page = site_session %>%
       session_jump_to(scrape_link) %>%
@@ -43,7 +46,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
     col_names = rename_vec(col_names, cbs_columns)
 
     # Get PID
-    if(pos == "DST") {
+    if(position == "DST") {
       cbs_id = html_page %>%
         rvest::html_elements("span.TeamName a") %>%
         rvest::html_attr("href") %>%
@@ -61,7 +64,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
       rvest::html_table() %>%
       `names<-`(col_names)
 
-    if(pos != "DST") {
+    if(position != "DST") {
       out_df = out_df %>%
         tidyr::extract(player, c("player", "pos", "team"),
                        ".*?\\s{2,}[A-Z]{1,3}\\s{2,}[A-Z]{2,3}\\s{2,}(.*?)\\s{2,}(.*?)\\s{2,}(.*)") %>%
@@ -80,7 +83,7 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
       dst_ids = ff_player_data[ff_player_data$position == "Def", c("id", "team")]
       dst_ids$team[dst_ids$team == "OAK"] = "LV"
       out_df$id = dst_ids$id[match(cbs_id, dst_ids$team)]
-      out_df$pos = pos
+      out_df$pos = position
       out_df$src_id = player_ids$cbs_id[match(out_df$id, player_ids$id)]
     }
 
@@ -117,7 +120,7 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
 
   site_session = session(base_link)
 
-  l_pos = lapply(pos, function(pos) {
+  l_pos = lapply_safe(pos, function(pos) {
     pos_scrape = nfl_pos_idx[pos]
 
     n_records = case_when(
@@ -250,7 +253,7 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
     segment <- 813
   }
 
-  l_pos <- lapply(pos, function(pos){
+  l_pos <- lapply_safe(pos, function(pos){
 
     position = dplyr::case_when(
       pos %in% "QB" ~ 1,
@@ -328,7 +331,7 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
   }
 
 
-  l_pos <- lapply(site_pos, function(pos){
+  l_pos <- lapply_safe(site_pos, function(pos){
 
     position <- dplyr::case_when(
       pos %in% "QB" ~ "qb",
@@ -478,7 +481,7 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
   xl_download <- download.file(url = url, destfile = xlsx_file, mode = "wb", quiet = TRUE)
 
 
-  l_pos <- lapply(pos, function(pos){
+  l_pos <- lapply_safe(pos, function(pos){
 
     cat(paste0("Scraping ", pos, " projections from"), url, sep = "\n  ")
 
@@ -573,7 +576,7 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
   site_session <- session(base_link)
 
 
-  l_pos <- lapply(pos, function(pos){
+  l_pos <- lapply_safe(pos, function(pos){
 
     position <- case_when(pos %in% "QB" ~ 4,
                           pos %in% "RB" ~ 1,
@@ -803,7 +806,7 @@ scrape_fftoday <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB
   }
 
 
-  l_pos <- lapply(pos, function(pos){
+  l_pos <- lapply_safe(pos, function(pos){
 
     position = dplyr::case_when(
       pos == "QB" ~ 10,
@@ -967,7 +970,7 @@ scrape_fantasypros = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
   base_link = paste0("https://www.fantasypros.com/nfl/projections")
   site_session = rvest::session(base_link)
 
-  l_pos = lapply(pos, function(pos) {
+  l_pos = lapply_safe(pos, function(pos) {
     scrape_link = paste0("https://www.fantasypros.com/nfl/projections/",
                          tolower(pos), scrape_week)
 
@@ -1057,7 +1060,7 @@ scrape_rtsports = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 
   base_url = "https://www.freedraftguide.com/football/draft-guide-rankings-provider.php"
 
-  l_pos = lapply(pos, function(x) {
+  l_pos = lapply_safe(pos, function(x) {
     if(x != pos[1]) {
       Sys.sleep(5)
     }
@@ -1134,7 +1137,7 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
   slot_nums = c("QB" = 0, "RB" = 2, "WR" = 4, "TE" = 6, "K" = 17, "DST" = 16)
   position = pos
 
-  l_pos = lapply(position, function(pos){
+  l_pos = lapply_safe(position, function(pos){
 
     if(pos != position[1]) {
       Sys.sleep(2)
@@ -1280,7 +1283,7 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
 
 # FanDuel ----
 scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
-                           season = NULL, week = 0, draft = TRUE, weekly = FALSE) {
+                           season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
 
   if(is.null(week)) {
     season = get_scrape_year()

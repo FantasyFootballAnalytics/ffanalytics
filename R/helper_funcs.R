@@ -441,6 +441,20 @@ actual_points_scoring = function(season = NULL,
   }
   nflf_out_df
 }
+
+lapply_safe = function(X, FUN, if_error = NULL) {
+  lapply(X, function(x) {
+    tryCatch(
+      expr = FUN(x),
+      error = function(e) {
+        print(e)
+        if_error
+      }
+    )
+  })
+}
+
+
 # devtools::load_all()
 # df_out = actual_points_scoring(
 #   season = 2019,
