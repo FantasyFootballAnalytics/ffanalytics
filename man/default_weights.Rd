@@ -5,7 +5,7 @@
 \alias{default_weights}
 \title{Default Weights for Projection Sources}
 \format{
-An object of class \code{numeric} of length 13.
+An object of class \code{numeric} of length 14.
 }
 \usage{
 default_weights
@@ -17,6 +17,6 @@ averages and standard deviations if no weights are specified.
 FFToday = 0.379, NumberFire = 0.322, FantasyPros = 0.000,
 FantasySharks = 0.327, FantasyFootballNerd = 0.000,
 Walterfootball = 0.281, RTSports = 0.330,
-FantasyData = 0.428, Fleaflicker = 0.428)}
+FantasyData = 0.428, Fleaflicker = 0.428, FanDuel = 0.322)}
 }
 \keyword{datasets}
