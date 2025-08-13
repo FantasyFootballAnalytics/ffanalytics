@@ -93,18 +93,25 @@ ensure_cache_dir_exists = function() {
 
 clear_cache_by_time = function() {
   cache_dir = tools::R_user_dir("ffanalytics", "cache")
+
+  # First checking for all files older than 8 hours
   file_names = list.files(cache_dir, full.names = TRUE)
 
   if(length(file_names) == 0) {
     return(NULL)
   }
-
   file_mtimes = file.mtime(file_names)
-  files_to_clear = difftime(Sys.time(), file_mtimes, units = "hours") > 8
+  all_files_to_clear = difftime(Sys.time(), file_mtimes, units = "hours") > 8
+  scrapes_to_clear = grepl("_scrape", basename(file_names), fixed = TRUE) &
+    difftime(Sys.time(), file_mtimes, units = "hours") > 1
+
+  files_to_clear = as.logical(pmax(all_files_to_clear, scrapes_to_clear))
+
 
   if(any(files_to_clear, na.rm = TRUE)) {
     file.remove(file_names[files_to_clear])
   }
+
 }
 
 cache_file_names = c(
@@ -188,7 +195,8 @@ cache_file_names = c(
   "ecr_draft_db_ppr.rds" = "ECR Draft DB PPR",
   "ecr_weekly_db_std.rds" = "ECR Weekly DB Std",
   "ecr_weekly_db_half.rds" = "ECR Weekly DB Half",
-  "ecr_weekly_db_ppr.rds" = "ECR Weekly DB PPR"
+  "ecr_weekly_db_ppr.rds" = "ECR Weekly DB PPR",
+  "cbs_scrape.rds" = "CBS Scrape"
 )
 
 

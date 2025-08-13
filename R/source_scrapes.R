@@ -17,6 +17,31 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
     scrape_week = week
   }
 
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "CBS Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("cbs_scrape.rds")
+
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+
+    if(isTRUE(pos_match)) {
+
+      scrape_message = paste0(
+        "\n",
+        "Using the CBS scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "CBS Scrape"],
+        " ago:"
+      )
+      message(scrape_message)
+      return(l_pos[pos])
+
+    } else {
+      clear_ffanalytics_cache("CBS Scrape")
+    }
+  }
+
+
   message("\nThe CBS scrape uses a 2 second delay between pages")
 
   base_link = paste0("https://www.cbssports.com/fantasy/football/")
@@ -97,6 +122,8 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "cbs_scrape.rds")
   l_pos
 }
 

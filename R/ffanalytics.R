@@ -19,8 +19,8 @@
 
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
-    "Note: the ffanalytics package locally caches ADP & ECR data scrapes. Cached scrapes",
-    "\nolder than 8 hours are dropped (upon checking)",
+    "Note: the ffanalytics package locally caches ADP & ECR data scrapes for 8 hours,
+    and projected stats for 1 hour. Older cached scrapes are dropped (upon checking)",
     "\n  - See ?clear_ffanalytics_cache() for how to manually clear the cache",
     "\n  - Use list_ffanalytics_cache() to see what is currently cached"
     )
