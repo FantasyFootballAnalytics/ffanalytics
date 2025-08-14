@@ -36,7 +36,7 @@ first_last_games = get_first_last_kickoff()
 
 get_scrape_starts = function(first_last_games) {
   if(missing(first_last_games)) {
-    first_last_games = first_last_games
+    first_last_games = ffanalytics:::first_last_games
   }
   first_last_df = dplyr::bind_rows(first_last_games)
   last_vec = first_last_df$last
@@ -51,7 +51,7 @@ scrape_start_date = get_scrape_starts(first_last_games)
 
 get_scrape_week = function(scrape_start_date) {
   if(missing(scrape_start_date)) {
-    scrape_start_date = scrape_start_date
+    scrape_start_date = ffanalytics:::scrape_start_date
   }
   sum(Sys.Date() >= scrape_start_date)
 }
