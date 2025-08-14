@@ -33,9 +33,8 @@ get_league_info_sleeper = function(league_id) {
 
 clean_scoring_sleeper = function(scoring_obj) {
 
-  s_obj = ffanalytics:::scoring_empty
+  s_obj = scoring_empty
 
-  s_obj = .
   s_obj$dst$dst_blk = scoring_obj$blk_kick
   s_obj$pass$pass_300_yds = scoring_obj$bonus_pass_yd_300
   s_obj$pass$pass_400_yds = scoring_obj$bonus_pass_yd_400

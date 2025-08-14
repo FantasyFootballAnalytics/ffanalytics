@@ -1250,12 +1250,12 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
     out_df$data_src = "ESPN"
 
     if(pos == "DST") { # ESPN ID's coming in as negative for 2023 wk 0 DST
-      out_df$id = ffanalytics:::get_mfl_id(
+      out_df$id = get_mfl_id(
         team = out_df$team,
         pos = out_df$position
       )
     } else {
-      out_df$id = ffanalytics:::get_mfl_id(
+      out_df$id = get_mfl_id(
         out_df$espn_id,
         player_name = out_df$player_name,
         pos = out_df$position,
@@ -1541,7 +1541,7 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
       flatten = TRUE
     )
 
-    df <- tibble::as_tibble(result$data$getProjections)
+    df <- dplyr::as_tibble(result$data$getProjections)
 
     names(df) <- gsub("\\.", "_", names(df))
     names(df) <- rename_vec(names(df), fanduel_columns)

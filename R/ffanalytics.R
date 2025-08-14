@@ -1,6 +1,7 @@
 #' @import dplyr tidyr purrr httr2 rvest rrapply
 #' @importFrom data.table fread rbindlist
 #' @importFrom readxl read_xlsx
+#' @importFrom readr read_csv
 
 .onLoad <- function(libname, pkgname){
   player_table = data.table::fread("https://s3.us-east-2.amazonaws.com/ffanalytics/packagedata/player_table.csv",

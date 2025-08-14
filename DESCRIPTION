@@ -1,7 +1,7 @@
 Package: ffanalytics
 Type: Package
 Title: Scrape Data For Fantasy Football
-Version: 3.1.9.0000
+Version: 3.1.10.0000
 Authors@R: c(person("Andrew", "Tungate", 
                     role = c("aut", "cre"), 
                     email = "atungate@gmail.com"),
@@ -25,11 +25,11 @@ Imports:
     readxl,
     httr2,
     rvest,
-    stringr,
     purrr,
     tidyr,
     dplyr,
-    rrapply
+    rrapply,
+    readr
 Depends: 
     R (>= 4.1.0)
 RoxygenNote: 7.3.2
