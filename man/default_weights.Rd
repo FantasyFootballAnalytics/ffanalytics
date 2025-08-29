@@ -13,10 +13,10 @@ default_weights
 \description{
 These are the weights that are used for each source when calculation weighted
 averages and standard deviations if no weights are specified.
-\code{c(CBS = 0.344, Yahoo = 0.400,  ESPN = 0.329,  NFL = 0.329,
-FFToday = 0.379, NumberFire = 0.322, FantasyPros = 0.000,
-FantasySharks = 0.327, FantasyFootballNerd = 0.000,
-Walterfootball = 0.281, RTSports = 0.330,
-FantasyData = 0.428, Fleaflicker = 0.428, FanDuel = 0.322)}
+\code{c(CBS = 0.145, Yahoo = 0.000,  ESPN = 0.157,  NFL = 0.140,
+FFToday = 0.151, NumberFire = 0.142, FantasyPros = 0.000,
+FantasySharks= 0.142, FantasyFootballNerd = 0.000,
+WalterFootball = 0.130, RTSports= 0.123,
+FantasyData= 0.000, FleaFlicker = 0.000, FanDuel = 0.142)}
 }
 \keyword{datasets}
