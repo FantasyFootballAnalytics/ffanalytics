@@ -119,7 +119,7 @@ yahoo_draft = function(metric = c("adp", "aav")) {
     return(out_df)
   }
 
-  req_obj = request("https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/449.l.public;out=settings/players;position=ALL;start=0;count=200;sort=rank_season;search=;out=auction_values;out=expert_ranks;expert_ranks.rank_type=projected_season_remaining/draft_analysis;cut_types=diamond;slices=last7days?format=json_f") %>%
+  req_obj = request("https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/461.l.public;out=settings/players;position=ALL;start=0;count=200;sort=average_cost;search=;out=auction_values,ranks;ranks=season;ranks_by_position=season;out=expert_ranks;expert_ranks.rank_type=projected_season_remaining/draft_analysis;cut_types=diamond;slices=last7days?format=json_f") %>%
     req_method("GET") %>%
     req_headers(
       Accept = "*/*",
