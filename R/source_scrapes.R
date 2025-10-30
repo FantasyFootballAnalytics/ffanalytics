@@ -1147,8 +1147,8 @@ scrape_rtsports = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 }
 
 # ESPN ----
-scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL, week = NULL,
-                       draft = TRUE, weekly = TRUE) {
+scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"), season = NULL, week = NULL,
+                       draft = TRUE, weekly = TRUE, espn_league_id = NULL) {
 
   message("\nThe ESPN scrape uses a 2 second delay between pages")
 
@@ -1158,8 +1158,15 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
   if(is.null(week)) {
     week = get_scrape_week()
   }
+  if(any(pos %in% c("DL", "LB", "DB")) && is.null(espn_league_id)){
+    message("Must provide a valid espn_league_id to get DL, LB, and DB")
+    pos = setdiff(pos, c("DL", "LB", "DB"))
+  }
 
-  slot_nums = c("QB" = 0, "RB" = 2, "WR" = 4, "TE" = 6, "K" = 17, "DST" = 16)
+  slot_nums = c("QB" = 0, "RB" = 2, "WR" = 4, "TE" = 6,
+                "K" = 17, "DST" = 16,
+                "DT" = 8, "DE" = 9, "LB" = 10, "DL" = 11, "CB" = 12, "DB" = 14
+                )
   position = pos
 
   l_pos = lapply_safe(position, function(pos){
@@ -1175,12 +1182,28 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
       pos == "WR" ~ 150,
       pos == "TE" ~ 60,
       pos == "K" ~ 35,
-      pos == "DST" ~ 32
+      pos == "DST" ~ 32,
+      pos == "DL" ~ 90,
+      pos == "DB" ~ 60,
+      pos == "LB" ~ 60
     )
-    base_url = paste0(
-      "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
-      "/segments/0/leaguedefaults/3?scoringPeriodId=0&view=kona_player_info"
-    )
+
+    if(pos %in% c("DL", "DB", "LB")) {
+      base_url = paste0(
+        "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
+        "/segments/0/leagues/", espn_league_id, "?scoringPeriodId=", week, "&view=kona_player_info"
+      )
+      #1595759
+      pos_cols = espn_columns[!grepl("^dst_", espn_columns)]
+
+    } else {
+      base_url = paste0(
+        "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/", season,
+        "/segments/0/leaguedefaults/3?scoringPeriodId=0&view=kona_player_info"
+      )
+      pos_cols = espn_columns[!grepl("^idp_", espn_columns)]
+    }
+
     cat(paste0("Scraping ", pos, " projections from"),
         "https://fantasy.espn.com/football/players/projections", sep = "\n  ")
 
@@ -1202,7 +1225,7 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
       '"offset":0,',
       '"filterRanksForScoringPeriodIds":{"value":[2]},',
       '"filterRanksForRankTypes":{"value":["PPR"]},',
-      '"filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},',
+      '"filterRanksForSlotIds":{"value":[0,2,4,6,17,16,15]},',
       '"filterStatsForTopScoringPeriodIds":{"value":2,',
       '"additionalValue":["00', season, '","10', season, '","11', season, week, '","02', season, '"]}}}'
     )
@@ -1233,8 +1256,8 @@ scrape_espn = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NUL
 
       # Player stats (only those on)
       l_players[[i]] = espn_json[[i]]$player$stats[[1]]$stats
-      l_players[[i]] = l_players[[i]][names(l_players[[i]]) %in% names(espn_columns)]
-      names(l_players[[i]]) = espn_columns[names(l_players[[i]])]
+      l_players[[i]] = l_players[[i]][names(l_players[[i]]) %in% names(pos_cols)]
+      names(l_players[[i]]) = pos_cols[names(l_players[[i]])]
       l_players[[i]][] = lapply(l_players[[i]], round)
 
       # Misc player info

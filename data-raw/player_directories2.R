@@ -65,16 +65,16 @@ final_nfl = dplyr::bind_rows(scrape_nfl) %>%
 
 
 #### NUmber fire #### ----
-scrape_nf = scrape_numberfire()
-
-final_nf = scrape_nf %>%
-  dplyr::bind_rows() %>%
-  transmute(player = ifelse(pos == "DST", team, player),
-            merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
-            merge_id = paste0(gsub("\\s+", "", merge_id), "_", tolower(pos)),
-            numfire_id = src_id,
-            id,
-            player = NULL)
+# scrape_nf = scrape_data(src = "NumberFire")
+#
+# final_nf = scrape_nf %>%
+#   dplyr::bind_rows() %>%
+#   transmute(player = ifelse(pos == "DST", team, player),
+#             merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
+#             merge_id = paste0(gsub("\\s+", "", merge_id), "_", tolower(pos)),
+#             numfire_id = src_id,
+#             id,
+#             player = NULL)
 
 
 
@@ -118,7 +118,7 @@ final_yahoo = yahoo_draft_info %>%
 
 
 # Getting ESPN ID's
-scrape_espn = ffanalytics:::scrape_espn()
+scrape_espn = ffanalytics:::scrape_espn(espn_league_id = 1595759)
 
 final_espn = scrape_espn %>%
   dplyr::bind_rows() %>%

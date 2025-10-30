@@ -725,8 +725,14 @@ espn_columns = c(
   "95" = "dst_int",
   "122" = "dst_td",
   "137" = "dst_pts_allowed",
-  "127" = "dst_yds_allowed"
+  "127" = "dst_yds_allowed",
+  "109" = "idp_solo",
+  "99" = "idp_sack",
+  "106" = "idp_fum_force",
+  "96" = "idp_fum_rec",
+  "95" = "idp_int"
 )
+
 
 espn_team_nums = c(
   "0" = "FA", "1" = "ATL", "2" = "BUF", "3" = "CHI",  "4" = "CIN", "5" = "CLE",
