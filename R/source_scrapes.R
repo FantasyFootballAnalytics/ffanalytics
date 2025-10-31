@@ -1533,7 +1533,7 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
       "Sec-Fetch-Dest" = "empty",
       "Accept-Language" = "en-US,en;q=0.9",
       "Sec-Fetch-Mode" = "cors",
-      "Accept-Encoding" = "gzip, deflate, br"
+      "Accept-Encoding" = "gzip, deflate"
     ) %>%
     httr2::req_user_agent(
       "ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)"
