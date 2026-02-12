@@ -51,6 +51,10 @@ scrape_data <- function(
 
   args = list(pos = pos, season = season, week = week)
   additional_args = list(...)
+
+  if(!"espn_league_id" %in% names(additional_args)) {
+    additional_args[["espn_league_id"]] = 1595759
+  }
   args = c(args, additional_args)
   args = args[nchar(names(args)) > 0]
 

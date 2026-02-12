@@ -388,13 +388,16 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
 
       }
 
-      df["id"] %>%
+
+      df[, "id", drop = FALSE] %>%
         filter(!duplicated(id)) %>%
-        left_join(bind_rows(l_avg_types, .id = "avg_type"), "id")
+        left_join(bind_rows(l_avg_types, .id = "avg_type"), "id") %>%
+        dplyr::ungroup()
 
-    })
+    }, simplify = FALSE)
 
-    return(bind_rows(df_l, .id = "position"))
+    return(bind_rows(df_l, .id = "position")) %>%
+      dplyr::ungroup()
 
   }
 
