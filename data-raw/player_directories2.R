@@ -108,7 +108,7 @@ final_flfl = ff_scrape %>%
 
 #### Yahoo ----
 
-yahoo_draft_info = ffanalytics:::yahoo_draft()
+yahoo_draft_info = yahoo_draft()
 
 final_yahoo = yahoo_draft_info %>%
   transmute(merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player_name)),
@@ -139,7 +139,7 @@ gc()
 
 curr_ids = ffanalytics:::player_ids
 
-my_fl_ids = httr::GET("https://api.myfantasyleague.com/2025/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
+my_fl_ids = httr::GET("https://api.myfantasyleague.com/2026/export?TYPE=players&L=&APIKEY=&DETAILS=1&SINCE=&PLAYERS=&JSON=1") %>%
   httr::content() %>%
   `[[`("players") %>%
   `[[`("player") %>%
