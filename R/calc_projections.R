@@ -215,10 +215,28 @@ score_dst_pts_allowed = function(data_result, pts_bracket, is_actual = FALSE) {
   df$dst_pts_allowed
 }
 
+
+#' Calculate the fantasy points by source
+#'
+#' This function scores the projected fantasy points by data source given the output of
+#' the \link{scrape_data} function. The output is a table in long format with the
+#' projected points by source. NOTE: this function will calculate the projected points
+#' based on the data sources, but it does not impute data if columns are missing
+#' (i.e., if columns are included in the scoring_rules object but not in the source)
+#'
+#' @param data_result An output from the \link{scrape_data} function.
+#' @param scoring_rules The scoring rules to be used for calculations. See
+#' \code{vignette("scoring_settings")} on how to define custom scoring settings.
+#' If omitted then default \link{scoring} settings will be used.
+#' @export
 source_points = function(data_result, scoring_rules, return_data_result = FALSE, is_actual = FALSE) {
 
   year = attr(data_result, "season")
   week = attr(data_result, "week")
+
+  if(is.null(scoring_rules)) {
+    scoring_rules = scoring
+  }
 
   scoring_cleaned = make_scoring_tables(scoring_rules)
   scoring_tables = scoring_cleaned$scoring_tables
@@ -302,6 +320,21 @@ projections_table = function(data_result, scoring_rules = NULL, src_weights = NU
   # Grabbing attributes
   season = attr(data_result, "season")
   week = attr(data_result, "week")
+
+  # Checking how many sources were used
+  n_sources = length(unique(unlist(lapply(data_result, `[[`, "data_src"))))
+  if(n_sources < 3) {
+    sources_message = paste0(
+      "Note: the projections table function is intended to aggregate several sources",
+      "\n",
+      "If you are interested in getting the fantasy points associated with individual ",
+      "\ndata sources, please see if the ffanalytics::source_points() function better ",
+      "\nfits your needs"
+    )
+
+
+    message("Note: the projections table function is intended to aggregate several sources")
+  }
 
   # Computing league type
   if(scoring_rules$rec$all_pos){
