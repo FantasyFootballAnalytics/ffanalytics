@@ -128,7 +128,6 @@ scrape_cbs = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
 # NFL ----
 scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL, week = NULL,
                       draft = TRUE, weekly = TRUE) {
-  message("\nThe NFL.com scrape uses a 2 second delay between pages")
 
   if(is.null(season)) {
     season = get_scrape_year()
@@ -136,6 +135,30 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
   if(is.null(week)) {
     week = get_scrape_week()
   }
+
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "NFL Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("nfl_scrape.rds")
+
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+
+    if(isTRUE(pos_match)) {
+      scrape_message = paste0(
+        "\n",
+        "Using the NFL scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "NFL Scrape"],
+        " ago:"
+      )
+      message(scrape_message)
+      return(l_pos[pos])
+    } else {
+      clear_ffanalytics_cache("NFL Scrape")
+    }
+  }
+
+  message("\nThe NFL.com scrape uses a 2 second delay between pages")
 
   pos_scrape = nfl_pos_idx[pos]
 
@@ -242,20 +265,45 @@ scrape_nfl = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"), season = NULL
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "nfl_scrape.rds")
   l_pos
 }
 
 # Fantasysharks ----
 scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB"),
                                  season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
-  message("\nThe FantasySharks scrape uses a 2 second delay between pages")
-
   if(is.null(season)) {
     season = get_scrape_year()
   }
   if(is.null(week)) {
     week = get_scrape_week()
   }
+
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "FantasySharks Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("fantasysharks_scrape.rds")
+
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+
+    if(isTRUE(pos_match)) {
+      scrape_message = paste0(
+        "\n",
+        "Using the FantasySharks scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "FantasySharks Scrape"],
+        " ago:"
+      )
+      message(scrape_message)
+      return(l_pos[pos])
+    } else {
+      clear_ffanalytics_cache("FantasySharks Scrape")
+    }
+  }
+
+  message("\nThe FantasySharks scrape uses a 2 second delay between pages")
+
   # historical scrapes (doesn't work)
   year = dplyr::case_when(
     season == 2025 ~ 842,
@@ -328,6 +376,8 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "fantasysharks_scrape.rds")
   l_pos
 
 }
@@ -336,14 +386,38 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
 scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", "DB", "DL"),
                               season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
 
-  message("\nThe numberFire scrape uses a 2 second delay between pages")
-
   if(is.null(season)) {
     season = get_scrape_year()
   }
   if(is.null(week)) {
     week = get_scrape_week()
   }
+
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "NumberFire Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("numberfire_scrape.rds")
+
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+
+    if(isTRUE(pos_match)) {
+      scrape_message = paste0(
+        "\n",
+        "Using the NumberFire scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "NumberFire Scrape"],
+        " ago:"
+      )
+      message(scrape_message)
+      return(l_pos[pos])
+    } else {
+      clear_ffanalytics_cache("NumberFire Scrape")
+    }
+  }
+
+  message("\nThe numberFire scrape uses a 2 second delay between pages")
+
+  message("\nThe numberFire scrape uses a 2 second delay between pages")
 
   base_link <- paste0("https://www.numberfire.com/nfl/fantasy/fantasy-football-projections")
   site_session <- rvest::session(base_link)
@@ -484,6 +558,8 @@ scrape_numberfire <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "LB", 
 
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "numberfire_scrape.rds")
   l_pos
 
 }
@@ -497,6 +573,28 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
   }
   if(is.null(week)) {
     week = get_scrape_week()
+  }
+
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "WalterFootball Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("walterfootball_scrape.rds")
+
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+
+    if(isTRUE(pos_match)) {
+      scrape_message = paste0(
+        "\n",
+        "Using the WalterFootball scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "WalterFootball Scrape"],
+        " ago:"
+      )
+      message(scrape_message)
+      return(l_pos[pos])
+    } else {
+      clear_ffanalytics_cache("WalterFootball Scrape")
+    }
   }
 
   # Currently unnamed argument for imputing REG TD columns, defaults to TRUE
@@ -571,6 +669,8 @@ scrape_walterfootball <- function(pos = c("QB", "RB", "WR", "TE", "K"),
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "walterfootball_scrape.rds")
   l_pos
 
 }
@@ -586,6 +686,23 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
     week = get_scrape_week()
   }
 
+
+  curr_cache = list_ffanalytics_cache(quiet = TRUE)
+  is_cached = "FleaFlicker Scrape" %in% curr_cache$object
+
+  if(is_cached) {
+    l_pos = get_cached_object("fleaflicker_scrape.rds")
+    pos_match = all(toupper(pos) %in% toupper(sort(names(l_pos))))
+    if(isTRUE(pos_match)) {
+      scrape_message = paste0("\n", "Using the FleaFlicker scrape that was cached ",
+        curr_cache$hr_min_since_cache[curr_cache$object == "FleaFlicker Scrape"],
+        " ago:")
+      message(scrape_message)
+      return(l_pos[pos])
+    } else {
+      clear_ffanalytics_cache("FleaFlicker Scrape")
+    }
+  }
   # IDP positions
   if("DL" %in% pos) {
     pos <- c(pos, "DE", "DT")
@@ -782,6 +899,8 @@ scrape_fleaflicker <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL",
     l_pos$CB <- NULL
     l_pos$S <- NULL
   }
+
+  cache_object(l_pos, "fleaflicker_scrape.rds")
 
 
   l_pos
@@ -1064,6 +1183,8 @@ scrape_fantasypros = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
   names(l_pos) = pos
   attr(l_pos, "season") = season
   attr(l_pos, "week") = week
+
+  cache_object(l_pos, "walterfootball_scrape.rds")
   l_pos
 }
 
