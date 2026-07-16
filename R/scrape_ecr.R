@@ -67,8 +67,8 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
 
   rank_tab = rank_page %>%
     rvest::html_element("body") %>%
-    rvest::html_elements("script:contains('var ecrData')") %>%
-    html_text2()
+    rvest::html_elements(xpath = ".//script[contains(text(), 'var ecrData')]") %>%
+    rvest::html_text2()
 
   rank_tab = sub(".*?var ecrData = (.+?;).*", "\\1", rank_tab)
   rank_tab = strsplit(rank_tab, "\\},\\{|\\:\\[\\{")[[1]][-1]
