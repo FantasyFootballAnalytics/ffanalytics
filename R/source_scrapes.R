@@ -1454,7 +1454,7 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
 scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
                            season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
 
-  if(is.null(week)) {
+  if(is.null(season)) {
     season = get_scrape_year()
   }
 
@@ -1683,7 +1683,17 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
       flatten = TRUE
     )
 
-    df <- dplyr::as_tibble(result$data$getProjections)
+    projections <- result$data$getProjections
+
+    # FanDuel returns an empty list when projections are not yet available
+    # (for example, during the offseason). Skip that position group instead of
+    # attempting to mutate a zero-column tibble, where `pos` would otherwise
+    # resolve to the function argument and produce a misleading size error.
+    if(is.null(projections) || length(projections) == 0) {
+      return(NULL)
+    }
+
+    df <- dplyr::as_tibble(projections)
 
     names(df) <- gsub("\\.", "_", names(df))
     names(df) <- rename_vec(names(df), fanduel_columns)
@@ -1713,6 +1723,16 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
 
     df %>% dplyr::filter(pos %in% position_groups[[graph_pos]])
   })
+
+  all_dfs <- purrr::compact(all_dfs)
+
+  if(length(all_dfs) == 0) {
+    message("FanDuel returned no projections. Please check back later.")
+    l_pos <- list()
+    attr(l_pos, "season") <- season
+    attr(l_pos, "week") <- week
+    return(l_pos)
+  }
 
   out_df <- all_dfs %>%
     dplyr::bind_rows() %>%
