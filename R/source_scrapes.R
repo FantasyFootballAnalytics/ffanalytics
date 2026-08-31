@@ -280,6 +280,10 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
     week = get_scrape_week()
   }
 
+  if(isTRUE(week != get_scrape_week())) {
+    clear_ffanalytics_cache("FantasySharks Scrape")
+  }
+
   curr_cache = list_ffanalytics_cache(quiet = TRUE)
   is_cached = "FantasySharks Scrape" %in% curr_cache$object
 
@@ -303,9 +307,9 @@ scrape_fantasysharks <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST", "DL
   }
 
   message("\nThe FantasySharks scrape uses a 2 second delay between pages")
-
   # historical scrapes (doesn't work)
   year = dplyr::case_when(
+    season == 2026 ~ 874,
     season == 2025 ~ 842,
     season == 2024 ~ 810,
     season == 2023 ~ 778,
@@ -1104,7 +1108,6 @@ scrape_fantasypros = function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
   }
 
 
-
   if(week > 0) {
     scrape_week = paste0(".php?week=", week)
   } else {
@@ -1452,7 +1455,7 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
 
 # FanDuel ----
 scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
-                           season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
+                           season = NULL, week = NULL, draft = FALSE, weekly = TRUE) {
 
   if(is.null(week)) {
     season = get_scrape_year()

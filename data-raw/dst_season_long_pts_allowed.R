@@ -28,8 +28,9 @@ model_coefs$id = get_mfl_id(pos = "DST", team = model_coefs$team)
 model_coefs$nfl_id = player_ids$nfl_id[match(model_coefs$id, player_ids$id)]
 pts_bracket_coefs = model_coefs[c("id", "nfl_id", "team", "Intercept", "season_mean")]
 
-usethis::use_data(pts_bracket_coefs, player_ids, overwrite = TRUE, internal = TRUE)
-
+usethis::use_data(bonus_col_sets, bonus_col_coefs,
+                  pts_bracket_coefs, player_ids,
+                  overwrite = TRUE, internal = TRUE)
 
 
 
