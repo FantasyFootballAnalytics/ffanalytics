@@ -28,7 +28,6 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
     }
   }
 
-
   l_p_info = Filter(Negate(is.null), l_p_info)
   l_p_info = lapply(l_p_info, function(x) {
     x = rename_vec(toupper(x), unlist(pos_corrections))
@@ -86,6 +85,7 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
     all(x %in% names(l_p_info))
   }, logical(1L))
 
+
   for(combo in col_combos[combo_idx]) {
     id_idx = is.na(l_p_info$id)
 
@@ -105,6 +105,9 @@ get_mfl_id = function(id_col = NULL, player_name = NULL, first = NULL,
     match_vec = unlist(l)
 
     l_p_info$id[id_idx] = ref_table$id[keep_in_ref][match_vec]
+
+    already_matched = na.omit(unique(l_p_info$id))
+    ref_table = ref_table[!ref_table$id %in% already_matched, ]
 
   }
   l_p_info$id

@@ -2,7 +2,8 @@
 scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "rookies"),
                        position = c("Overall", "QB", "RB", "WR", "TE", "K", "SUPERFLEX", "DST", "IDP",
                                     "DL", "LB", "DB"),
-                       rank_type = c("Std", "PPR", "Half")) {
+                       rank_type = c("Std", "PPR", "Half"),
+                       include_src_id = FALSE) {
 
   rank_period = match.arg(rank_period, c("draft", "weekly", "ros", "dynasty", "rookies"))
   position = match.arg(position, c("Overall", "QB", "RB", "WR", "TE", "K", "SUPERFLEX", "DST", "IDP",
@@ -87,13 +88,23 @@ scrape_ecr <- function(rank_period = c("draft", "weekly", "ros", "dynasty", "roo
 
   out_df = bind_rows(rank_tab) %>%
     mutate(fantasypro_num_id = player_id) %>%
-    transmute(id = get_mfl_id(fantasypro_num_id, player_name = player_name,
+    mutate(id = get_mfl_id(fantasypro_num_id, player_name = player_name,
                               team = player_team_id, pos = player_position_id),
               avg = as.numeric(rank_ave),
               std_dev = as.numeric(rank_std),
               ecr_rank = as.integer(rank_ecr),
               ecr_min = as.integer(rank_min),
               ecr_max = as.integer(rank_max))
+
+  if(isTRUE(include_src_id)) {
+    out_df = out_df %>%
+      dplyr::select(id, avg, std_dev, ecr_rank, ecr_min, ecr_max,
+                    fantasypro_num_id, player_name, team = player_team_id, pos = player_position_id)
+  } else {
+    out_df = out_df %>%
+      dplyr::select(id, avg, std_dev, ecr_rank, ecr_min, ecr_max)
+  }
+
 
   if(is_cache_format) {
     cache_object(out_df, file_name)

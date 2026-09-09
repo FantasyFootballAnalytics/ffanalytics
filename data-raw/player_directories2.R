@@ -38,14 +38,19 @@ final_fft = dplyr::bind_rows(scrape_fft) %>%
 # Getting Players from last years stats
 # Getting links
 
-scrape_fp = scrape_fantasypros()
+scrape_fp = scrape_fantasypros() %>%
+  dplyr::bind_rows() %>%
+  dplyr::select(id, fantasypro_num_id = src_id, player, team, pos)
 
-final_fp_all = dplyr::bind_rows(scrape_fp) %>%
+scrape_fp2 = scrape_ecr("draft", "Overall", "PPR", include_src_id = TRUE) %>%
+  dplyr::select(id, fantasypro_num_id, player = player_name, team, pos)
+
+final_fp_all = dplyr::bind_rows(scrape_fp, scrape_fp2) %>%
   dplyr::distinct() %>%
   transmute(player = ifelse(pos == "DST", team, player),
             merge_id = gsub("[[:punct:]]|\\s+", "", tolower(player)),
             merge_id = paste0(gsub("\\s+", "", merge_id), "_", tolower(pos)),
-            fantasypro_num_id = src_id,
+            fantasypro_num_id,
             id,
             player = NULL)
 
