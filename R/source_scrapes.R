@@ -1455,9 +1455,9 @@ scrape_fantasydata = function(pos = NULL, season = NULL, week = NULL,
 
 # FanDuel ----
 scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
-                           season = NULL, week = NULL, draft = FALSE, weekly = TRUE) {
+                           season = NULL, week = NULL, draft = TRUE, weekly = TRUE) {
 
-  if(is.null(week)) {
+  if(is.null(season)) {
     season = get_scrape_year()
   }
 
@@ -1469,6 +1469,13 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     proj_type = "WEEKLY"
   } else {
     proj_type = "REMAINING"
+
+    if(get_scrape_week() > 1) {
+      message(
+        "\nNote: FanDuel season projections cover the remaining games only",
+        " (currently week ", get_scrape_week(), " onward), not the full season."
+      )
+    }
   }
 
   if(is.null(pos)) {
@@ -1661,7 +1668,12 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     ) %>%
     httr2::req_user_agent(
       "ffanalytics R package (https://github.com/FantasyFootballAnalytics/ffanalytics)"
-      )
+      ) %>%
+    httr2::req_retry(
+      max_tries = 5,
+      is_transient = function(resp) httr2::resp_status(resp) >= 500,
+      backoff = function(attempt) min(2 ^ attempt, 30)
+    )
 
   position_groups <- list(
     NFL_SKILL  = c("QB","RB","WR","TE"),
@@ -1673,8 +1685,12 @@ scrape_fanduel <- function(pos = c("QB", "RB", "WR", "TE", "K", "DST"),
     vapply(position_groups, function(x) any(pos %in% x), logical(1))
   ]
 
-  all_dfs <- map(graphql_positions, function(graph_pos) {
+  all_dfs <- imap(graphql_positions, function(graph_pos, i) {
     data_payload$variables$input$position <- graph_pos
+
+    if(i > 1) {
+      Sys.sleep(2L)
+    }
 
     resp <- req %>%
       httr2::req_body_json(data_payload) %>%
