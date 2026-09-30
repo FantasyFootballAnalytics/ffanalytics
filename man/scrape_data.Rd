@@ -19,10 +19,10 @@ of \code{c("CBS", "ESPN", "FantasyData", "FantasyPros", "FantasySharks",
 "FFToday", "FleaFlicker", "NumberFire", "Yahoo", "FantasyFootballNerd", "NFL",
 "RTSports","Walterfootball", "FanDuel")}}
 
-\item{pos}{the posistions that data should be scraped for. Should be one or more
+\item{pos}{the positions that data should be scraped for. Should be one or more
 of \code{c("QB", "RB", "WR", "TE", "K", "DST", "DL", "LB", "DB")}}
 
-\item{season}{The seaon for which data should be scraped. Should be set to the
+\item{season}{The season for which data should be scraped. Should be set to the
 current season.}
 
 \item{week}{The week for which data should be scraped. Set to 0 to get season
